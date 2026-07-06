@@ -6,13 +6,28 @@ namespace Webconsulting\Abilities\Tests\Unit\Execution;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Webconsulting\Abilities\Domain\AbilityResult;
 use Webconsulting\Abilities\Domain\ExecutionContext;
+use Webconsulting\Abilities\Event\AbilityExecutedEvent;
 use Webconsulting\Abilities\Execution\AbilityExecutor;
 use Webconsulting\Abilities\Policy\PolicyProvider;
 use Webconsulting\Abilities\Tests\Fixtures\CallbackAbility;
 use Webconsulting\Abilities\Tests\Fixtures\EchoAbility;
 use Webconsulting\Abilities\Validation\SchemaValidator;
+
+final class CollectingDispatcher implements EventDispatcherInterface
+{
+    /** @var list<object> */
+    public array $events = [];
+
+    public function dispatch(object $event): object
+    {
+        $this->events[] = $event;
+
+        return $event;
+    }
+}
 
 final class AbilityExecutorTest extends TestCase
 {
@@ -192,6 +207,47 @@ final class AbilityExecutorTest extends TestCase
         );
         self::assertTrue($approved->ok);
         self::assertSame('ran', $approved->data);
+    }
+
+    #[Test]
+    public function dispatchesExecutionEventWithResultAndDuration(): void
+    {
+        $dispatcher = new CollectingDispatcher();
+        $executor = new AbilityExecutor(
+            new SchemaValidator(),
+            new PolicyProvider('/nonexistent/abilities-policy.yaml'),
+            $dispatcher,
+        );
+
+        $executor->execute(new EchoAbility(), ['message' => 'hi'], ExecutionContext::cli());
+
+        self::assertCount(1, $dispatcher->events);
+        $event = $dispatcher->events[0];
+        self::assertInstanceOf(AbilityExecutedEvent::class, $event);
+        self::assertSame('test/echo', $event->definition->name);
+        self::assertSame(ExecutionContext::SURFACE_CLI, $event->context->surface);
+        self::assertSame(['message' => 'hi'], $event->input);
+        self::assertTrue($event->result->ok);
+        self::assertGreaterThanOrEqual(0.0, $event->durationMs);
+    }
+
+    #[Test]
+    public function deniedExecutionsAreAnnouncedToo(): void
+    {
+        $dispatcher = new CollectingDispatcher();
+        $executor = new AbilityExecutor(
+            new SchemaValidator(),
+            new PolicyProvider('/nonexistent/abilities-policy.yaml'),
+            $dispatcher,
+        );
+
+        $executor->execute(new EchoAbility(), [], ExecutionContext::cli());
+
+        self::assertCount(1, $dispatcher->events);
+        $event = $dispatcher->events[0];
+        self::assertInstanceOf(AbilityExecutedEvent::class, $event);
+        self::assertFalse($event->result->ok);
+        self::assertSame(AbilityResult::ERROR_INVALID_INPUT, $event->result->errorCode);
     }
 
     #[Test]

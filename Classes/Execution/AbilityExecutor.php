@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Webconsulting\Abilities\Execution;
 
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Webconsulting\Abilities\Domain\AbilityDefinition;
 use Webconsulting\Abilities\Domain\AbilityResult;
 use Webconsulting\Abilities\Domain\ExecutionContext;
+use Webconsulting\Abilities\Event\AbilityExecutedEvent;
 use Webconsulting\Abilities\Policy\PolicyProvider;
 use Webconsulting\Abilities\Registry\AbilityInterface;
 use Webconsulting\Abilities\Validation\SchemaValidator;
@@ -23,13 +25,15 @@ use Webconsulting\Abilities\Validation\SchemaValidator;
  *   6. output validation  (against the ability's output schema)
  *
  * Mirrors the WordPress Abilities API execution order, with the policy gate
- * in front because governance outranks contracts.
+ * in front because governance outranks contracts. Every attempt — allowed,
+ * denied or failed — is announced via AbilityExecutedEvent.
  */
 class AbilityExecutor
 {
     public function __construct(
         private readonly SchemaValidator $validator,
         private readonly PolicyProvider $policyProvider,
+        private readonly ?EventDispatcherInterface $eventDispatcher = null,
     ) {
     }
 
@@ -39,7 +43,30 @@ class AbilityExecutor
     public function execute(AbilityInterface $ability, array $input, ExecutionContext $context): AbilityResult
     {
         $definition = AbilityDefinition::fromInstance($ability);
+        $started = hrtime(true);
 
+        $result = $this->runPipeline($ability, $definition, $input, $context);
+
+        $this->eventDispatcher?->dispatch(new AbilityExecutedEvent(
+            definition: $definition,
+            context: $context,
+            input: $input,
+            result: $result,
+            durationMs: (hrtime(true) - $started) / 1_000_000,
+        ));
+
+        return $result;
+    }
+
+    /**
+     * @param array<string, mixed> $input
+     */
+    private function runPipeline(
+        AbilityInterface $ability,
+        AbilityDefinition $definition,
+        array $input,
+        ExecutionContext $context,
+    ): AbilityResult {
         $decision = $this->policyProvider->get()->decide($definition, $context);
         if (!$decision->allowed) {
             return AbilityResult::failure(AbilityResult::ERROR_POLICY_DENIED, $decision->reason ?? 'Denied by policy.');

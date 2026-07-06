@@ -9,6 +9,7 @@ services:
     exclude:
       - '../Classes/Attribute/*'
       - '../Classes/Domain/*'
+      - '../Classes/Event/*'
       - '../Classes/Policy/AbilityPolicy.php'
       - '../Classes/Policy/PolicyDecision.php'
       - '../Classes/Projection/Mcp/AbilityMcpTool.php'
