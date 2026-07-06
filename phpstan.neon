@@ -1,0 +1,10 @@
+parameters:
+    level: max
+    paths:
+        - Classes
+        - Tests
+    excludePaths:
+        - Tests/Stubs/McpStubs.php
+    bootstrapFiles:
+        - Tests/phpstan-bootstrap.php
+    treatPhpDocTypesAsCertain: false

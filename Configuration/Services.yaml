@@ -1,0 +1,20 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  Webconsulting\Abilities\:
+    resource: '../Classes/*'
+    exclude:
+      - '../Classes/Attribute/*'
+      - '../Classes/Domain/*'
+      - '../Classes/Policy/AbilityPolicy.php'
+      - '../Classes/Policy/PolicyDecision.php'
+      - '../Classes/Projection/Mcp/AbilityMcpTool.php'
+
+  Webconsulting\Abilities\Registry\AbilitiesRegistry:
+    public: true
+
+  Webconsulting\Abilities\Execution\AbilityExecutor:
+    public: true
