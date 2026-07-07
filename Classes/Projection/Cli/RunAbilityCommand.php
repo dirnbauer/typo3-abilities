@@ -10,6 +10,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use TYPO3\CMS\Core\Core\Bootstrap;
 use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Execution\AbilityExecutor;
 use Webconsulting\Abilities\Registry\AbilitiesRegistry;
@@ -48,6 +49,14 @@ final class RunAbilityCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        // Abilities check real backend permissions and may run DataHandler:
+        // boot the _cli_ backend user like every writing TYPO3 command does.
+        // Gated on the TYPO3 constant so plain unit runs skip the boot;
+        // abilities needing a backend user then deny via checkPermission().
+        if (defined('TYPO3') && !isset($GLOBALS['BE_USER'])) {
+            Bootstrap::initializeBackendAuthentication();
+        }
+
         $name = $input->getArgument('name');
         $name = is_string($name) ? $name : '';
         if (!$this->registry->has($name)) {
