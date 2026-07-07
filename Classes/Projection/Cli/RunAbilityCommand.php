@@ -51,9 +51,14 @@ final class RunAbilityCommand extends Command
     {
         // Abilities check real backend permissions and may run DataHandler:
         // boot the _cli_ backend user like every writing TYPO3 command does.
-        // Gated on the TYPO3 constant so plain unit runs skip the boot;
-        // abilities needing a backend user then deny via checkPermission().
-        if (defined('TYPO3') && !isset($GLOBALS['BE_USER'])) {
+        // TYPO3's CLI pre-sets an UNAUTHENTICATED BE_USER shell, so the gate
+        // is "no logged-in user yet", not "no global". Plain unit runs
+        // (no TYPO3 constant) skip the boot; abilities needing a backend
+        // user then deny via checkPermission().
+        $backendUser = $GLOBALS['BE_USER'] ?? NULL;
+        if (defined('TYPO3')
+            && (!is_object($backendUser) || empty($backendUser->user['uid'] ?? NULL))
+        ) {
             Bootstrap::initializeBackendAuthentication();
         }
 
