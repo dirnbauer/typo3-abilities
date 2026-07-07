@@ -10,6 +10,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Core\Bootstrap;
 use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Execution\AbilityExecutor;
@@ -55,10 +56,10 @@ final class RunAbilityCommand extends Command
         // is "no logged-in user yet", not "no global". Plain unit runs
         // (no TYPO3 constant) skip the boot; abilities needing a backend
         // user then deny via checkPermission().
-        $backendUser = $GLOBALS['BE_USER'] ?? NULL;
-        if (defined('TYPO3')
-            && (!is_object($backendUser) || empty($backendUser->user['uid'] ?? NULL))
-        ) {
+        $backendUser = $GLOBALS['BE_USER'] ?? null;
+        $userId = $backendUser instanceof BackendUserAuthentication ? ($backendUser->user['uid'] ?? null) : null;
+        $hasAuthenticatedUser = is_numeric($userId) && (int)$userId > 0;
+        if (defined('TYPO3') && !$hasAuthenticatedUser) {
             Bootstrap::initializeBackendAuthentication();
         }
 
