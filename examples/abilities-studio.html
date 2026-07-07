@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TYPO3 Abilities Studio</title>
+<style>
+  :root {
+    --bg: #0b0d10; --panel: #14171c; --panel-2: #1a1e24; --border: #262b33;
+    --text: #e7ebf0; --muted: #8b94a1; --accent: #ff8700; --accent-2: #ffa940;
+    --ok: #2fbf71; --warn: #e8b339; --danger: #e5534b; --info: #4c9aff;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--panel); }
+  header .logo { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), #d96c00); display: grid; place-items: center; font-weight: 800; font-size: 12px; color: #fff; }
+  header h1 { font-size: 15px; font-weight: 650; }
+  header .sub { color: var(--muted); font-size: 12px; }
+  header .spacer { flex: 1; }
+  .conn-pill { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px; cursor: pointer; background: var(--panel-2); }
+  .conn-pill:hover { border-color: var(--accent); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #555; }
+  .dot.on { background: var(--ok); box-shadow: 0 0 6px var(--ok); }
+  .dot.err { background: var(--danger); }
+
+  main { flex: 1; display: grid; grid-template-columns: 300px 1fr; overflow: hidden; }
+  @media (max-width: 800px) { main { grid-template-columns: 1fr; } #sidebar { display: none; } }
+
+  #sidebar { border-right: 1px solid var(--border); overflow-y: auto; background: var(--panel); }
+  .cat { padding: 10px 14px 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .ability-item { display: block; width: 100%; text-align: left; background: none; border: 0; color: var(--text); padding: 8px 14px; cursor: pointer; font-family: var(--mono); font-size: 12.5px; border-left: 2px solid transparent; }
+  .ability-item:hover { background: var(--panel-2); }
+  .ability-item.active { background: var(--panel-2); border-left-color: var(--accent); }
+  .ability-item .risk { float: right; }
+
+  #content { overflow-y: auto; padding: 20px 24px 60px; }
+  .empty { color: var(--muted); display: grid; place-items: center; height: 70%; text-align: center; line-height: 1.7; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .risk-low { background: rgba(47,191,113,.15); color: var(--ok); }
+  .risk-medium { background: rgba(232,179,57,.15); color: var(--warn); }
+  .risk-high { background: rgba(255,135,0,.18); color: var(--accent-2); }
+  .risk-critical { background: rgba(229,83,75,.18); color: var(--danger); }
+  .badge.flag { background: rgba(76,154,255,.13); color: var(--info); }
+  .badge.destructive { background: rgba(229,83,75,.18); color: var(--danger); }
+
+  .detail h2 { font-family: var(--mono); font-size: 20px; margin-bottom: 4px; }
+  .detail .title { color: var(--muted); margin-bottom: 10px; }
+  .detail .desc { line-height: 1.6; margin: 10px 0 16px; max-width: 75ch; }
+  .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 14px 0 20px; }
+  .meta-card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+  .meta-card .k { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 5px; }
+  .meta-card .v { font-family: var(--mono); font-size: 12.5px; word-break: break-all; }
+
+  .section { margin-top: 22px; }
+  .section > h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 8px; }
+  pre.schema { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px; font-family: var(--mono); font-size: 12px; overflow-x: auto; max-height: 260px; line-height: 1.5; }
+
+  textarea, input[type=text], input[type=password], input[type=url] { width: 100%; background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--mono); font-size: 12.5px; padding: 10px; }
+  textarea:focus, input:focus { outline: none; border-color: var(--accent); }
+  textarea { min-height: 120px; resize: vertical; }
+
+  button.primary { background: var(--accent); color: #1a1200; border: 0; border-radius: 8px; padding: 9px 18px; font-weight: 700; font-size: 13px; cursor: pointer; }
+  button.primary:hover { background: var(--accent-2); }
+  button.primary:disabled { opacity: .5; cursor: default; }
+  button.ghost { background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 8px 14px; font-size: 12.5px; cursor: pointer; }
+  button.ghost:hover { border-color: var(--accent); }
+
+  .runbar { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+  .result { margin-top: 14px; border-radius: 10px; border: 1px solid var(--border); overflow: hidden; }
+  .result .rhead { display: flex; gap: 10px; align-items: center; padding: 8px 12px; font-family: var(--mono); font-size: 12px; background: var(--panel); }
+  .result.ok .rhead { border-left: 3px solid var(--ok); }
+  .result.fail .rhead { border-left: 3px solid var(--danger); }
+  .result pre { padding: 12px; font-family: var(--mono); font-size: 12px; overflow-x: auto; max-height: 380px; background: var(--panel-2); line-height: 1.5; }
+  .hitl-note { margin-top: 10px; border: 1px solid rgba(232,179,57,.4); background: rgba(232,179,57,.08); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; line-height: 1.6; }
+
+  dialog { margin: auto; background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 14px; padding: 22px; width: min(480px, 92vw); }
+  dialog::backdrop { background: rgba(0,0,0,.6); }
+  dialog h2 { font-size: 16px; margin-bottom: 4px; }
+  dialog p.hint { color: var(--muted); font-size: 12.5px; margin-bottom: 14px; line-height: 1.6; }
+  dialog label { display: block; font-size: 12px; color: var(--muted); margin: 12px 0 5px; }
+  dialog .actions { display: flex; gap: 10px; margin-top: 18px; justify-content: flex-end; }
+  .cors-help { margin-top: 14px; font-size: 12px; color: var(--muted); background: var(--panel-2); border-radius: 8px; padding: 10px; line-height: 1.7; display: none; }
+  .cors-help code { color: var(--accent-2); font-family: var(--mono); }
+
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+  .tabbar button { background: none; border: 0; color: var(--muted); padding: 9px 14px; font-size: 13px; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tabbar button.active { color: var(--text); border-bottom-color: var(--accent); }
+
+  table.news { width: 100%; border-collapse: collapse; }
+  table.news th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  table.news td { padding: 9px 10px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  table.news tr:hover td { background: var(--panel-2); cursor: pointer; }
+  footer { padding: 8px 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 11.5px; background: var(--panel); }
+  footer code { font-family: var(--mono); color: var(--accent-2); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">T3</div>
+  <div>
+    <h1>Abilities Studio</h1>
+    <div class="sub">One registry · governed projections — a web interface on the TYPO3 abilities REST surface</div>
+  </div>
+  <div class="spacer"></div>
+  <button class="conn-pill" id="connPill" onclick="openSettings()">
+    <span class="dot" id="connDot"></span><span id="connLabel">Not connected</span>
+  </button>
+</header>
+
+<main>
+  <nav id="sidebar"><div class="empty" style="height:auto;padding:30px 20px;">Connect to load the registry</div></nav>
+  <section id="content">
+    <div class="tabbar">
+      <button id="tabRegistry" class="active" onclick="showTab('registry')">Registry</button>
+      <button id="tabNews" onclick="showTab('news')">News</button>
+    </div>
+    <div id="registryView">
+      <div class="empty">
+        <div>
+          <p style="font-size:38px;margin-bottom:10px;">⚡</p>
+          <p><strong>TYPO3 Abilities Studio</strong></p>
+          <p>Every operation here runs through the typed, permissioned abilities registry —<br>
+          the same governed pipeline that serves MCP tools, the CLI and the desktop editor.</p>
+          <p style="margin-top:14px;"><button class="primary" onclick="openSettings()">Connect to an installation</button></p>
+        </div>
+      </div>
+    </div>
+    <div id="newsView" style="display:none;"></div>
+  </section>
+</main>
+
+<footer>
+  Runs execute with <code>surface: rest</code> and land in <code>tx_abilities_trace</code> with the token's backend user ·
+  Review-gated abilities are never approvable over REST — that is the human-in-the-loop design, not a bug.
+</footer>
+
+<dialog id="settings">
+  <h2>Connection</h2>
+  <p class="hint">Uses the abilities REST projection (<code>/api/abilities/v1</code>) with a backend-user-bound
+  opaque token (<code>tx_apicore_token</code>, api&nbsp;id <code>abilities</code>, tenant = site identifier).</p>
+  <label>Installation base URL</label>
+  <input type="url" id="setUrl" placeholder="https://webconsulting-typo3-lab.ddev.site">
+  <label>API token</label>
+  <input type="password" id="setToken" placeholder="lab-abilities-…">
+  <div class="cors-help" id="corsHelp">
+    <strong>Connection blocked?</strong> The API matches origins exactly. Add this page's origin to the
+    sg_apicore extension setting <code>abilitiesApiCorsOrigins</code>:<br>
+    <code id="corsOrigin"></code><br>
+    (Settings → Extension Configuration → sg_apicore → Abilities, then flush caches.)
+  </div>
+  <div class="actions">
+    <button class="ghost" onclick="document.getElementById('settings').close()">Cancel</button>
+    <button class="primary" onclick="saveSettings()">Connect</button>
+  </div>
+</dialog>
+
+<script>
+const state = { url: '', token: '', abilities: [], selected: null, tab: 'registry' };
+
+function load() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('abilities-studio') || '{}');
+    state.url = saved.url || '';
+    state.token = saved.token || '';
+  } catch (e) { /* fresh start */ }
+  if (state.url && state.token) { connect(); }
+}
+
+function openSettings() {
+  document.getElementById('setUrl').value = state.url;
+  document.getElementById('setToken').value = state.token;
+  document.getElementById('corsOrigin').textContent = location.origin;
+  document.getElementById('settings').showModal();
+}
+
+function saveSettings() {
+  state.url = document.getElementById('setUrl').value.trim().replace(/\/+$/, '');
+  state.token = document.getElementById('setToken').value.trim();
+  localStorage.setItem('abilities-studio', JSON.stringify({ url: state.url, token: state.token }));
+  document.getElementById('settings').close();
+  connect();
+}
+
+async function api(path, options = {}) {
+  const response = await fetch(state.url + '/api/abilities/v1' + path, {
+    ...options,
+    headers: { 'Authorization': 'Bearer ' + state.token, 'Content-Type': 'application/json', ...(options.headers || {}) },
+  });
+  return { status: response.status, body: await response.json().catch(() => null) };
+}
+
+function setConn(status, label) {
+  document.getElementById('connDot').className = 'dot ' + status;
+  document.getElementById('connLabel').textContent = label;
+}
+
+async function connect() {
+  setConn('', 'Connecting…');
+  try {
+    const { status, body } = await api('/abilities');
+    if (status === 401 || status === 403) { setConn('err', 'Token rejected'); return; }
+    if (status !== 200 || !body) { setConn('err', 'HTTP ' + status); return; }
+    const data = body.data || body;
+    state.abilities = data.abilities || [];
+    setConn('on', new URL(state.url).host + ' · ' + state.abilities.length + ' abilities');
+    renderSidebar();
+    if (state.abilities.length && !state.selected) { selectAbility(state.abilities[0].name); }
+  } catch (e) {
+    setConn('err', 'Unreachable — CORS or network');
+    document.getElementById('corsHelp').style.display = 'block';
+    openSettings();
+  }
+}
+
+function riskBadge(tier) { return '<span class="badge risk-' + tier + '">' + tier + '</span>'; }
+function esc(s) { return String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+function renderSidebar() {
+  const byCat = {};
+  state.abilities.forEach(a => { (byCat[a.category] = byCat[a.category] || []).push(a); });
+  document.getElementById('sidebar').innerHTML = Object.keys(byCat).sort().map(cat =>
+    '<div class="cat">' + esc(cat) + '</div>' + byCat[cat].map(a =>
+      '<button class="ability-item" data-name="' + esc(a.name) + '" onclick="selectAbility(this.dataset.name)">' +
+      esc(a.name) + ' <span class="risk">' + riskBadge(a.riskTier) + '</span></button>'
+    ).join('')
+  ).join('');
+}
+
+function skeletonFromSchema(schema) {
+  const example = {};
+  const props = (schema && schema.properties) || {};
+  const required = (schema && schema.required) || [];
+  for (const [key, def] of Object.entries(props)) {
+    if (!required.includes(key) && !('default' in (def || {}))) { continue; }
+    const type = Array.isArray(def.type) ? def.type[0] : def.type;
+    if ('default' in def) { example[key] = def.default; }
+    else if (def.enum) { example[key] = def.enum[0]; }
+    else if (type === 'integer' || type === 'number') { example[key] = def.minimum ?? 1; }
+    else if (type === 'boolean') { example[key] = false; }
+    else if (type === 'array') { example[key] = []; }
+    else if (type === 'object') { example[key] = {}; }
+    else { example[key] = ''; }
+  }
+  return example;
+}
+
+async function selectAbility(name) {
+  showTab('registry');
+  state.selected = name;
+  document.querySelectorAll('.ability-item').forEach(el => el.classList.toggle('active', el.dataset.name === name));
+  const summary = state.abilities.find(a => a.name === name);
+  const view = document.getElementById('registryView');
+  view.innerHTML = '<div class="empty">Loading ' + esc(name) + '…</div>';
+
+  const [ns, short] = name.split('/');
+  const { status, body } = await api('/abilities/' + ns + '/' + short);
+  const detail = (status === 200 && body) ? (body.data || body) : summary;
+  const inputSchema = detail.inputSchema || {};
+
+  view.innerHTML = `
+    <div class="detail">
+      <h2>${esc(detail.name)} ${riskBadge(detail.riskTier)}
+        ${detail.destructive ? '<span class="badge destructive">destructive</span>' : ''}
+        ${detail.readOnly ? '<span class="badge flag">read-only</span>' : ''}
+        ${detail.idempotent ? '<span class="badge flag">idempotent</span>' : ''}
+      </h2>
+      <div class="title">${esc(detail.title)}</div>
+      <div class="desc">${esc(detail.description)}</div>
+      <div class="meta-grid">
+        <div class="meta-card"><div class="k">Scopes</div><div class="v">${detail.scopes.map(esc).join(', ') || '—'}</div></div>
+        <div class="meta-card"><div class="k">Side effects</div><div class="v">${detail.sideEffects.map(esc).join(', ') || 'none'}</div></div>
+        <div class="meta-card"><div class="k">MCP tool</div><div class="v">${esc(detail.mcpToolName)}</div></div>
+        <div class="meta-card"><div class="k">Surfaces</div><div class="v">${detail.expose.map(esc).join(', ')}</div></div>
+      </div>
+      ${detail.riskTier === 'high' || detail.riskTier === 'critical' ? `
+      <div class="hitl-note">⚖️ <strong>Review-gated by policy.</strong> If the site policy marks this risk tier
+      <code>review_required</code>, REST runs are denied by design — a bearer token is not a human in the loop.
+      Approval surfaces: <code>abilities:run --approve-review</code> (operator CLI) or the desktop editor's confirmation dialog.
+      Expect <code>policy_denied</code> below; that denial is itself recorded in the trace table.</div>` : ''}
+      <div class="section">
+        <h3>Run — input JSON</h3>
+        <textarea id="runInput">${esc(JSON.stringify(skeletonFromSchema(inputSchema), null, 2))}</textarea>
+        <div class="runbar">
+          <button class="primary" id="runBtn" onclick="runAbility()">Run ability</button>
+          <span style="color:var(--muted);font-size:12px;">POST /api/abilities/v1/abilities/${esc(name)}/run</span>
+        </div>
+        <div id="runResult"></div>
+      </div>
+      <div class="section"><h3>Input schema</h3><pre class="schema">${esc(JSON.stringify(inputSchema, null, 2))}</pre></div>
+      <div class="section"><h3>Output schema</h3><pre class="schema">${esc(JSON.stringify(detail.outputSchema || {}, null, 2))}</pre></div>
+    </div>`;
+}
+
+async function runAbility() {
+  const name = state.selected;
+  let input;
+  try { input = JSON.parse(document.getElementById('runInput').value || '{}'); }
+  catch (e) { alert('Input is not valid JSON: ' + e.message); return; }
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true; btn.textContent = 'Running…';
+  const started = performance.now();
+  try {
+    const [ns, short] = name.split('/');
+    const { status, body } = await api('/abilities/' + ns + '/' + short + '/run', { method: 'POST', body: JSON.stringify(input) });
+    const ms = Math.round(performance.now() - started);
+    const ok = body && body.ok === true;
+    document.getElementById('runResult').innerHTML =
+      '<div class="result ' + (ok ? 'ok' : 'fail') + '">' +
+      '<div class="rhead"><strong>HTTP ' + status + '</strong>' +
+      (ok ? '<span class="badge risk-low">ok</span>' : '<span class="badge risk-critical">' + esc((body && body.errorCode) || 'error') + '</span>') +
+      '<span style="color:var(--muted)">' + ms + ' ms · traced as surface "rest"</span></div>' +
+      '<pre>' + esc(JSON.stringify(body, null, 2)) + '</pre></div>';
+  } catch (e) {
+    document.getElementById('runResult').innerHTML = '<div class="result fail"><div class="rhead">Network error</div><pre>' + esc(e.message) + '</pre></div>';
+  }
+  btn.disabled = false; btn.textContent = 'Run ability';
+}
+
+function showTab(tab) {
+  state.tab = tab;
+  document.getElementById('tabRegistry').classList.toggle('active', tab === 'registry');
+  document.getElementById('tabNews').classList.toggle('active', tab === 'news');
+  document.getElementById('registryView').style.display = tab === 'registry' ? '' : 'none';
+  document.getElementById('newsView').style.display = tab === 'news' ? '' : 'none';
+  if (tab === 'news') { loadNews(); }
+}
+
+async function loadNews() {
+  const view = document.getElementById('newsView');
+  if (!state.abilities.some(a => a.name === 'news/list-articles')) {
+    view.innerHTML = '<div class="empty">The connected installation exposes no news abilities.</div>';
+    return;
+  }
+  view.innerHTML = '<div class="empty">Loading news through <code>news/list-articles</code>…</div>';
+  const { body } = await api('/abilities/news/list-articles/run', { method: 'POST', body: JSON.stringify({ limit: 20 }) });
+  if (!body || body.ok !== true) {
+    view.innerHTML = '<div class="empty">Run failed: <code>' + esc((body && body.error) || 'unknown') + '</code></div>';
+    return;
+  }
+  const items = body.data.items || [];
+  view.innerHTML =
+    '<p style="color:var(--muted);font-size:12.5px;margin-bottom:10px;">' + esc(String(body.data.total)) + ' articles — read through the governed registry, not a hand-rolled endpoint.</p>' +
+    '<table class="news"><tr><th>uid</th><th>Title</th><th>Date</th><th>Flags</th></tr>' +
+    items.map(n => '<tr onclick="openArticle(' + Number(n.uid) + ')"><td>' + Number(n.uid) + '</td><td>' + esc(n.title) + '</td><td>' +
+      (n.datetime ? new Date(n.datetime * 1000).toLocaleDateString() : '—') + '</td><td>' +
+      (n.hidden ? '<span class="badge risk-medium">hidden</span> ' : '') +
+      (n.istopnews || n.isTopNews ? '<span class="badge flag">top</span>' : '') + '</td></tr>').join('') +
+    '</table><div id="articleDetail"></div>';
+}
+
+async function openArticle(uid) {
+  const target = document.getElementById('articleDetail');
+  target.innerHTML = '<div class="empty" style="height:auto;padding:20px;">Loading…</div>';
+  const { body } = await api('/abilities/news/get-article/run', { method: 'POST', body: JSON.stringify({ uid }) });
+  const article = body && body.ok && body.data.found ? body.data.article : null;
+  target.innerHTML = article
+    ? '<div class="section"><h3>news/get-article → uid ' + Number(uid) + '</h3><pre class="schema" style="max-height:420px;">' + esc(JSON.stringify(article, null, 2)) + '</pre></div>'
+    : '<div class="section"><h3>Not found</h3></div>';
+}
+
+load();
+</script>
+</body>
+</html>
