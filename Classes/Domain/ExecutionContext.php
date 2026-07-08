@@ -20,6 +20,7 @@ final readonly class ExecutionContext
     public const SURFACE_MCP = 'mcp';
     public const SURFACE_REST = 'rest';
     public const SURFACE_PHP = 'php';
+    public const SURFACE_BACKEND = 'backend';
 
     /**
      * @param list<string>|null $grantedScopes
@@ -39,6 +40,17 @@ final readonly class ExecutionContext
     public static function mcp(): self
     {
         return new self(self::SURFACE_MCP, null, false);
+    }
+
+    /**
+     * A logged-in backend user driving the registry from the TYPO3 backend
+     * module. Trusted surface: the BE session already authenticated the
+     * user, so scope checks are skipped — policy and the ability's own
+     * checkPermission() (backend-user table permissions) still govern.
+     */
+    public static function backend(bool $reviewApproved = false): self
+    {
+        return new self(self::SURFACE_BACKEND, null, $reviewApproved);
     }
 
     public function hasScope(string $scope): bool

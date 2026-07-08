@@ -1,0 +1,73 @@
+.abilities-module .abilities-card {
+    margin-bottom: 1.5rem;
+}
+
+.abilities-module .abilities-card-title {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.abilities-module .abilities-name {
+    font-weight: 600;
+}
+
+.abilities-module .abilities-subtitle {
+    color: var(--typo3-text-color-variant, #6c757d);
+    font-size: 0.85rem;
+}
+
+.abilities-module .col-control {
+    width: 1%;
+    white-space: nowrap;
+    text-align: right;
+}
+
+.abilities-module .badge + .badge {
+    margin-inline-start: 0.25rem;
+}
+
+.abilities-module .abilities-runner > td {
+    background: var(--typo3-component-hover-bg, rgba(0, 0, 0, 0.02));
+}
+
+.abilities-module .abilities-description {
+    margin-bottom: 0.75rem;
+}
+
+.abilities-module .abilities-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+
+.abilities-module .abilities-approve {
+    margin: 0;
+}
+
+.abilities-module .abilities-input {
+    font-family: var(--typo3-font-family-code, monospace);
+    font-size: 0.8rem;
+}
+
+.abilities-module .abilities-result {
+    min-height: 8rem;
+    max-height: 24rem;
+    overflow: auto;
+    padding: 0.75rem;
+    border: 1px solid var(--typo3-component-border-color, #ced4da);
+    border-radius: var(--typo3-component-border-radius, 4px);
+    font-size: 0.8rem;
+}
+
+.abilities-module .abilities-result--ok {
+    border-inline-start: 3px solid var(--typo3-state-success-color, #4c8447);
+}
+
+.abilities-module .abilities-result--fail {
+    border-inline-start: 3px solid var(--typo3-state-danger-color, #c83c3c);
+}

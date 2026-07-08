@@ -19,3 +19,10 @@ services:
 
   Webconsulting\Abilities\Execution\AbilityExecutor:
     public: true
+
+  # Backend module route targets
+  Webconsulting\Abilities\Backend\Controller\AbilitiesModuleController:
+    public: true
+
+  Webconsulting\Abilities\Backend\Controller\AbilitiesAjaxController:
+    public: true
