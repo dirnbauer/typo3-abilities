@@ -116,7 +116,7 @@ vendor/bin/typo3 abilities:run risky/thing --approve-review   # HITL flag for re
 
 **Backend module** — *System → Abilities* browses the registry and runs any ability as the logged-in backend user, through the same governed pipeline, with no token or extra login. Read-only listing plus a per-ability runner (and a review-approval checkbox for high-risk abilities).
 
-**Desktop / custom hosts** — any extension can host its own projection: the [desktop connector](https://github.com/kdirnbauer/typo3-desktop-connector) fronts its news/pages/content/workspace abilities over its own JWT API for the Electron editor. A projection just calls `AbilityExecutor::execute()` with an `ExecutionContext` for its surface.
+**Desktop / custom hosts** — any extension can host its own projection. A desktop connector can front news, pages, content and workspace abilities over its own authenticated API; the projection calls `AbilityExecutor::execute()` with an `ExecutionContext` for that surface.
 
 ## Site-wide policy
 
