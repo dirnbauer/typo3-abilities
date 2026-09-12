@@ -10,17 +10,20 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
+use TYPO3\CMS\Core\Authentication\CommandLineUserAuthentication;
 use TYPO3\CMS\Core\Core\Bootstrap;
 use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Execution\AbilityExecutor;
+use Webconsulting\Abilities\Permission\BackendUserScopeResolver;
 use Webconsulting\Abilities\Registry\AbilitiesRegistry;
 
 /**
  * CLI projection: execute one ability through the full pipeline (policy →
  * input validation → scopes → permission → execute → output validation).
- * The CLI is a trusted surface; the abilities policy still applies, and
- * review-gated abilities need an explicit --approve-review.
+ * The CLI is a trusted surface (no scope checks); --as-user=<username>
+ * runs with that backend user's be_groups scopes instead. The abilities
+ * policy always applies, and review-gated abilities need an explicit
+ * --approve-review.
  */
 #[AsCommand(
     name: 'abilities:run',
@@ -31,6 +34,7 @@ final class RunAbilityCommand extends Command
     public function __construct(
         private readonly AbilitiesRegistry $registry,
         private readonly AbilityExecutor $executor,
+        private readonly ?BackendUserScopeResolver $scopeResolver = null,
     ) {
         parent::__construct();
     }
@@ -45,23 +49,18 @@ final class RunAbilityCommand extends Command
                 null,
                 InputOption::VALUE_NONE,
                 'Mark this execution as human-approved for review_required policy rules',
+            )
+            ->addOption(
+                'as-user',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Run with the ability scopes of this backend user (username) instead of the trusted CLI context',
             );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        // Abilities check real backend permissions and may run DataHandler:
-        // boot the _cli_ backend user like every writing TYPO3 command does.
-        // TYPO3's CLI pre-sets an UNAUTHENTICATED BE_USER shell, so the gate
-        // is "no logged-in user yet", not "no global". Plain unit runs
-        // (no TYPO3 constant) skip the boot; abilities needing a backend
-        // user then deny via checkPermission().
-        $backendUser = $GLOBALS['BE_USER'] ?? null;
-        $userId = $backendUser instanceof BackendUserAuthentication ? ($backendUser->user['uid'] ?? null) : null;
-        $hasAuthenticatedUser = is_numeric($userId) && (int)$userId > 0;
-        if (defined('TYPO3') && !$hasAuthenticatedUser) {
-            Bootstrap::initializeBackendAuthentication();
-        }
+        $this->authenticateCliUser();
 
         $name = $input->getArgument('name');
         $name = is_string($name) ? $name : '';
@@ -101,11 +100,26 @@ final class RunAbilityCommand extends Command
             $objectInput[(string)$key] = $value;
         }
 
-        $result = $this->executor->execute(
-            $this->registry->get($name),
-            $objectInput,
-            ExecutionContext::cli(reviewApproved: (bool)$input->getOption('approve-review')),
-        );
+        $context = ExecutionContext::cli(reviewApproved: (bool)$input->getOption('approve-review'));
+        $asUser = $input->getOption('as-user');
+        if (is_string($asUser) && $asUser !== '') {
+            if ($this->scopeResolver === null) {
+                $output->writeln('<error>--as-user needs the backend user scope resolver (database access).</error>');
+
+                return Command::INVALID;
+            }
+            $user = $this->scopeResolver->findUserByUsername($asUser);
+            if ($user === null) {
+                $output->writeln(sprintf('<error>Backend user "%s" does not exist or is disabled.</error>', $asUser));
+
+                return Command::INVALID;
+            }
+            $context = $context
+                ->withGrantedScopes($this->scopeResolver->resolveForUserRecord($user))
+                ->withBackendUser((int)$user['uid']);
+        }
+
+        $result = $this->executor->execute($this->registry->get($name), $objectInput, $context, $definition);
 
         $output->writeln((string)json_encode(
             $result->toArray(),
@@ -113,5 +127,26 @@ final class RunAbilityCommand extends Command
         ));
 
         return $result->ok ? Command::SUCCESS : Command::FAILURE;
+    }
+
+    /**
+     * Abilities check real backend permissions and may run DataHandler: boot
+     * the _cli_ backend user like every writing TYPO3 command does. TYPO3's
+     * CLI pre-sets an UNAUTHENTICATED CommandLineUserAuthentication shell, so
+     * the gate is "shell present but no logged-in user yet". Runs without
+     * that shell (unit tests, embedding) skip the boot; abilities needing a
+     * backend user then deny via checkPermission().
+     */
+    private function authenticateCliUser(): void
+    {
+        $backendUser = $GLOBALS['BE_USER'] ?? null;
+        if (!$backendUser instanceof CommandLineUserAuthentication) {
+            return;
+        }
+        $userId = $backendUser->user['uid'] ?? null;
+        if (is_numeric($userId) && (int)$userId > 0) {
+            return;
+        }
+        Bootstrap::initializeBackendAuthentication();
     }
 }

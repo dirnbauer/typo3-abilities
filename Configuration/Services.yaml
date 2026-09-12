@@ -23,6 +23,12 @@ services:
   Webconsulting\Abilities\Execution\AbilityExecutor:
     public: true
 
+  Webconsulting\Abilities\Permission\BackendUserScopeResolver:
+    public: true
+
+  Webconsulting\Abilities\Permission\ScopeItemsProcFunc:
+    public: true
+
   # Backend module route targets
   Webconsulting\Abilities\Backend\Controller\AbilitiesModuleController:
     public: true

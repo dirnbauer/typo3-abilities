@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en" datatype="plaintext" original="EXT:abilities/Resources/Private/Language/locallang_db.xlf" date="2026-09-12T00:00:00Z" product-name="abilities">
+    <body>
+      <trans-unit id="be_groups.tab">
+        <source>Abilities</source>
+      </trans-unit>
+      <trans-unit id="be_groups.tx_abilities_scopes">
+        <source>Ability scopes</source>
+      </trans-unit>
+      <trans-unit id="be_groups.tx_abilities_scopes.description">
+        <source>Scopes ("resource:operation") members of this group may use when running abilities from the backend module, the REST API (token scopes are additionally limited to these) or the CLI with --as-user. Administrators hold every scope.</source>
+      </trans-unit>
+      <trans-unit id="be_groups.tx_abilities_scopes.all">
+        <source>All scopes (*)</source>
+      </trans-unit>
+      <trans-unit id="tx_abilities_token">
+        <source>Abilities API token</source>
+      </trans-unit>
+      <trans-unit id="tx_abilities_token.name">
+        <source>Name</source>
+      </trans-unit>
+      <trans-unit id="tx_abilities_token.be_user">
+        <source>Backend user</source>
+      </trans-unit>
+      <trans-unit id="tx_abilities_token.scopes">
+        <source>Scopes</source>
+      </trans-unit>
+      <trans-unit id="tx_abilities_token.expires">
+        <source>Expires</source>
+      </trans-unit>
+      <trans-unit id="tx_abilities_token.last_used">
+        <source>Last used</source>
+      </trans-unit>
+      <trans-unit id="tx_abilities_token.token_hash">
+        <source>Token hash (SHA-256)</source>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
