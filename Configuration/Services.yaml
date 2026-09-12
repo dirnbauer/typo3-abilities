@@ -34,6 +34,9 @@ services:
   Webconsulting\Abilities\Projection\Mcp\McpProjection:
     public: true
 
+  Webconsulting\Abilities\Skills\SkillAbilityContract:
+    public: true
+
   Webconsulting\Abilities\Permission\BackendUserScopeResolver:
     public: true
 
