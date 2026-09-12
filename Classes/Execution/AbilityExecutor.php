@@ -6,9 +6,11 @@ namespace Webconsulting\Abilities\Execution;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Webconsulting\Abilities\Domain\AbilityDefinition;
+use Webconsulting\Abilities\Domain\AbilityErrorCode;
 use Webconsulting\Abilities\Domain\AbilityResult;
 use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Event\AbilityExecutedEvent;
+use Webconsulting\Abilities\Event\BeforeAbilityExecutionEvent;
 use Webconsulting\Abilities\Policy\PolicyProvider;
 use Webconsulting\Abilities\Registry\AbilityInterface;
 use Webconsulting\Abilities\Validation\SchemaValidator;
@@ -17,16 +19,17 @@ use Webconsulting\Abilities\Validation\SchemaValidator;
  * The one execution pipeline every projection (MCP, CLI, REST, PHP) goes
  * through:
  *
+ *   0. BeforeAbilityExecutionEvent (listeners may rewrite input or veto)
  *   1. policy gate        (site-wide abilities policy: deny/review/risk cap)
  *   2. input validation   (against the ability's input schema, with defaults)
  *   3. scope check        (explicitly granted scopes, if the context has any)
  *   4. permission check   (the ability's own checkPermission())
  *   5. execute
  *   6. output validation  (against the ability's output schema)
+ *   7. AfterAbilityExecutionEvent (always — denials and failures included)
  *
  * Mirrors the WordPress Abilities API execution order, with the policy gate
- * in front because governance outranks contracts. Every attempt — allowed,
- * denied or failed — is announced via AbilityExecutedEvent.
+ * in front because governance outranks contracts.
  */
 class AbilityExecutor
 {
@@ -39,14 +42,30 @@ class AbilityExecutor
 
     /**
      * @param array<string, mixed> $input
+     * @param AbilityDefinition|null $definition the registry's (possibly modified) definition; derived from the class when omitted
      */
-    public function execute(AbilityInterface $ability, array $input, ExecutionContext $context): AbilityResult
-    {
-        $definition = AbilityDefinition::fromInstance($ability);
+    public function execute(
+        AbilityInterface $ability,
+        array $input,
+        ExecutionContext $context,
+        ?AbilityDefinition $definition = null,
+    ): AbilityResult {
+        $definition ??= AbilityDefinition::fromInstance($ability);
         $started = hrtime(true);
 
-        $result = $this->runPipeline($ability, $definition, $input, $context);
+        $before = new BeforeAbilityExecutionEvent($definition, $context, $input);
+        $this->eventDispatcher?->dispatch($before);
 
+        $result = $before->isDenied()
+            ? AbilityResult::failure(
+                AbilityErrorCode::PolicyDenied,
+                $before->getDenialReason() ?? 'Denied by a BeforeAbilityExecutionEvent listener.',
+            )
+            : $this->runPipeline($ability, $definition, $before->getInput(), $context);
+
+        // The deprecated subclass is dispatched on purpose for one release:
+        // listeners on AbilityExecutedEvent and on AfterAbilityExecutionEvent
+        // both receive it (TYPO3's ListenerProvider resolves parent classes).
         $this->eventDispatcher?->dispatch(new AbilityExecutedEvent(
             definition: $definition,
             context: $context,
@@ -69,20 +88,23 @@ class AbilityExecutor
     ): AbilityResult {
         $decision = $this->policyProvider->get()->decide($definition, $context);
         if (!$decision->allowed) {
-            return AbilityResult::failure(AbilityResult::ERROR_POLICY_DENIED, $decision->reason ?? 'Denied by policy.');
+            return AbilityResult::failure(
+                $decision->reviewRequired ? AbilityErrorCode::ReviewRequired : AbilityErrorCode::PolicyDenied,
+                $decision->reason ?? 'Denied by policy.',
+            );
         }
 
         $inputSchema = $ability->getInputSchema();
         $input = $this->validator->applyDefaults($input, $inputSchema);
         $inputErrors = $this->validator->validate($input, $inputSchema, '$.input');
         if ($inputErrors !== []) {
-            return AbilityResult::failure(AbilityResult::ERROR_INVALID_INPUT, implode('; ', $inputErrors));
+            return AbilityResult::failure(AbilityErrorCode::InvalidInput, implode('; ', $inputErrors));
         }
 
         $missingScopes = $context->missingScopes($definition->scopes);
         if ($missingScopes !== []) {
             return AbilityResult::failure(
-                AbilityResult::ERROR_PERMISSION_DENIED,
+                AbilityErrorCode::InvalidPermissions,
                 sprintf(
                     'Ability "%s" requires scopes not granted to this context: %s.',
                     $definition->name,
@@ -94,7 +116,7 @@ class AbilityExecutor
         $permission = $ability->checkPermission($input, $context);
         if ($permission !== true) {
             return AbilityResult::failure(
-                AbilityResult::ERROR_PERMISSION_DENIED,
+                AbilityErrorCode::InvalidPermissions,
                 is_string($permission)
                     ? $permission
                     : sprintf('Permission check of ability "%s" denied execution.', $definition->name),
@@ -105,7 +127,7 @@ class AbilityExecutor
             $output = $ability->execute($input, $context);
         } catch (\Throwable $exception) {
             return AbilityResult::failure(
-                AbilityResult::ERROR_EXECUTION_ERROR,
+                AbilityErrorCode::CannotExecute,
                 sprintf('%s: %s', $exception::class, $exception->getMessage()),
             );
         }
@@ -113,7 +135,7 @@ class AbilityExecutor
         $outputErrors = $this->validator->validate($output, $ability->getOutputSchema(), '$.output');
         if ($outputErrors !== []) {
             return AbilityResult::failure(
-                AbilityResult::ERROR_INVALID_OUTPUT,
+                AbilityErrorCode::InvalidOutput,
                 sprintf(
                     'Ability "%s" executed (side effects may have happened) but violated its output contract: %s',
                     $definition->name,

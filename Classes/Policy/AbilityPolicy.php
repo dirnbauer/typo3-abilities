@@ -104,7 +104,7 @@ final readonly class AbilityPolicy
 
         foreach ($this->reviewRequired as $rule) {
             if ($this->matches($rule, $definition) && !$context->reviewApproved) {
-                return PolicyDecision::deny(
+                return PolicyDecision::reviewRequired(
                     sprintf(
                         'Ability "%s" requires human review per rule "%s" of policy "%s" and the execution context carries no approval.',
                         $definition->name,

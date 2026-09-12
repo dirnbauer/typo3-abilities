@@ -87,7 +87,7 @@ final class CliProjectionTest extends TestCase
         self::assertSame(1, $tester->execute(['name' => 'test/echo', '--input' => '{}']));
         $decoded = self::decodeJson($tester->getDisplay());
         self::assertFalse($decoded['ok']);
-        self::assertSame('invalid_input', $decoded['errorCode']);
+        self::assertSame('ability_invalid_input', $decoded['errorCode']);
     }
 
     #[Test]

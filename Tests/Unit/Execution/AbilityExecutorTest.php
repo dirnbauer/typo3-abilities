@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Webconsulting\Abilities\Domain\AbilityResult;
 use Webconsulting\Abilities\Domain\ExecutionContext;
-use Webconsulting\Abilities\Event\AbilityExecutedEvent;
+use Webconsulting\Abilities\Event\AfterAbilityExecutionEvent;
 use Webconsulting\Abilities\Execution\AbilityExecutor;
 use Webconsulting\Abilities\Policy\PolicyProvider;
 use Webconsulting\Abilities\Tests\Fixtures\CallbackAbility;
@@ -198,7 +198,7 @@ final class AbilityExecutorTest extends TestCase
             [],
             ExecutionContext::cli(),
         );
-        self::assertSame(AbilityResult::ERROR_POLICY_DENIED, $denied->errorCode);
+        self::assertSame(AbilityResult::ERROR_REVIEW_REQUIRED, $denied->errorCode);
 
         $approved = $this->executor($yaml)->execute(
             new CallbackAbility(static fn(): mixed => 'ran'),
@@ -221,9 +221,9 @@ final class AbilityExecutorTest extends TestCase
 
         $executor->execute(new EchoAbility(), ['message' => 'hi'], ExecutionContext::cli());
 
-        self::assertCount(1, $dispatcher->events);
-        $event = $dispatcher->events[0];
-        self::assertInstanceOf(AbilityExecutedEvent::class, $event);
+        self::assertCount(2, $dispatcher->events, "Before + After events");
+        $event = $dispatcher->events[1];
+        self::assertInstanceOf(AfterAbilityExecutionEvent::class, $event);
         self::assertSame('test/echo', $event->definition->name);
         self::assertSame(ExecutionContext::SURFACE_CLI, $event->context->surface);
         self::assertSame(['message' => 'hi'], $event->input);
@@ -243,9 +243,9 @@ final class AbilityExecutorTest extends TestCase
 
         $executor->execute(new EchoAbility(), [], ExecutionContext::cli());
 
-        self::assertCount(1, $dispatcher->events);
-        $event = $dispatcher->events[0];
-        self::assertInstanceOf(AbilityExecutedEvent::class, $event);
+        self::assertCount(2, $dispatcher->events, "Before + After events");
+        $event = $dispatcher->events[1];
+        self::assertInstanceOf(AfterAbilityExecutionEvent::class, $event);
         self::assertFalse($event->result->ok);
         self::assertSame(AbilityResult::ERROR_INVALID_INPUT, $event->result->errorCode);
     }
