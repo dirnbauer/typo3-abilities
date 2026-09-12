@@ -1,6 +1,9 @@
 /vendor/
 /composer.lock
 /.phpunit.cache/
+/Build/phpunit/.phpunit.cache/
 /.php-cs-fixer.cache
 /var/
 /public/
+/typo3temp/
+.DS_Store

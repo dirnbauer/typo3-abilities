@@ -1,10 +1,13 @@
+includes:
+    - vendor/saschaegerer/phpstan-typo3/extension.neon
+    - vendor/phpstan/phpstan-phpunit/extension.neon
+
 parameters:
-    level: max
+    level: 8
     paths:
         - Classes
+        - Configuration
         - Tests
-    excludePaths:
-        - Tests/Stubs/McpStubs.php
-    bootstrapFiles:
-        - Tests/phpstan-bootstrap.php
+        - ext_localconf.php
     treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: true

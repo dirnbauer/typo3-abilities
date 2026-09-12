@@ -1,24 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
-         bootstrap="Tests/bootstrap.php"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.4/phpunit.xsd"
+         backupGlobals="true"
+         bootstrap="UnitTestsBootstrap.php"
          cacheDirectory=".phpunit.cache"
          colors="true"
          failOnWarning="true"
          failOnNotice="true"
          failOnDeprecation="true"
+         failOnRisky="true"
          beStrictAboutOutputDuringTests="true"
          displayDetailsOnTestsThatTriggerErrors="true"
          displayDetailsOnTestsThatTriggerWarnings="true"
-         displayDetailsOnTestsThatTriggerDeprecations="true">
+         displayDetailsOnTestsThatTriggerDeprecations="true"
+         displayDetailsOnTestsThatTriggerNotices="true"
+         displayDetailsOnPhpunitDeprecations="true">
     <testsuites>
         <testsuite name="unit">
-            <directory>Tests/Unit</directory>
+            <directory>../../Tests/Unit</directory>
         </testsuite>
     </testsuites>
     <source>
         <include>
-            <directory>Classes</directory>
+            <directory>../../Classes</directory>
         </include>
     </source>
+    <php>
+        <env name="TYPO3_CONTEXT" value="Testing"/>
+    </php>
 </phpunit>
