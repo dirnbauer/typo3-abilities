@@ -6,28 +6,18 @@ namespace Webconsulting\Abilities\Tests\Unit\Execution;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Psr\EventDispatcher\EventDispatcherInterface;
+use Webconsulting\Abilities\Domain\AbilityDefinition;
 use Webconsulting\Abilities\Domain\AbilityResult;
 use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Event\AfterAbilityExecutionEvent;
 use Webconsulting\Abilities\Execution\AbilityExecutor;
 use Webconsulting\Abilities\Policy\PolicyProvider;
+use Webconsulting\Abilities\Event\AbilityExecutedEvent;
+use Webconsulting\Abilities\Event\BeforeAbilityExecutionEvent;
 use Webconsulting\Abilities\Tests\Fixtures\CallbackAbility;
+use Webconsulting\Abilities\Tests\Fixtures\CollectingDispatcher;
 use Webconsulting\Abilities\Tests\Fixtures\EchoAbility;
 use Webconsulting\Abilities\Validation\SchemaValidator;
-
-final class CollectingDispatcher implements EventDispatcherInterface
-{
-    /** @var list<object> */
-    public array $events = [];
-
-    public function dispatch(object $event): object
-    {
-        $this->events[] = $event;
-
-        return $event;
-    }
-}
 
 final class AbilityExecutorTest extends TestCase
 {
@@ -268,5 +258,77 @@ final class AbilityExecutorTest extends TestCase
             YAML)->execute(new EchoAbility(), ['message' => 'ok'], ExecutionContext::cli());
 
         self::assertTrue($lowRisk->ok);
+    }
+
+    #[Test]
+    public function beforeEventCanRewriteInput(): void
+    {
+        $dispatcher = new CollectingDispatcher();
+        $dispatcher->listen(static function (object $event): void {
+            if ($event instanceof BeforeAbilityExecutionEvent) {
+                $event->setInput(['message' => 'rewritten']);
+            }
+        });
+        $executor = new AbilityExecutor(new SchemaValidator(), new PolicyProvider('/nonexistent/policy.yaml'), $dispatcher);
+
+        $result = $executor->execute(new EchoAbility(), ['message' => 'original'], ExecutionContext::cli());
+
+        self::assertTrue($result->ok);
+        self::assertSame(['echo' => 'rewritten'], $result->data);
+        // The After event keeps the caller's raw input for the audit trail.
+        self::assertSame(['message' => 'original'], $dispatcher->of(AfterAbilityExecutionEvent::class)[0]->input);
+    }
+
+    #[Test]
+    public function beforeEventDenialShortCircuitsAsPolicyDenied(): void
+    {
+        $executed = false;
+        $ability = new CallbackAbility(
+            onExecute: static function () use (&$executed): mixed {
+                $executed = true;
+
+                return null;
+            },
+        );
+        $dispatcher = new CollectingDispatcher();
+        $dispatcher->listen(static function (object $event): void {
+            if ($event instanceof BeforeAbilityExecutionEvent) {
+                $event->deny('Vetoed by listener.');
+            }
+        });
+        $executor = new AbilityExecutor(new SchemaValidator(), new PolicyProvider('/nonexistent/policy.yaml'), $dispatcher);
+
+        $result = $executor->execute($ability, [], ExecutionContext::cli());
+
+        self::assertFalse($result->ok);
+        self::assertSame(AbilityResult::ERROR_POLICY_DENIED, $result->errorCode);
+        self::assertSame('Vetoed by listener.', $result->error);
+        self::assertFalse($executed);
+        self::assertCount(1, $dispatcher->of(AfterAbilityExecutionEvent::class), 'denials are announced too');
+    }
+
+    #[Test]
+    public function afterEventIsDispatchedAsTheDeprecatedSubclassForCompatibility(): void
+    {
+        $dispatcher = new CollectingDispatcher();
+        $executor = new AbilityExecutor(new SchemaValidator(), new PolicyProvider('/nonexistent/policy.yaml'), $dispatcher);
+
+        $executor->execute(new EchoAbility(), ['message' => 'hi'], ExecutionContext::cli());
+
+        $after = $dispatcher->of(AfterAbilityExecutionEvent::class);
+        self::assertCount(1, $after);
+        self::assertInstanceOf(AbilityExecutedEvent::class, $after[0]);
+    }
+
+    #[Test]
+    public function registryDefinitionOverridesTheClassAttribute(): void
+    {
+        $definition = AbilityDefinition::fromClassName(EchoAbility::class)->with(expose: ['cli']);
+        $dispatcher = new CollectingDispatcher();
+        $executor = new AbilityExecutor(new SchemaValidator(), new PolicyProvider('/nonexistent/policy.yaml'), $dispatcher);
+
+        $executor->execute(new EchoAbility(), ['message' => 'hi'], ExecutionContext::cli(), $definition);
+
+        self::assertSame(['cli'], $dispatcher->of(AfterAbilityExecutionEvent::class)[0]->definition->expose);
     }
 }

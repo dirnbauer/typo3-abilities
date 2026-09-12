@@ -1,0 +1,7 @@
+"tx_abilities_token"
+,"uid","pid","name","token_hash","be_user","scopes","expires","last_used","deleted","crdate","tstamp"
+,1,0,"editor-all","0add6805749070eef2065997fe723e7de625c12ae971c043c0d9a5b7129e5ad1",2,"*",0,0,0,1000,1000
+,2,0,"admin-limited","2b2caf0be6cd3bdfa97ccff9cd5d5f9588df2b52a1b8e6cd47888a1c11754327",1,"abilities:read",0,0,0,1000,1000
+,3,0,"editor-expired","8cd731a6b90ed1ab242bf26c957cae9d1c2f0db651a19c9eab308999264e9403",2,"*",1000,0,0,1000,1000
+,4,0,"disabled-user","a1ea71eacf534893a65ad17255a53979007f1721e34e5fcdde2426f8495656f2",3,"*",0,0,0,1000,1000
+,5,0,"editor-revoked","39d64e42a687c506fab122b524dee3b37bbb96e9f68cf59d835bec20701ca8a4",2,"*",0,0,1,1000,1000

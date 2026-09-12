@@ -12,7 +12,11 @@ use Webconsulting\Abilities\Policy\PolicyProvider;
 use Webconsulting\Abilities\Projection\Cli\DescribeAbilityCommand;
 use Webconsulting\Abilities\Projection\Cli\ListAbilitiesCommand;
 use Webconsulting\Abilities\Projection\Cli\RunAbilityCommand;
+use Webconsulting\Abilities\Command\TokenListCommand;
+use Webconsulting\Abilities\Command\TokenRevokeCommand;
 use Webconsulting\Abilities\Registry\AbilitiesRegistry;
+use Webconsulting\Abilities\Security\TokenService;
+use Webconsulting\Abilities\Tests\Fixtures\InMemoryTokenStorage;
 use Webconsulting\Abilities\Tests\Fixtures\EchoAbility;
 use Webconsulting\Abilities\Tests\Support\TypeNarrowing;
 use Webconsulting\Abilities\Validation\SchemaValidator;
@@ -97,5 +101,25 @@ final class CliProjectionTest extends TestCase
 
         self::assertSame(2, $tester->execute(['name' => 'test/echo', '--input' => 'not json']));
         self::assertStringContainsString('not valid JSON', $tester->getDisplay());
+    }
+
+    #[Test]
+    public function tokenListAndRevokeCommands(): void
+    {
+        $service = new TokenService(new InMemoryTokenStorage());
+        $issued = $service->create('ci', 2, ['abilities:read'], null, 1_000);
+
+        $list = new CommandTester(new TokenListCommand($service));
+        self::assertSame(0, $list->execute(['--json' => true]));
+        $decoded = self::decodeJson($list->getDisplay());
+        self::assertCount(1, $decoded);
+        self::assertSame('ci', self::asArray($decoded[0])['name']);
+        self::assertStringNotContainsString($issued->plaintext, $list->getDisplay());
+
+        $revoke = new CommandTester(new TokenRevokeCommand($service));
+        self::assertSame(0, $revoke->execute(['uid' => (string)$issued->token->uid]));
+        self::assertSame(1, $revoke->execute(['uid' => (string)$issued->token->uid]), 'already revoked');
+        self::assertSame(2, $revoke->execute(['uid' => 'x']));
+        self::assertSame([], $service->list());
     }
 }

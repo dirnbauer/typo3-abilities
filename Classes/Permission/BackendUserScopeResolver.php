@@ -119,10 +119,10 @@ final class BackendUserScopeResolver
     public static function intersect(array $a, array $b): array
     {
         if (in_array(ExecutionContext::SCOPE_WILDCARD, $a, true)) {
-            return array_values(array_unique($b));
+            return self::sorted($b);
         }
         if (in_array(ExecutionContext::SCOPE_WILDCARD, $b, true)) {
-            return array_values(array_unique($a));
+            return self::sorted($a);
         }
 
         $grantedByB = new ExecutionContext(ExecutionContext::SURFACE_PHP, $b);
@@ -141,6 +141,18 @@ final class BackendUserScopeResolver
         ksort($result);
 
         return array_keys($result);
+    }
+
+    /**
+     * @param list<string> $scopes
+     * @return list<string>
+     */
+    private static function sorted(array $scopes): array
+    {
+        $scopes = array_values(array_unique($scopes));
+        sort($scopes);
+
+        return $scopes;
     }
 
     /**

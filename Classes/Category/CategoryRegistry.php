@@ -46,6 +46,7 @@ final class CategoryRegistry
         foreach (self::BUILT_IN as $slug => [$label, $description]) {
             $this->categories[$slug] = new AbilityCategory($slug, $label, $description);
         }
+        ksort($this->categories);
 
         foreach ($providers as $provider) {
             foreach ($this->categoriesOf($provider) as $category) {

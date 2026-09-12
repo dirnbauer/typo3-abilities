@@ -1,0 +1,5 @@
+"be_users"
+,"uid","pid","username","password","admin","usergroup","disable","deleted","lang"
+,1,0,"admin","not-a-real-hash",1,"",0,0,"default"
+,2,0,"editor","not-a-real-hash",0,"1,2",0,0,"default"
+,3,0,"disabled","not-a-real-hash",0,"1",1,0,"default"

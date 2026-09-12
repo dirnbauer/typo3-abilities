@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Webconsulting\Abilities\Tests\Unit\Domain;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Webconsulting\Abilities\Domain\AbilityDefinition;
@@ -12,6 +13,7 @@ use Webconsulting\Abilities\Domain\RiskTier;
 use Webconsulting\Abilities\Registry\AbstractAbility;
 use Webconsulting\Abilities\Tests\Fixtures\CallbackAbility;
 use Webconsulting\Abilities\Tests\Fixtures\EchoAbility;
+use Webconsulting\Abilities\Tests\Fixtures\WriteAbility;
 
 final class AbilityDefinitionTest extends TestCase
 {
@@ -87,5 +89,71 @@ final class AbilityDefinitionTest extends TestCase
         self::assertArrayHasKey('scopes', $array);
         self::assertArrayHasKey('sideEffects', $array);
         self::assertArrayHasKey('expose', $array);
+    }
+
+    #[Test]
+    public function annotationsFollowTheWordPressShape(): void
+    {
+        $definition = AbilityDefinition::fromClassName(WriteAbility::class);
+
+        self::assertSame(
+            ['readonly' => false, 'destructive' => false, 'idempotent' => false, 'instructions' => 'Send the value to store.'],
+            $definition->annotations(),
+        );
+        self::assertSame('Send the value to store.', $definition->instructions());
+        self::assertSame('testing', $definition->category());
+    }
+
+    /**
+     * @return iterable<string, array{class-string<\Webconsulting\Abilities\Registry\AbilityInterface>, string}>
+     */
+    public static function restMethods(): iterable
+    {
+        yield 'read-only → GET' => [EchoAbility::class, 'GET'];
+        yield 'write → POST' => [WriteAbility::class, 'POST'];
+        yield 'destructive → DELETE' => [CallbackAbility::class, 'DELETE'];
+    }
+
+    /**
+     * @param class-string<\Webconsulting\Abilities\Registry\AbilityInterface> $className
+     */
+    #[Test]
+    #[DataProvider('restMethods')]
+    public function restMethodIsDerivedFromAnnotations(string $className, string $method): void
+    {
+        self::assertSame($method, AbilityDefinition::fromClassName($className)->restMethod());
+    }
+
+    #[Test]
+    public function explicitReadOnlyWinsOverDestructiveForTheRestMethod(): void
+    {
+        $definition = AbilityDefinition::fromClassName(CallbackAbility::class)->with(readOnly: true);
+
+        self::assertTrue($definition->isReadOnly());
+        self::assertSame('GET', $definition->restMethod());
+    }
+
+    #[Test]
+    public function withProducesAnOverriddenCopy(): void
+    {
+        $original = AbilityDefinition::fromInstance(new EchoAbility());
+        $modified = $original->with(expose: ['cli'], riskTier: RiskTier::High, readOnly: false);
+
+        self::assertSame(['mcp', 'cli', 'rest'], $original->expose);
+        self::assertSame(['cli'], $modified->expose);
+        self::assertSame(RiskTier::High, $modified->riskTier);
+        self::assertFalse($modified->isReadOnly());
+        self::assertSame($original->name, $modified->name);
+        self::assertSame($original->className, $modified->className);
+    }
+
+    #[Test]
+    public function toArrayCarriesAnnotationsInstructionsAndRestMethod(): void
+    {
+        $array = AbilityDefinition::fromClassName(WriteAbility::class)->toArray();
+
+        self::assertSame('POST', $array['restMethod']);
+        self::assertSame('Send the value to store.', $array['instructions']);
+        self::assertSame(['readonly' => false, 'destructive' => false, 'idempotent' => false, 'instructions' => 'Send the value to store.'], $array['annotations']);
     }
 }

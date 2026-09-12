@@ -50,4 +50,23 @@ final class AsAbilityTest extends TestCase
 
         new AsAbility(name: $name, title: 'X', description: 'X');
     }
+
+    #[Test]
+    public function readOnlyIsDerivedFromSideEffectsUnlessDeclared(): void
+    {
+        $derivedReadOnly = new AsAbility(name: 'a/b', title: 'X', description: 'X');
+        self::assertNull($derivedReadOnly->readOnly);
+        self::assertTrue($derivedReadOnly->isReadOnly());
+        self::assertSame('', $derivedReadOnly->instructions);
+
+        $derivedWrite = new AsAbility(name: 'a/b', title: 'X', description: 'X', sideEffects: ['database:write']);
+        self::assertFalse($derivedWrite->isReadOnly());
+
+        $explicit = new AsAbility(name: 'a/b', title: 'X', description: 'X', sideEffects: ['cache:write'], readOnly: true, instructions: 'Call freely.');
+        self::assertTrue($explicit->isReadOnly());
+        self::assertSame('Call freely.', $explicit->instructions);
+
+        $explicitWrite = new AsAbility(name: 'a/b', title: 'X', description: 'X', readOnly: false);
+        self::assertFalse($explicitWrite->isReadOnly());
+    }
 }

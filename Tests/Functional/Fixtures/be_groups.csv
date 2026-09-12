@@ -1,0 +1,6 @@
+"be_groups"
+,"uid","pid","title","subgroup","tx_abilities_scopes","hidden","deleted"
+,1,0,"Readers","3","news:read",0,0
+,2,0,"Writers","","news:write, system:read",0,0
+,3,0,"Sub","","abilities:read",0,0
+,4,0,"Hidden","","secret:all",1,0
