@@ -29,6 +29,12 @@ services:
   Webconsulting\Abilities\Permission\ScopeItemsProcFunc:
     public: true
 
+  Webconsulting\Abilities\Security\TokenService:
+    public: true
+
+  Webconsulting\Abilities\Security\TokenStorageInterface:
+    alias: Webconsulting\Abilities\Security\DatabaseTokenStorage
+
   # Backend module route targets
   Webconsulting\Abilities\Backend\Controller\AbilitiesModuleController:
     public: true
