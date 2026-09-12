@@ -1,0 +1,11 @@
+# cat=REST; type=boolean; label=Enable the REST projection: Serves the abilities registry below the configured base path (discovery + run endpoints, bearer-token or backend-session authenticated).
+restEnabled = 1
+
+# cat=REST; type=string; label=REST base path: URL prefix of the REST projection, mounted before site resolution.
+restBasePath = /abilities/v1
+
+# cat=REST; type=string; label=CORS origins: Comma-separated allowed origins for browser clients, "*" for any; empty emits no CORS headers.
+restCorsOrigins =
+
+# cat=Traces; type=int+; label=Trace retention (days): Execution traces older than this are pruned opportunistically; 0 keeps them forever.
+traceRetentionDays = 30

@@ -12,7 +12,14 @@ services:
       - '../Classes/Domain/*'
       - '../Classes/Event/*'
       - '../Classes/Policy/AbilityPolicy.php'
+      - '../Classes/Http/CorsPolicy.php'
+      - '../Classes/Http/InvalidRestInputException.php'
+      - '../Classes/Http/RestConfiguration.php'
+      - '../Classes/Http/RestIdentity.php'
+      - '../Classes/Http/RestRoute.php'
       - '../Classes/Policy/PolicyDecision.php'
+      - '../Classes/Security/IssuedToken.php'
+      - '../Classes/Security/Token.php'
 
   Webconsulting\Abilities\Registry\AbilitiesRegistry:
     public: true
