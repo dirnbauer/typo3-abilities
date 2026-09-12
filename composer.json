@@ -1,7 +1,7 @@
 {
     "name": "webconsulting/typo3-abilities",
     "type": "typo3-cms-extension",
-    "description": "Abilities registry for TYPO3 — one typed, permissioned registry of what the installation can do; MCP tools, CLI commands, REST routes and the backend module become projections of it.",
+    "description": "Abilities registry for TYPO3 \u2014 one typed, permissioned registry of what the installation can do; MCP tools, CLI commands, REST routes and the backend module become projections of it.",
     "license": "GPL-2.0-or-later",
     "keywords": [
         "typo3",
@@ -34,6 +34,7 @@
         "phpstan/phpstan-phpunit": "^2.0",
         "phpunit/phpunit": "^12.4 || ^13.0",
         "saschaegerer/phpstan-typo3": "^3.0",
+        "typo3/cms-workspaces": "^14.3",
         "typo3/coding-standards": "^0.9",
         "typo3/testing-framework": "^9.5"
     },
@@ -49,7 +50,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Webconsulting\\Abilities\\Tests\\": "Tests/"
+            "Webconsulting\\Abilities\\Tests\\": "Tests/",
+            "Webconsulting\\AbilitiesTestListener\\": "Tests/Functional/Fixtures/Extensions/abilities_test_listener/Classes/"
         }
     },
     "config": {

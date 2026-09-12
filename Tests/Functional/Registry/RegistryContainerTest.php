@@ -33,10 +33,13 @@ final class RegistryContainerTest extends FunctionalTestCase
         $registry = $this->get(AbilitiesRegistry::class);
         self::assertInstanceOf(AbilitiesRegistry::class, $registry);
 
-        self::assertSame(['abilities/describe', 'abilities/list', 'system/site-info'], $registry->getNames());
+        self::assertSame(
+            ['abilities/describe', 'abilities/list', 'content/create-page-draft', 'content/delete-page', 'content/search', 'system/site-info', 'workspace/publish'],
+            $registry->getNames(),
+        );
         self::assertSame('registry', $registry->getDefinition('abilities/list')->category);
         self::assertTrue($registry->getDefinition('abilities/list')->isReadOnly());
-        self::assertSame(['abilities:read', 'system:read'], $registry->getDeclaredScopes());
+        self::assertSame(['abilities:read', 'content:read', 'pages:write', 'system:read', 'workspace:publish'], $registry->getDeclaredScopes());
 
         $categories = $this->get(CategoryRegistry::class);
         self::assertInstanceOf(CategoryRegistry::class, $categories);
@@ -75,7 +78,10 @@ final class RegistryContainerTest extends FunctionalTestCase
         $projection = $this->get(McpProjection::class);
         self::assertInstanceOf(McpProjection::class, $projection);
         $names = array_map(static fn(McpToolDescriptor $descriptor): string => $descriptor->name, [...$projection->descriptors()]);
-        self::assertSame(['ability_abilities_describe', 'ability_abilities_list', 'ability_system_site-info'], $names);
+        self::assertSame(
+            ['ability_abilities_describe', 'ability_abilities_list', 'ability_content_create-page-draft', 'ability_content_delete-page', 'ability_content_search', 'ability_system_site-info', 'ability_workspace_publish'],
+            $names,
+        );
 
         $result = $projection->execute('ability_system_site-info', [], ExecutionContext::mcp());
         self::assertTrue($result->ok, (string)$result->error);
@@ -98,7 +104,7 @@ final class RegistryContainerTest extends FunctionalTestCase
         $procFunc->addAbilityScopes($parameters);
 
         self::assertSame(
-            ['*', 'abilities:read', 'system:read'],
+            ['*', 'abilities:read', 'content:read', 'pages:write', 'system:read', 'workspace:publish'],
             array_map(static fn(mixed $item): mixed => self::asArray($item)['value'], self::asArray($parameters['items'])),
         );
     }

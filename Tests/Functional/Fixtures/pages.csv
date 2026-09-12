@@ -1,0 +1,7 @@
+"pages"
+,"uid","pid","title","subtitle","nav_title","slug","doktype","hidden","deleted","sys_language_uid","is_siteroot","sorting"
+,1,0,"Home","","","/",1,0,0,0,1,256
+,2,1,"About us","Who we are","About","/about",1,0,0,0,0,256
+,3,1,"Secret roadmap","","","/roadmap",1,1,0,0,0,512
+,4,2,"Team","","","/about/team",1,0,0,0,0,256
+,5,1,"Gone","","","/gone",1,0,1,0,0,768

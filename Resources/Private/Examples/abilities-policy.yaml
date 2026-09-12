@@ -1,0 +1,24 @@
+# Example site-wide abilities policy.
+#
+# Copy this file to <project root>/config/abilities-policy.yaml. Without the
+# file every ability is allowed (scopes and each ability's own permission
+# check still apply). This example denies nothing and puts every high-risk
+# ability (content/delete-page, workspace/publish, ...) behind a human review:
+#
+#   CLI            vendor/bin/typo3 abilities:run content/delete-page --input '{"uid": 42}' --approve-review
+#   Backend module tick "Approve review" in the Run tab
+#   REST           always 409 ability_review_required — a bearer token is not a human in the loop
+#
+# Rule grammar for deny / review_required entries:
+#   "namespace/ability-name"   exact ability name
+#   "namespace/*"              every ability of a namespace
+#   "*"                        every ability
+#   "risk:high"                abilities at exactly this risk tier (low, medium, high, critical)
+#   "scope:pages:write"        abilities requiring this scope (prefix match)
+#   "side-effect:network"      abilities declaring this side effect (prefix match)
+policy:
+  name: "Default abilities policy"
+  deny: []
+  review_required:
+    - "risk:high"
+  # max_risk_tier: "high"   # uncomment to keep "critical" abilities from ever running

@@ -7,6 +7,7 @@ services:
   Webconsulting\Abilities\:
     resource: '../Classes/*'
     exclude:
+      - '../Classes/Ability/Support/*'
       - '../Classes/Attribute/*'
       - '../Classes/Category/AsAbilityCategory.php'
       - '../Classes/Domain/*'

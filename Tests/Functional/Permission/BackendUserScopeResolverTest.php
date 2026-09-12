@@ -30,7 +30,7 @@ final class BackendUserScopeResolverTest extends FunctionalTestCase
     #[Test]
     public function resolvesGroupScopesIncludingSubgroupsFromTheDatabase(): void
     {
-        self::assertSame(['abilities:read', 'news:read', 'news:write', 'system:read'], $this->resolver()->resolveForUserUid(2));
+        self::assertSame(['abilities:read', 'content:read', 'news:read', 'news:write', 'pages:write', 'system:read'], $this->resolver()->resolveForUserUid(2));
         self::assertSame(['*'], $this->resolver()->resolveForUserUid(1), 'admins hold every scope');
         self::assertSame([], $this->resolver()->resolveForUserUid(999));
     }
@@ -41,7 +41,7 @@ final class BackendUserScopeResolverTest extends FunctionalTestCase
         $editor = $this->resolver()->findUserByUsername('editor');
         self::assertNotNull($editor);
         self::assertSame(2, (int)$editor['uid']);
-        self::assertSame(['abilities:read', 'news:read', 'news:write', 'system:read'], $this->resolver()->resolveForUserRecord($editor));
+        self::assertSame(['abilities:read', 'content:read', 'news:read', 'news:write', 'pages:write', 'system:read'], $this->resolver()->resolveForUserRecord($editor));
 
         self::assertNull($this->resolver()->findUserByUsername('disabled'));
         self::assertNull($this->resolver()->findUserByUsername('ghost'));
@@ -52,7 +52,7 @@ final class BackendUserScopeResolverTest extends FunctionalTestCase
     {
         $editor = $this->setUpBackendUser(2);
 
-        self::assertSame(['abilities:read', 'news:read', 'news:write', 'system:read'], $this->resolver()->resolveForUser($editor));
+        self::assertSame(['abilities:read', 'content:read', 'news:read', 'news:write', 'pages:write', 'system:read'], $this->resolver()->resolveForUser($editor));
 
         $admin = $this->setUpBackendUser(1);
         self::assertSame(['*'], $this->resolver()->resolveForUser($admin));

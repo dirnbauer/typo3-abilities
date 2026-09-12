@@ -1,0 +1,6 @@
+"tt_content"
+,"uid","pid","CType","header","bodytext","hidden","deleted","sys_language_uid","colPos","sorting"
+,1,2,"text","Our story","We build TYPO3 sites since 2004.",0,0,0,0,256
+,2,4,"text","","The team behind the roadmap.",0,0,0,0,256
+,3,2,"text","Über uns","Wir bauen TYPO3-Sites.",0,0,1,0,512
+,4,2,"text","Deleted roadmap","",0,1,0,0,768
