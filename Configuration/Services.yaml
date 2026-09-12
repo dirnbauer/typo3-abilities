@@ -18,6 +18,7 @@ services:
       - '../Classes/Http/RestIdentity.php'
       - '../Classes/Http/RestRoute.php'
       - '../Classes/Policy/PolicyDecision.php'
+      - '../Classes/Projection/Mcp/McpToolDescriptor.php'
       - '../Classes/Security/IssuedToken.php'
       - '../Classes/Security/Token.php'
 
@@ -28,6 +29,9 @@ services:
     public: true
 
   Webconsulting\Abilities\Execution\AbilityExecutor:
+    public: true
+
+  Webconsulting\Abilities\Projection\Mcp\McpProjection:
     public: true
 
   Webconsulting\Abilities\Permission\BackendUserScopeResolver:
