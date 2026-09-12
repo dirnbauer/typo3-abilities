@@ -9,10 +9,15 @@ use Webconsulting\Abilities\Registry\AbilityInterface;
 
 /**
  * Immutable registry entry: the #[AsAbility] metadata of one ability
- * implementation, plus derived projection facts (MCP tool name, hints).
+ * implementation, plus derived projection facts (annotations, MCP tool
+ * name, REST run method).
  */
 final readonly class AbilityDefinition
 {
+    public const REST_METHOD_READ = 'GET';
+    public const REST_METHOD_WRITE = 'POST';
+    public const REST_METHOD_DESTROY = 'DELETE';
+
     private function __construct(
         public string $name,
         public string $title,
@@ -25,6 +30,8 @@ final readonly class AbilityDefinition
         public array $sideEffects,
         public bool $idempotent,
         public bool $destructive,
+        public bool $readOnly,
+        public string $instructions,
         /** @var list<string> */
         public array $expose,
         /** @var array<string, mixed> */
@@ -64,20 +71,87 @@ final readonly class AbilityDefinition
             sideEffects: array_values($attribute->sideEffects),
             idempotent: $attribute->idempotent,
             destructive: $attribute->destructive,
+            readOnly: $attribute->isReadOnly(),
+            instructions: $attribute->instructions,
             expose: array_values($attribute->expose),
             meta: $attribute->meta,
             className: $className,
         );
     }
 
+    /**
+     * Derived copy with governance facts overridden — the mutation surface of
+     * ModifyAbilityDefinitionEvent.
+     *
+     * @param list<string>|null $expose
+     */
+    public function with(?array $expose = null, ?RiskTier $riskTier = null, ?bool $readOnly = null): self
+    {
+        return new self(
+            name: $this->name,
+            title: $this->title,
+            description: $this->description,
+            category: $this->category,
+            scopes: $this->scopes,
+            riskTier: $riskTier ?? $this->riskTier,
+            sideEffects: $this->sideEffects,
+            idempotent: $this->idempotent,
+            destructive: $this->destructive,
+            readOnly: $readOnly ?? $this->readOnly,
+            instructions: $this->instructions,
+            expose: $expose === null ? $this->expose : array_values($expose),
+            meta: $this->meta,
+            className: $this->className,
+        );
+    }
+
+    public function category(): string
+    {
+        return $this->category;
+    }
+
     public function isReadOnly(): bool
     {
-        return $this->sideEffects === [];
+        return $this->readOnly;
+    }
+
+    public function instructions(): string
+    {
+        return $this->instructions;
     }
 
     public function isExposedTo(string $surface): bool
     {
         return in_array($surface, $this->expose, true);
+    }
+
+    /**
+     * The WordPress-compatible annotation block.
+     *
+     * @return array{readonly: bool, destructive: bool, idempotent: bool, instructions: string}
+     */
+    public function annotations(): array
+    {
+        return [
+            'readonly' => $this->readOnly,
+            'destructive' => $this->destructive,
+            'idempotent' => $this->idempotent,
+            'instructions' => $this->instructions,
+        ];
+    }
+
+    /**
+     * HTTP method the REST run endpoint accepts, derived from the
+     * annotations exactly like the WordPress Abilities REST API:
+     * read-only → GET, destructive → DELETE, everything else → POST.
+     */
+    public function restMethod(): string
+    {
+        if ($this->readOnly) {
+            return self::REST_METHOD_READ;
+        }
+
+        return $this->destructive ? self::REST_METHOD_DESTROY : self::REST_METHOD_WRITE;
     }
 
     /**
@@ -105,11 +179,14 @@ final readonly class AbilityDefinition
             'sideEffects' => $this->sideEffects,
             'idempotent' => $this->idempotent,
             'destructive' => $this->destructive,
-            'readOnly' => $this->isReadOnly(),
+            'readOnly' => $this->readOnly,
+            'instructions' => $this->instructions,
+            'annotations' => $this->annotations(),
             'expose' => $this->expose,
             'meta' => $this->meta,
             'className' => $this->className,
             'mcpToolName' => $this->mcpToolName(),
+            'restMethod' => $this->restMethod(),
         ];
     }
 }
