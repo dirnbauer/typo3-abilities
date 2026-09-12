@@ -5,25 +5,78 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
+env:
+  PHP_EXTENSIONS: intl, mbstring, pdo_sqlite, sqlite3, mysqli, pdo_mysql
+
 jobs:
-  tests:
-    name: Validate + PHPStan + Unit + Functional (PHP ${{ matrix.php-version }})
+  lint:
+    name: Lint + composer validate
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        php-version: ["8.4"]
     steps:
       - uses: actions/checkout@v5
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php-version }}
-          extensions: pdo_sqlite, sqlite3, intl, mbstring
+          php-version: "8.4"
+          extensions: ${{ env.PHP_EXTENSIONS }}
           coverage: none
 
       - name: Validate composer.json
         run: composer validate --strict
+
+      - name: Lint PHP files
+        run: find Classes Configuration Tests ext_localconf.php -name '*.php' -print0 | xargs -0 -n1 -P4 php -l
+
+      - name: Lint XLIFF files
+        run: |
+          for file in Resources/Private/Language/*.xlf; do
+            php -r 'libxml_use_internal_errors(true);
+              $d = new DOMDocument();
+              if (!$d->load($argv[1])) {
+                  fwrite(STDERR, "Malformed XLIFF: " . $argv[1] . PHP_EOL);
+                  foreach (libxml_get_errors() as $e) { fwrite(STDERR, "  " . trim($e->message) . PHP_EOL); }
+                  exit(1);
+              }
+              echo "ok: " . $argv[1] . PHP_EOL;' "$file"
+          done
+
+      - name: Lint YAML files
+        run: |
+          composer install --no-progress --no-interaction
+          vendor/bin/yaml-lint Configuration Resources/Private/Examples
+
+  cgl:
+    name: Coding guidelines (TYPO3 ruleset)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-progress --no-interaction
+
+      - name: php-cs-fixer
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff --no-interaction
+
+  phpstan:
+    name: PHPStan (level 8)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          coverage: none
 
       - name: Install dependencies
         run: composer install --no-progress --no-interaction
@@ -31,8 +84,82 @@ jobs:
       - name: PHPStan
         run: composer phpstan -- --no-progress
 
+  unit:
+    name: Unit tests (PHP ${{ matrix.php-version }})
+    runs-on: ubuntu-24.04
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php-version: "8.4"
+            experimental: false
+          # PHP 8.5 is not a supported target yet: it runs so regressions are
+          # visible early, but a failure must not block a pull request.
+          - php-version: "8.5"
+            experimental: true
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-progress --no-interaction
+
       - name: Unit tests
         run: composer test:unit
 
-      - name: Functional tests (sqlite)
+  functional:
+    name: Functional tests (MariaDB 10.11)
+    runs-on: ubuntu-24.04
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: funcp
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      # PHPUnit only applies the <env> defaults of FunctionalTests.xml when the
+      # variable is not already set, so these override the sqlite default.
+      typo3DatabaseDriver: mysqli
+      typo3DatabaseName: func_test
+      typo3DatabaseUsername: root
+      typo3DatabasePassword: funcp
+      typo3DatabaseHost: 127.0.0.1
+      typo3DatabasePort: 3306
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-progress --no-interaction
+
+      - name: Functional tests
         run: composer test:functional
+
+  docs:
+    name: Render documentation
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Render with the official TYPO3 render-guides
+        run: |
+          docker run --rm --pull always -v "$(pwd)":/project \
+            ghcr.io/typo3-documentation/render-guides:latest \
+            --config=Documentation --fail-on-log
