@@ -7,19 +7,23 @@ on:
 
 jobs:
   tests:
-    name: PHPStan + Unit (PHP ${{ matrix.php-version }})
+    name: Validate + PHPStan + Unit + Functional (PHP ${{ matrix.php-version }})
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        php-version: ["8.3", "8.4"]
+        php-version: ["8.4"]
     steps:
       - uses: actions/checkout@v5
 
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
+          extensions: pdo_sqlite, sqlite3, intl, mbstring
           coverage: none
+
+      - name: Validate composer.json
+        run: composer validate --strict
 
       - name: Install dependencies
         run: composer install --no-progress --no-interaction
@@ -28,4 +32,7 @@ jobs:
         run: composer phpstan -- --no-progress
 
       - name: Unit tests
-        run: composer test
+        run: composer test:unit
+
+      - name: Functional tests (sqlite)
+        run: composer test:functional

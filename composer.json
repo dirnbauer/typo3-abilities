@@ -1,7 +1,7 @@
 {
     "name": "webconsulting/typo3-abilities",
     "type": "typo3-cms-extension",
-    "description": "Abilities registry for TYPO3 — one typed, permissioned registry of what the installation can do; MCP tools, CLI commands and REST routes become projections of it.",
+    "description": "Abilities registry for TYPO3 — one typed, permissioned registry of what the installation can do; MCP tools, CLI commands, REST routes and the backend module become projections of it.",
     "license": "GPL-2.0-or-later",
     "keywords": [
         "typo3",
@@ -9,6 +9,7 @@
         "capability",
         "registry",
         "mcp",
+        "rest",
         "agents"
     ],
     "authors": [
@@ -20,11 +21,13 @@
     ],
     "require": {
         "php": "^8.4",
+        "psr/http-message": "^1.1 || ^2.0",
+        "psr/http-server-middleware": "^1.0",
+        "symfony/console": "^7.0",
+        "symfony/yaml": "^7.0",
         "typo3/cms-backend": "^14.3",
         "typo3/cms-core": "^14.3",
-        "typo3/cms-fluid": "^14.3",
-        "symfony/console": "^7.0",
-        "symfony/yaml": "^7.0"
+        "typo3/cms-fluid": "^14.3"
     },
     "require-dev": {
         "phpstan/phpstan": "^2.0",
@@ -34,8 +37,9 @@
         "typo3/testing-framework": "^9.5"
     },
     "suggest": {
-        "hn/typo3-mcp-server": "Registered abilities are projected as MCP tools automatically",
-        "webconsulting/typo3-capability-manifest": "Shares the side-effect subsystem vocabulary and policy semantics"
+        "hn/typo3-mcp-server": "MCP projection bridge: exposes McpProjection descriptors as MCP tools",
+        "sgalinski/sg-apicore": "OpenAPI augmenter for the REST projection",
+        "webconsulting/skillflow": "Skills contract: skills declare the abilities they need"
     },
     "autoload": {
         "psr-4": {
@@ -56,11 +60,20 @@
     },
     "extra": {
         "typo3/cms": {
-            "extension-key": "abilities"
+            "extension-key": "abilities",
+            "version": "1.0.0",
+            "Package": {
+                "providesPackages": []
+            }
         }
     },
     "scripts": {
         "phpstan": "php -d memory_limit=1G vendor/bin/phpstan analyse",
-        "test": "phpunit"
+        "test": [
+            "@test:unit",
+            "@test:functional"
+        ],
+        "test:functional": "php -d memory_limit=1G vendor/bin/phpunit -c Build/phpunit/FunctionalTests.xml",
+        "test:unit": "vendor/bin/phpunit -c Build/phpunit/UnitTests.xml"
     }
 }
