@@ -61,8 +61,11 @@ final class AbilitiesModuleController
             'categories' => $categories,
             'total' => count($definitions),
             'ajaxUrls' => (string)json_encode([
+                'list' => (string)$this->uriBuilder->buildUriFromRoute('ajax_abilities_list'),
                 'describe' => (string)$this->uriBuilder->buildUriFromRoute('ajax_abilities_describe'),
                 'run' => (string)$this->uriBuilder->buildUriFromRoute('ajax_abilities_run'),
+                'categories' => (string)$this->uriBuilder->buildUriFromRoute('ajax_abilities_categories'),
+                'tokens' => (string)$this->uriBuilder->buildUriFromRoute('ajax_abilities_tokens'),
             ], JSON_UNESCAPED_SLASHES),
         ]);
 
