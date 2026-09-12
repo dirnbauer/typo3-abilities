@@ -36,8 +36,7 @@ final class CallbackAbility implements AbilityInterface
         private readonly ?\Closure $onCheckPermission = null,
         private readonly array $inputSchema = [],
         private readonly array $outputSchema = [],
-    ) {
-    }
+    ) {}
 
     public function getInputSchema(): array
     {

@@ -31,8 +31,7 @@ final class AbilitiesModuleController
         private readonly IconFactory $iconFactory,
         private readonly PageRenderer $pageRenderer,
         private readonly AbilitiesRegistry $registry,
-    ) {
-    }
+    ) {}
 
     public function handleRequest(ServerRequestInterface $request): ResponseInterface
     {

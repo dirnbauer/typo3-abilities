@@ -30,8 +30,7 @@ final class SiteInfoAbility extends AbstractAbility
 {
     public function __construct(
         private readonly SiteFinder $siteFinder,
-    ) {
-    }
+    ) {}
 
     public function getInputSchema(): array
     {

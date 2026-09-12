@@ -21,8 +21,7 @@ final readonly class RestRoute
     public function __construct(
         public string $name,
         public array $params = [],
-    ) {
-    }
+    ) {}
 
     public function param(string $name): string
     {

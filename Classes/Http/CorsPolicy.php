@@ -23,8 +23,7 @@ final readonly class CorsPolicy
      */
     public function __construct(
         public array $allowedOrigins,
-    ) {
-    }
+    ) {}
 
     public static function fromString(string $origins): self
     {

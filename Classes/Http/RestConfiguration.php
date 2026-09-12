@@ -18,8 +18,7 @@ final readonly class RestConfiguration
         public bool $enabled = true,
         public string $basePath = self::DEFAULT_BASE_PATH,
         public string $corsOrigins = '',
-    ) {
-    }
+    ) {}
 
     public static function fromExtensionConfiguration(ExtensionConfiguration $extensionConfiguration): self
     {

@@ -25,8 +25,7 @@ final class BackendUserScopeResolver
 
     public function __construct(
         private readonly ConnectionPool $connectionPool,
-    ) {
-    }
+    ) {}
 
     /**
      * Scopes of an authenticated (booted) backend user. Uses the group rows

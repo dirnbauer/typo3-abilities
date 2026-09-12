@@ -22,8 +22,7 @@ final readonly class Token
         public int $expires,
         public int $lastUsed,
         public int $crdate,
-    ) {
-    }
+    ) {}
 
     /**
      * @param array<string, mixed> $row

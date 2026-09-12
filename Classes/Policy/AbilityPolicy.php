@@ -34,8 +34,7 @@ final readonly class AbilityPolicy
         private array $deny,
         private array $reviewRequired,
         private ?RiskTier $maxRiskTier,
-    ) {
-    }
+    ) {}
 
     public static function allowAll(): self
     {

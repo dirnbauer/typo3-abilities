@@ -32,8 +32,7 @@ final class RestRequestHandler
         private readonly CategoryRegistry $categories,
         private readonly RestResponseFactory $responses,
         private readonly RestInputMapper $inputMapper,
-    ) {
-    }
+    ) {}
 
     public function handle(RestRoute $route, ServerRequestInterface $request, RestIdentity $identity): ResponseInterface
     {

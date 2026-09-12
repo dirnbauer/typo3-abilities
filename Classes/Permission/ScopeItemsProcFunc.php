@@ -15,8 +15,7 @@ final class ScopeItemsProcFunc
 {
     public function __construct(
         private readonly AbilitiesRegistry $registry,
-    ) {
-    }
+    ) {}
 
     /**
      * @param array<string, mixed> $parameters

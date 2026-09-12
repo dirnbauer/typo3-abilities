@@ -20,8 +20,7 @@ final class ModifyAbilityDefinitionEvent
 {
     public function __construct(
         private AbilityDefinition $definition,
-    ) {
-    }
+    ) {}
 
     public function getDefinition(): AbilityDefinition
     {

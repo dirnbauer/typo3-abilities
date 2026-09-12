@@ -36,8 +36,7 @@ final readonly class ExecutionContext
         public ?array $grantedScopes = null,
         public bool $reviewApproved = false,
         public ?int $backendUserUid = null,
-    ) {
-    }
+    ) {}
 
     /**
      * @param list<string>|null $grantedScopes null = trusted CLI; a list when running --as-user

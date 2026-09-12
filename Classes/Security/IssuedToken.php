@@ -13,6 +13,5 @@ final readonly class IssuedToken
     public function __construct(
         public Token $token,
         public string $plaintext,
-    ) {
-    }
+    ) {}
 }

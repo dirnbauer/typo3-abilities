@@ -38,8 +38,7 @@ final readonly class AbilityDefinition
         public array $meta,
         /** @var class-string<AbilityInterface> */
         public string $className,
-    ) {
-    }
+    ) {}
 
     public static function fromInstance(AbilityInterface $ability): self
     {

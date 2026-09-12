@@ -31,8 +31,7 @@ final class RestMiddleware implements MiddlewareInterface
         private readonly RestRequestHandler $handler,
         private readonly RestResponseFactory $responses,
         private readonly ?LoggerInterface $logger = null,
-    ) {
-    }
+    ) {}
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {

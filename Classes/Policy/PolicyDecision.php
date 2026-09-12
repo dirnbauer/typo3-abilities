@@ -10,8 +10,7 @@ final readonly class PolicyDecision
         public bool $allowed,
         public ?string $reason,
         public bool $reviewRequired,
-    ) {
-    }
+    ) {}
 
     public static function allow(): self
     {

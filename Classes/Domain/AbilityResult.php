@@ -32,8 +32,7 @@ final readonly class AbilityResult
         public mixed $data,
         public ?string $errorCode,
         public ?string $error,
-    ) {
-    }
+    ) {}
 
     public static function success(mixed $data): self
     {

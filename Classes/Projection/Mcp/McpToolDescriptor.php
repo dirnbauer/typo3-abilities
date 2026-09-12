@@ -25,8 +25,7 @@ final readonly class McpToolDescriptor
         public array $inputSchema,
         public array $annotations,
         public AbilityDefinition $definition,
-    ) {
-    }
+    ) {}
 
     public static function fromAbility(AbilityDefinition $definition, AbilityInterface $ability): self
     {

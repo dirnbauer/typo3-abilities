@@ -37,8 +37,7 @@ class AbilityExecutor
         private readonly SchemaValidator $validator,
         private readonly PolicyProvider $policyProvider,
         private readonly ?EventDispatcherInterface $eventDispatcher = null,
-    ) {
-    }
+    ) {}
 
     /**
      * @param array<string, mixed> $input

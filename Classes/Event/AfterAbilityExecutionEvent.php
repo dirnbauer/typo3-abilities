@@ -31,6 +31,5 @@ readonly class AfterAbilityExecutionEvent
         public array $input,
         public AbilityResult $result,
         public float $durationMs,
-    ) {
-    }
+    ) {}
 }

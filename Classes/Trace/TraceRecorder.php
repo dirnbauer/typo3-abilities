@@ -34,8 +34,7 @@ final class TraceRecorder
     public function __construct(
         private readonly ConnectionPool $connectionPool,
         private readonly ?ExtensionConfiguration $extensionConfiguration = null,
-    ) {
-    }
+    ) {}
 
     public function __invoke(AfterAbilityExecutionEvent $event): void
     {

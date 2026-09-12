@@ -25,8 +25,7 @@ final readonly class RestIdentity
         public array $scopes,
         public string $via,
         public ?int $tokenUid = null,
-    ) {
-    }
+    ) {}
 
     public function executionContext(): ExecutionContext
     {

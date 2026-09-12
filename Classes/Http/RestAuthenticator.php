@@ -36,8 +36,7 @@ final class RestAuthenticator
         private readonly BackendUserScopeResolver $scopeResolver,
         private readonly LanguageServiceFactory $languageServiceFactory,
         private readonly Context $context,
-    ) {
-    }
+    ) {}
 
     public function authenticate(ServerRequestInterface $request): ?RestIdentity
     {

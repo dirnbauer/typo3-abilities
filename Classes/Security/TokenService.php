@@ -20,8 +20,7 @@ final class TokenService
 
     public function __construct(
         private readonly TokenStorageInterface $storage,
-    ) {
-    }
+    ) {}
 
     public static function hash(string $plaintext): string
     {

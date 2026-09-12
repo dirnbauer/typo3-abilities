@@ -35,8 +35,7 @@ final class AbilitiesAjaxController
         private readonly CategoryRegistry $categories,
         private readonly BackendUserScopeResolver $scopeResolver,
         private readonly TokenService $tokenService,
-    ) {
-    }
+    ) {}
 
     public function list(ServerRequestInterface $request): ResponseInterface
     {

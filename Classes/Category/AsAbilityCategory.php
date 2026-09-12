@@ -20,6 +20,5 @@ final class AsAbilityCategory
         public readonly string $slug,
         public readonly string $label,
         public readonly string $description = '',
-    ) {
-    }
+    ) {}
 }

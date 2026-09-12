@@ -19,8 +19,7 @@ class PolicyProvider
 
     public function __construct(
         private readonly ?string $policyFile = null,
-    ) {
-    }
+    ) {}
 
     public function get(): AbilityPolicy
     {

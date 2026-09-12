@@ -85,8 +85,8 @@ final class AbilitiesRegistry
     {
         return array_filter(
             $this->definitions,
-            static fn(AbilityDefinition $definition): bool =>
-                ($category === null || $definition->category === $category)
+            static fn(AbilityDefinition $definition): bool
+                => ($category === null || $definition->category === $category)
                 && ($surface === null || $definition->isExposedTo($surface)),
         );
     }

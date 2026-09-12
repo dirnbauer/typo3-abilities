@@ -13,9 +13,7 @@ use Webconsulting\Abilities\Domain\AbilityCategory;
 
 #[AsAbilityCategory(slug: 'news', label: 'News', description: 'Editorial news.')]
 #[AsAbilityCategory(slug: 'events', label: 'Events')]
-final class AttributedCategories
-{
-}
+final class AttributedCategories {}
 
 final class ProvidedCategories implements AbilityCategoryProviderInterface
 {

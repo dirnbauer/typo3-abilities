@@ -25,8 +25,7 @@ final class BeforeAbilityExecutionEvent
         public readonly AbilityDefinition $definition,
         public readonly ExecutionContext $context,
         private array $input,
-    ) {
-    }
+    ) {}
 
     /**
      * @return array<string, mixed>

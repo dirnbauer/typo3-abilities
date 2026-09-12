@@ -35,8 +35,7 @@ final class DescribeAbilityAbility extends AbstractAbility
     public function __construct(
         #[AutowireServiceClosure(AbilitiesRegistry::class)]
         private readonly \Closure $registry,
-    ) {
-    }
+    ) {}
 
     public function getInputSchema(): array
     {

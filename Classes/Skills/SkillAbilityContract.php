@@ -27,8 +27,7 @@ final class SkillAbilityContract
     public function __construct(
         private readonly AbilitiesRegistry $registry,
         private readonly PolicyProvider $policyProvider,
-    ) {
-    }
+    ) {}
 
     /**
      * @param list<string> $abilityNames

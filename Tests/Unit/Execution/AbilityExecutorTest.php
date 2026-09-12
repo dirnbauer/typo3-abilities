@@ -9,11 +9,11 @@ use PHPUnit\Framework\TestCase;
 use Webconsulting\Abilities\Domain\AbilityDefinition;
 use Webconsulting\Abilities\Domain\AbilityResult;
 use Webconsulting\Abilities\Domain\ExecutionContext;
+use Webconsulting\Abilities\Event\AbilityExecutedEvent;
 use Webconsulting\Abilities\Event\AfterAbilityExecutionEvent;
+use Webconsulting\Abilities\Event\BeforeAbilityExecutionEvent;
 use Webconsulting\Abilities\Execution\AbilityExecutor;
 use Webconsulting\Abilities\Policy\PolicyProvider;
-use Webconsulting\Abilities\Event\AbilityExecutedEvent;
-use Webconsulting\Abilities\Event\BeforeAbilityExecutionEvent;
 use Webconsulting\Abilities\Tests\Fixtures\CallbackAbility;
 use Webconsulting\Abilities\Tests\Fixtures\CollectingDispatcher;
 use Webconsulting\Abilities\Tests\Fixtures\EchoAbility;
@@ -211,7 +211,7 @@ final class AbilityExecutorTest extends TestCase
 
         $executor->execute(new EchoAbility(), ['message' => 'hi'], ExecutionContext::cli());
 
-        self::assertCount(2, $dispatcher->events, "Before + After events");
+        self::assertCount(2, $dispatcher->events, 'Before + After events');
         $event = $dispatcher->events[1];
         self::assertInstanceOf(AfterAbilityExecutionEvent::class, $event);
         self::assertSame('test/echo', $event->definition->name);
@@ -233,7 +233,7 @@ final class AbilityExecutorTest extends TestCase
 
         $executor->execute(new EchoAbility(), [], ExecutionContext::cli());
 
-        self::assertCount(2, $dispatcher->events, "Before + After events");
+        self::assertCount(2, $dispatcher->events, 'Before + After events');
         $event = $dispatcher->events[1];
         self::assertInstanceOf(AfterAbilityExecutionEvent::class, $event);
         self::assertFalse($event->result->ok);

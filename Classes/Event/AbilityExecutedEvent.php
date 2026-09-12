@@ -10,6 +10,4 @@ namespace Webconsulting\Abilities\Event;
  *             this subclass for one release so listeners registered on either
  *             class name keep receiving the event.
  */
-final readonly class AbilityExecutedEvent extends AfterAbilityExecutionEvent
-{
-}
+final readonly class AbilityExecutedEvent extends AfterAbilityExecutionEvent {}

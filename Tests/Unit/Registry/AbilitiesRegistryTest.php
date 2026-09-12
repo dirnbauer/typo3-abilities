@@ -12,10 +12,10 @@ use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Domain\RiskTier;
 use Webconsulting\Abilities\Event\ModifyAbilityDefinitionEvent;
 use Webconsulting\Abilities\Registry\AbilitiesRegistry;
-use Webconsulting\Abilities\Tests\Fixtures\CollectingDispatcher;
-use Webconsulting\Abilities\Tests\Fixtures\HiddenAbility;
 use Webconsulting\Abilities\Tests\Fixtures\CallbackAbility;
+use Webconsulting\Abilities\Tests\Fixtures\CollectingDispatcher;
 use Webconsulting\Abilities\Tests\Fixtures\EchoAbility;
+use Webconsulting\Abilities\Tests\Fixtures\HiddenAbility;
 
 final class AbilitiesRegistryTest extends TestCase
 {
@@ -96,7 +96,7 @@ final class AbilitiesRegistryTest extends TestCase
     #[Test]
     public function unknownCategoryIsLoggedNotFatal(): void
     {
-        $logger = new class () extends AbstractLogger {
+        $logger = new class extends AbstractLogger {
             /** @var list<string> */
             public array $warnings = [];
 
@@ -118,7 +118,7 @@ final class AbilitiesRegistryTest extends TestCase
     {
         $categories = new CategoryRegistry();
         $categories->register(new \Webconsulting\Abilities\Domain\AbilityCategory('testing', 'Testing'));
-        $logger = new class () extends AbstractLogger {
+        $logger = new class extends AbstractLogger {
             public int $calls = 0;
 
             public function log($level, \Stringable|string $message, array $context = []): void

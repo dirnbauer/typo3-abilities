@@ -13,8 +13,7 @@ final class DatabaseTokenStorage implements TokenStorageInterface
 
     public function __construct(
         private readonly ConnectionPool $connectionPool,
-    ) {
-    }
+    ) {}
 
     public function findByHash(string $tokenHash): ?array
     {

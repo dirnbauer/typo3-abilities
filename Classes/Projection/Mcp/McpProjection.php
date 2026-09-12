@@ -26,8 +26,7 @@ final class McpProjection
     public function __construct(
         private readonly AbilitiesRegistry $registry,
         private readonly AbilityExecutor $executor,
-    ) {
-    }
+    ) {}
 
     /**
      * @return iterable<McpToolDescriptor> sorted by ability name
