@@ -41,4 +41,22 @@ return [
         'methods' => ['GET'],
         'inheritAccessFromModule' => 'system_abilities',
     ],
+    'abilities_token_create' => [
+        'path' => '/abilities/tokens/create',
+        'target' => AbilitiesAjaxController::class . '::tokenCreate',
+        'methods' => ['POST'],
+        'inheritAccessFromModule' => 'system_abilities',
+    ],
+    'abilities_token_revoke' => [
+        'path' => '/abilities/tokens/revoke',
+        'target' => AbilitiesAjaxController::class . '::tokenRevoke',
+        'methods' => ['POST'],
+        'inheritAccessFromModule' => 'system_abilities',
+    ],
+    'abilities_traces' => [
+        'path' => '/abilities/traces',
+        'target' => AbilitiesAjaxController::class . '::traceList',
+        'methods' => ['GET'],
+        'inheritAccessFromModule' => 'system_abilities',
+    ],
 ];

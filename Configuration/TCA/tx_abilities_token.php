@@ -15,7 +15,7 @@ return [
         'delete' => 'deleted',
         'default_sortby' => 'uid DESC',
         'rootLevel' => 1,
-        'iconfile' => 'EXT:abilities/Resources/Public/Icons/module.svg',
+        'iconfile' => 'EXT:abilities/Resources/Public/Icons/record-token.svg',
         'security' => [
             'ignorePageTypeRestriction' => true,
         ],

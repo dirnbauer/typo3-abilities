@@ -12,7 +12,7 @@ return [
         'default_sortby' => 'crdate DESC',
         'rootLevel' => 1,
         'readOnly' => true,
-        'iconfile' => 'EXT:core/Resources/Public/Icons/T3Icons/svgs/actions/actions-list.svg',
+        'iconfile' => 'EXT:abilities/Resources/Public/Icons/record-trace.svg',
         'security' => [
             'ignorePageTypeRestriction' => true,
         ],

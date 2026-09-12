@@ -8,6 +8,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Http\JsonResponse;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use Webconsulting\Abilities\Category\CategoryRegistry;
 use Webconsulting\Abilities\Domain\AbilityCategory;
 use Webconsulting\Abilities\Domain\AbilityDefinition;
@@ -15,9 +16,12 @@ use Webconsulting\Abilities\Domain\AbilityErrorCode;
 use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Execution\AbilityExecutor;
 use Webconsulting\Abilities\Permission\BackendUserScopeResolver;
+use Webconsulting\Abilities\Policy\PolicyProvider;
 use Webconsulting\Abilities\Registry\AbilitiesRegistry;
 use Webconsulting\Abilities\Security\Token;
 use Webconsulting\Abilities\Security\TokenService;
+use Webconsulting\Abilities\Trace\TraceRecorder;
+use Webconsulting\Abilities\Trace\TraceRepository;
 
 /**
  * Backend AJAX endpoints for the abilities module and the client.js ES
@@ -35,6 +39,9 @@ final class AbilitiesAjaxController
         private readonly CategoryRegistry $categories,
         private readonly BackendUserScopeResolver $scopeResolver,
         private readonly TokenService $tokenService,
+        private readonly PolicyProvider $policyProvider,
+        private readonly TraceRepository $traces,
+        private readonly TraceRecorder $traceRecorder,
     ) {}
 
     public function list(ServerRequestInterface $request): ResponseInterface
@@ -44,7 +51,7 @@ final class AbilitiesAjaxController
         $surface = is_string($query['surface'] ?? null) && $query['surface'] !== '' ? $query['surface'] : null;
 
         $definitions = array_values(array_map(
-            static fn(AbilityDefinition $definition): array => $definition->toArray(),
+            fn(AbilityDefinition $definition): array => $this->withPolicy($definition),
             $this->registry->getDefinitions($category, $surface),
         ));
 
@@ -62,7 +69,7 @@ final class AbilitiesAjaxController
         $ability = $this->registry->get($name);
 
         return new JsonResponse([
-            ...$this->registry->getDefinition($name)->toArray(),
+            ...$this->withPolicy($this->registry->getDefinition($name)),
             'inputSchema' => $ability->getInputSchema() ?: new \stdClass(),
             'outputSchema' => $ability->getOutputSchema() ?: new \stdClass(),
         ]);
@@ -86,7 +93,100 @@ final class AbilitiesAjaxController
     {
         $tokens = array_map(static fn(Token $token): array => $token->toArray(), $this->tokenService->list());
 
-        return new JsonResponse(['tokens' => $tokens, 'total' => count($tokens)]);
+        return new JsonResponse([
+            'tokens' => $tokens,
+            'total' => count($tokens),
+            'scopes' => $this->registry->getDeclaredScopes(),
+        ]);
+    }
+
+    /**
+     * Issue a token for the acting backend user. A token can never widen the
+     * user's own grants (REST intersects token scopes with user scopes), and
+     * the plaintext is returned exactly once — only its hash is stored.
+     */
+    public function tokenCreate(ServerRequestInterface $request): ResponseInterface
+    {
+        $body = $this->body($request);
+        $user = $this->currentUser();
+        $backendUserUid = $this->currentUserUid();
+        if ($user === null || $backendUserUid === null) {
+            return new JsonResponse(['error' => 'No backend user.'], 403);
+        }
+
+        $name = is_string($body['name'] ?? null) ? trim($body['name']) : '';
+        if ($name === '') {
+            return new JsonResponse(['error' => 'A token needs a name.'], 400);
+        }
+
+        $scopes = [];
+        $rawScopes = $body['scopes'] ?? [];
+        if (is_string($rawScopes)) {
+            $rawScopes = GeneralUtility::trimExplode(',', $rawScopes, true);
+        }
+        if (is_array($rawScopes)) {
+            foreach ($rawScopes as $scope) {
+                if (is_string($scope) && trim($scope) !== '') {
+                    $scopes[] = trim($scope);
+                }
+            }
+        }
+
+        $expiresInDays = $body['expiresInDays'] ?? null;
+        $expiresAt = null;
+        if (is_numeric($expiresInDays) && (int)$expiresInDays > 0) {
+            $expiresAt = time() + (int)$expiresInDays * 86400;
+        }
+
+        $issued = $this->tokenService->create($name, $backendUserUid, $scopes, $expiresAt);
+        $username = is_array($user->user) ? ($user->user['username'] ?? null) : null;
+
+        return new JsonResponse([
+            ...$issued->token->toArray(),
+            'username' => is_string($username) ? $username : '',
+            'effectiveScopes' => BackendUserScopeResolver::intersect(
+                $issued->token->scopes,
+                $this->scopeResolver->resolveForUser($user),
+            ),
+            // The one and only time the plaintext exists outside the client.
+            'token' => $issued->plaintext,
+        ], 201);
+    }
+
+    public function tokenRevoke(ServerRequestInterface $request): ResponseInterface
+    {
+        $uid = $this->body($request)['uid'] ?? null;
+        if (!is_numeric($uid) || (int)$uid <= 0) {
+            return new JsonResponse(['error' => 'A token uid is required.'], 400);
+        }
+
+        if (!$this->tokenService->revoke((int)$uid)) {
+            return new JsonResponse(['error' => sprintf('No active token with uid %d.', (int)$uid)], 404);
+        }
+
+        return new JsonResponse(['revoked' => (int)$uid]);
+    }
+
+    public function traceList(ServerRequestInterface $request): ResponseInterface
+    {
+        $query = $request->getQueryParams();
+        $ability = is_string($query['ability'] ?? null) && $query['ability'] !== '' ? $query['ability'] : null;
+        $surface = is_string($query['surface'] ?? null) && $query['surface'] !== '' ? $query['surface'] : null;
+        $ok = match ($query['ok'] ?? '') {
+            '1', 'true' => true,
+            '0', 'false' => false,
+            default => null,
+        };
+        $limit = is_numeric($query['limit'] ?? null) ? (int)$query['limit'] : TraceRepository::DEFAULT_LIMIT;
+
+        $traces = $this->traces->findLatest($ability, $surface, $ok, $limit);
+
+        return new JsonResponse([
+            'traces' => $traces,
+            'total' => count($traces),
+            'totalStored' => $this->traces->countAll(),
+            'surfaces' => $this->traces->surfacesInUse(),
+        ]);
     }
 
     public function run(ServerRequestInterface $request): ResponseInterface
@@ -126,7 +226,41 @@ final class AbilitiesAjaxController
             $this->registry->getDefinition($name),
         );
 
-        return new JsonResponse($result->toArray(), $result->httpStatus());
+        return new JsonResponse(
+            [...$result->toArray(), 'traceUid' => $this->traceRecorder->lastTraceUid()],
+            $result->httpStatus(),
+        );
+    }
+
+    /**
+     * The registry entry plus what the site policy would decide for it right
+     * now, so the module can show the review checkbox (and a denial) before
+     * anybody presses "Execute" instead of after.
+     *
+     * @return array<string, mixed>
+     */
+    private function withPolicy(AbilityDefinition $definition): array
+    {
+        $decision = $this->policyProvider->get()->decide(
+            $definition,
+            ExecutionContext::backend(grantedScopes: $this->currentUserScopes(), backendUserUid: $this->currentUserUid()),
+        );
+
+        return [
+            ...$definition->toArray(),
+            'policy' => [
+                'allowed' => $decision->allowed,
+                'reviewRequired' => $decision->reviewRequired,
+                'reason' => $decision->reason,
+            ],
+        ];
+    }
+
+    private function currentUser(): ?BackendUserAuthentication
+    {
+        $backendUser = $GLOBALS['BE_USER'] ?? null;
+
+        return $backendUser instanceof BackendUserAuthentication && is_array($backendUser->user) ? $backendUser : null;
     }
 
     /**
@@ -134,15 +268,14 @@ final class AbilitiesAjaxController
      */
     private function currentUserScopes(): array
     {
-        $backendUser = $GLOBALS['BE_USER'] ?? null;
+        $user = $this->currentUser();
 
-        return $backendUser instanceof BackendUserAuthentication ? $this->scopeResolver->resolveForUser($backendUser) : [];
+        return $user === null ? [] : $this->scopeResolver->resolveForUser($user);
     }
 
     private function currentUserUid(): ?int
     {
-        $backendUser = $GLOBALS['BE_USER'] ?? null;
-        $uid = $backendUser instanceof BackendUserAuthentication ? ($backendUser->user['uid'] ?? 0) : 0;
+        $uid = $this->currentUser()?->user['uid'] ?? 0;
 
         return is_numeric($uid) && (int)$uid > 0 ? (int)$uid : null;
     }

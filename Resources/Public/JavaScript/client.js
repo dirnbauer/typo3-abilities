@@ -158,12 +158,56 @@ export async function getCategories() {
   return data.categories;
 }
 
+/**
+ * Active REST bearer tokens plus every scope the registry declares.
+ * Returns { tokens, total, scopes }.
+ */
 export async function getTokens() {
   const { status, data } = await request("abilities_tokens");
   if (status !== 200 || !data) {
     throw new Error(`Could not list tokens (HTTP ${status}).`);
   }
-  return data.tokens;
+  return data;
+}
+
+/**
+ * Issue a token for the logged-in backend user. The returned object carries
+ * the plaintext in `token` — it exists exactly once and is never retrievable
+ * again, so show it to the user immediately and do not persist it.
+ */
+export async function createToken({ name, scopes = [], expiresInDays = null } = {}) {
+  const { status, data } = await request("abilities_token_create", {
+    method: "POST",
+    body: { name, scopes, expiresInDays },
+  });
+  if (status !== 201 || !data) {
+    throw new Error((data && data.error) || `Could not create the token (HTTP ${status}).`);
+  }
+  return data;
+}
+
+export async function revokeToken(uid) {
+  const { status, data } = await request("abilities_token_revoke", { method: "POST", body: { uid } });
+  if (status !== 200) {
+    throw new Error((data && data.error) || `Could not revoke the token (HTTP ${status}).`);
+  }
+  return true;
+}
+
+/**
+ * Execution traces, newest first. Filters: ability, surface, ok ("1"/"0"),
+ * limit. Returns { traces, total, totalStored, surfaces }.
+ */
+export async function getTraces({ ability = "", surface = "", ok = "", limit = 50 } = {}) {
+  const query = { limit };
+  if (ability) query.ability = ability;
+  if (surface) query.surface = surface;
+  if (ok !== "") query.ok = ok;
+  const { status, data } = await request("abilities_traces", { query });
+  if (status !== 200 || !data) {
+    throw new Error(`Could not list traces (HTTP ${status}).`);
+  }
+  return data;
 }
 
 /**
@@ -201,6 +245,9 @@ export default {
   getAbility,
   getCategories,
   getTokens,
+  createToken,
+  revokeToken,
+  getTraces,
   executeAbility,
   registerAbility,
   unregisterAbility,

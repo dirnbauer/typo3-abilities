@@ -9,4 +9,12 @@ return [
         'provider' => SvgIconProvider::class,
         'source' => 'EXT:abilities/Resources/Public/Icons/module.svg',
     ],
+    'abilities-token' => [
+        'provider' => SvgIconProvider::class,
+        'source' => 'EXT:abilities/Resources/Public/Icons/record-token.svg',
+    ],
+    'abilities-trace' => [
+        'provider' => SvgIconProvider::class,
+        'source' => 'EXT:abilities/Resources/Public/Icons/record-trace.svg',
+    ],
 ];

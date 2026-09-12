@@ -31,13 +31,27 @@ final class TraceRecorder
     private const MAX_TEXT_LENGTH = 65000;
     private const PRUNE_PROBABILITY_PERCENT = 2;
 
+    private ?int $lastTraceUid = null;
+
     public function __construct(
         private readonly ConnectionPool $connectionPool,
         private readonly ?ExtensionConfiguration $extensionConfiguration = null,
     ) {}
 
+    /**
+     * Uid of the trace row written for the last execution in this request, or
+     * null when none could be written. The backend module reports it next to
+     * the result so an editor can look the run up in the Traces tab.
+     */
+    public function lastTraceUid(): ?int
+    {
+        return $this->lastTraceUid;
+    }
+
     public function __invoke(AfterAbilityExecutionEvent $event): void
     {
+        $this->lastTraceUid = null;
+
         try {
             $connection = $this->connectionPool->getConnectionForTable(self::TABLE);
             $connection->insert(self::TABLE, [
@@ -56,6 +70,7 @@ final class TraceRecorder
                 'duration_ms' => (int)round($event->durationMs),
                 'be_user' => $event->context->backendUserUid ?? $this->currentBackendUserId(),
             ]);
+            $this->lastTraceUid = (int)$connection->lastInsertId() ?: null;
 
             if (random_int(1, 100) <= self::PRUNE_PROBABILITY_PERCENT) {
                 $this->prune($connection);

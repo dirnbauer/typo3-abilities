@@ -1,13 +1,29 @@
-.abilities-module .abilities-card {
-    margin-bottom: 1.5rem;
+/*
+ * Abilities backend module. Layout only — every colour comes from a TYPO3
+ * backend custom property so the module follows the light/dark scheme.
+ */
+
+.abilities-module h1 {
+    margin-bottom: 1rem;
 }
 
-.abilities-module .abilities-card-title {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    margin: 0;
-    font-size: 1.05rem;
+.abilities-module .tab-content > .tab-pane {
+    padding-top: 1rem;
+}
+
+.abilities-module .abilities-filters {
+    margin-bottom: 0.5rem;
+}
+
+.abilities-module .abilities-filters .form-label {
+    margin-bottom: 0.25rem;
+}
+
+.abilities-module .abilities-filter-status,
+.abilities-module .abilities-trace-status,
+.abilities-module .abilities-token-status {
+    margin: 0.5rem 0 0;
+    font-size: 0.85rem;
 }
 
 .abilities-module .abilities-name {
@@ -17,51 +33,78 @@
 .abilities-module .abilities-subtitle {
     color: var(--typo3-text-color-variant, #6c757d);
     font-size: 0.85rem;
+    font-weight: 400;
+    word-break: break-word;
+}
+
+.abilities-module .abilities-surfaces {
+    white-space: nowrap;
 }
 
 .abilities-module .col-control {
     width: 1%;
     white-space: nowrap;
-    text-align: right;
+    text-align: end;
 }
 
 .abilities-module .badge + .badge {
     margin-inline-start: 0.25rem;
 }
 
-.abilities-module .abilities-runner > td {
-    background: var(--typo3-component-hover-bg, rgba(0, 0, 0, 0.02));
+.abilities-module .abilities-fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-inline-size: 0;
 }
 
-.abilities-module .abilities-description {
-    margin-bottom: 0.75rem;
+.abilities-module .abilities-fieldset > legend {
+    float: none;
+    width: auto;
+    font-size: 1rem;
+}
+
+.abilities-module .abilities-field + .abilities-field {
+    margin-top: 0.75rem;
+}
+
+.abilities-module .abilities-json {
+    font-family: var(--typo3-font-family-code, monospace);
+    font-size: 0.8rem;
+}
+
+.abilities-module .abilities-approve {
+    margin: 1rem 0;
+    padding: 0.75rem;
+    border-inline-start: 3px solid var(--typo3-state-warning-color, #b87b00);
+    background: var(--typo3-component-hover-bg, rgba(0, 0, 0, 0.02));
 }
 
 .abilities-module .abilities-actions {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
     flex-wrap: wrap;
-    margin-top: 0.5rem;
+    margin-top: 1rem;
 }
 
-.abilities-module .abilities-approve {
-    margin: 0;
-}
-
-.abilities-module .abilities-input {
-    font-family: var(--typo3-font-family-code, monospace);
-    font-size: 0.8rem;
-}
-
-.abilities-module .abilities-result {
+.abilities-module .abilities-result,
+.abilities-module .abilities-token-value {
     min-height: 8rem;
-    max-height: 24rem;
+    max-height: 28rem;
     overflow: auto;
+    margin: 0;
     padding: 0.75rem;
     border: 1px solid var(--typo3-component-border-color, #ced4da);
     border-radius: var(--typo3-component-border-radius, 4px);
     font-size: 0.8rem;
+}
+
+.abilities-module .abilities-token-value {
+    min-height: 0;
+    user-select: all;
+    word-break: break-all;
+    white-space: pre-wrap;
 }
 
 .abilities-module .abilities-result--ok {
@@ -70,4 +113,19 @@
 
 .abilities-module .abilities-result--fail {
     border-inline-start: 3px solid var(--typo3-state-danger-color, #c83c3c);
+}
+
+.abilities-module .abilities-trace-input {
+    display: inline-block;
+    max-width: 28rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+}
+
+/* Visible focus everywhere, including inside the scrollable result boxes. */
+.abilities-module :focus-visible {
+    outline: 2px solid var(--typo3-outline-color, #0078e6);
+    outline-offset: 1px;
 }
