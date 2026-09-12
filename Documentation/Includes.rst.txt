@@ -1,0 +1,11 @@
+..  Global includes and substitutions for every page of this manual.
+
+..  |extension_key| replace:: abilities
+..  |composer_name| replace:: webconsulting/typo3-abilities
+..  |extension_name| replace:: TYPO3 Abilities Registry
+
+..  role:: php(code)
+    :language: php
+
+..  role:: bash(code)
+    :language: bash

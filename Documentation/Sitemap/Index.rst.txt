@@ -1,0 +1,15 @@
+..  menu::
+    :glob:
+    :maxdepth: 3
+    :titlesonly:
+
+    /Introduction/Index
+    /Installation/Index
+    /Concepts/Index
+    /RegisteringAbilities/Index
+    /Surfaces/Index
+    /Permissions/Index
+    /Policy/Index
+    /Events/Index
+    /DemoAbilities/Index
+    /Changelog/Index

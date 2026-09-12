@@ -7,3 +7,4 @@
 /public/
 /typo3temp/
 .DS_Store
+/Documentation-GENERATED-temp/
