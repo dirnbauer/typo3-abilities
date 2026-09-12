@@ -8,13 +8,16 @@ services:
     resource: '../Classes/*'
     exclude:
       - '../Classes/Attribute/*'
+      - '../Classes/Category/AsAbilityCategory.php'
       - '../Classes/Domain/*'
       - '../Classes/Event/*'
       - '../Classes/Policy/AbilityPolicy.php'
       - '../Classes/Policy/PolicyDecision.php'
-      - '../Classes/Projection/Mcp/AbilityMcpTool.php'
 
   Webconsulting\Abilities\Registry\AbilitiesRegistry:
+    public: true
+
+  Webconsulting\Abilities\Category\CategoryRegistry:
     public: true
 
   Webconsulting\Abilities\Execution\AbilityExecutor:

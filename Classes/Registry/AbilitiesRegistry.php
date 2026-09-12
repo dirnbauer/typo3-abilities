@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace Webconsulting\Abilities\Registry;
 
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
+use Webconsulting\Abilities\Category\CategoryRegistry;
 use Webconsulting\Abilities\Domain\AbilityDefinition;
+use Webconsulting\Abilities\Event\ModifyAbilityDefinitionEvent;
 
 /**
  * The abilities registry: one typed, permissioned registry of what this
@@ -13,6 +17,10 @@ use Webconsulting\Abilities\Domain\AbilityDefinition;
  * AbilityInterface implementation known to the DI container) are collected
  * here; MCP tools, CLI commands and REST routes are projections of this
  * registry — never hand-rolled endpoints.
+ *
+ * Every definition passes through ModifyAbilityDefinitionEvent so an
+ * installation can override exposure, risk tier or read-only status.
+ * Unknown categories are logged, not fatal.
  */
 final class AbilitiesRegistry
 {
@@ -28,9 +36,12 @@ final class AbilitiesRegistry
     public function __construct(
         #[AutowireIterator('abilities.ability')]
         iterable $abilities,
+        private readonly ?CategoryRegistry $categoryRegistry = null,
+        private readonly ?EventDispatcherInterface $eventDispatcher = null,
+        private readonly ?LoggerInterface $logger = null,
     ) {
         foreach ($abilities as $ability) {
-            $definition = AbilityDefinition::fromInstance($ability);
+            $definition = $this->buildDefinition($ability);
             if (isset($this->definitions[$definition->name])) {
                 throw new \LogicException(
                     sprintf(
@@ -70,15 +81,13 @@ final class AbilitiesRegistry
     /**
      * @return array<string, AbilityDefinition> keyed and sorted by ability name
      */
-    public function getDefinitions(?string $category = null): array
+    public function getDefinitions(?string $category = null, ?string $surface = null): array
     {
-        if ($category === null) {
-            return $this->definitions;
-        }
-
         return array_filter(
             $this->definitions,
-            fn(AbilityDefinition $definition): bool => $definition->category === $category,
+            static fn(AbilityDefinition $definition): bool =>
+                ($category === null || $definition->category === $category)
+                && ($surface === null || $definition->isExposedTo($surface)),
         );
     }
 
@@ -88,5 +97,59 @@ final class AbilitiesRegistry
     public function getNames(): array
     {
         return array_keys($this->definitions);
+    }
+
+    /**
+     * Every scope declared by at least one registered ability, sorted.
+     *
+     * @return list<string>
+     */
+    public function getDeclaredScopes(): array
+    {
+        $scopes = [];
+        foreach ($this->definitions as $definition) {
+            foreach ($definition->scopes as $scope) {
+                $scopes[$scope] = true;
+            }
+        }
+        ksort($scopes);
+
+        return array_keys($scopes);
+    }
+
+    /**
+     * Category slugs referenced by at least one registered ability, sorted.
+     *
+     * @return list<string>
+     */
+    public function getCategoriesInUse(): array
+    {
+        $categories = [];
+        foreach ($this->definitions as $definition) {
+            $categories[$definition->category] = true;
+        }
+        ksort($categories);
+
+        return array_keys($categories);
+    }
+
+    private function buildDefinition(AbilityInterface $ability): AbilityDefinition
+    {
+        $definition = AbilityDefinition::fromInstance($ability);
+
+        if ($this->eventDispatcher !== null) {
+            $event = new ModifyAbilityDefinitionEvent($definition);
+            $this->eventDispatcher->dispatch($event);
+            $definition = $event->getDefinition();
+        }
+
+        if ($this->categoryRegistry !== null && !$this->categoryRegistry->has($definition->category)) {
+            $this->logger?->warning(
+                'Ability "{ability}" references unknown category "{category}"; register it via #[AsAbilityCategory] or an AbilityCategoryProviderInterface service.',
+                ['ability' => $definition->name, 'category' => $definition->category],
+            );
+        }
+
+        return $definition;
     }
 }
