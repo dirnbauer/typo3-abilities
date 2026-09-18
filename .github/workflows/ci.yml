@@ -28,7 +28,7 @@ jobs:
         run: composer validate --strict
 
       - name: Lint PHP files
-        run: find Classes Configuration Tests ext_localconf.php -name '*.php' -print0 | xargs -0 -n1 -P4 php -l
+        run: find Classes Configuration Tests Build -name '*.php' -print0 | xargs -0 -n1 -P4 php -l
 
       - name: Lint XLIFF files
         run: |
@@ -43,10 +43,15 @@ jobs:
               echo "ok: " . $argv[1] . PHP_EOL;' "$file"
           done
 
+      - name: Install dependencies
+        run: composer install --no-progress --no-interaction
+
       - name: Lint YAML files
+        run: .Build/bin/yaml-lint Configuration Resources/Private/Examples
+
+      - name: Lint JavaScript modules
         run: |
-          composer install --no-progress --no-interaction
-          vendor/bin/yaml-lint Configuration Resources/Private/Examples
+          for file in Resources/Public/JavaScript/*.js; do node --check "$file"; done
 
   cgl:
     name: Coding guidelines (TYPO3 ruleset)
@@ -64,7 +69,7 @@ jobs:
         run: composer install --no-progress --no-interaction
 
       - name: php-cs-fixer
-        run: vendor/bin/php-cs-fixer fix --dry-run --diff --no-interaction
+        run: composer cgl
 
   phpstan:
     name: PHPStan (level 8)
@@ -82,7 +87,7 @@ jobs:
         run: composer install --no-progress --no-interaction
 
       - name: PHPStan
-        run: composer phpstan -- --no-progress
+        run: composer phpstan
 
   unit:
     name: Unit tests (PHP ${{ matrix.php-version }})

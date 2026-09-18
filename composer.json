@@ -1,7 +1,7 @@
 {
     "name": "webconsulting/typo3-abilities",
     "type": "typo3-cms-extension",
-    "description": "Abilities registry for TYPO3 \u2014 one typed, permissioned registry of what the installation can do; MCP tools, CLI commands, REST routes and the backend module become projections of it.",
+    "description": "Abilities registry for TYPO3 — one typed, permissioned registry of what the installation can do; CLI, REST, MCP, webhooks, Fluid, the backend module and agent skills are projections of it.",
     "license": "GPL-2.0-or-later",
     "keywords": [
         "typo3",
@@ -27,20 +27,24 @@
         "symfony/yaml": "^7.0",
         "typo3/cms-backend": "^14.3",
         "typo3/cms-core": "^14.3",
-        "typo3/cms-fluid": "^14.3"
+        "typo3/cms-fluid": "^14.3",
+        "typo3/cms-frontend": "^14.3"
     },
     "require-dev": {
         "phpstan/phpstan": "^2.0",
         "phpstan/phpstan-phpunit": "^2.0",
         "phpunit/phpunit": "^12.4 || ^13.0",
         "saschaegerer/phpstan-typo3": "^3.0",
+        "typo3/cms-reactions": "^14.3",
         "typo3/cms-workspaces": "^14.3",
         "typo3/coding-standards": "^0.9",
         "typo3/testing-framework": "^9.5"
     },
     "suggest": {
         "hn/typo3-mcp-server": "MCP projection bridge: exposes McpProjection descriptors as MCP tools",
-        "sgalinski/sg-apicore": "OpenAPI augmenter for the REST projection",
+        "typo3/cms-reactions": "Webhook surface: the \"Run ability\" reaction type",
+        "typo3/cms-scheduler": "Run abilities.run on a schedule with the \"Execute console command\" task",
+        "typo3/cms-workspaces": "Needed by the workspace/publish demo ability",
         "webconsulting/skillflow": "Skills contract: skills declare the abilities they need"
     },
     "autoload": {
@@ -59,24 +63,30 @@
             "typo3/class-alias-loader": true,
             "typo3/cms-composer-installers": true
         },
-        "sort-packages": true
+        "bin-dir": ".Build/bin",
+        "sort-packages": true,
+        "vendor-dir": ".Build/vendor"
     },
     "extra": {
         "typo3/cms": {
             "extension-key": "abilities",
-            "version": "1.0.0",
-            "Package": {
-                "providesPackages": []
-            }
+            "web-dir": ".Build/public"
         }
     },
     "scripts": {
-        "phpstan": "php -d memory_limit=1G vendor/bin/phpstan analyse",
+        "cgl": "php-cs-fixer fix --dry-run --diff --no-interaction",
+        "cgl:fix": "php-cs-fixer fix --no-interaction",
+        "ci": [
+            "@cgl",
+            "@phpstan",
+            "@test"
+        ],
+        "phpstan": "php -d memory_limit=1G .Build/bin/phpstan analyse --no-progress",
         "test": [
             "@test:unit",
             "@test:functional"
         ],
-        "test:functional": "php -d memory_limit=1G vendor/bin/phpunit -c Build/phpunit/FunctionalTests.xml",
-        "test:unit": "vendor/bin/phpunit -c Build/phpunit/UnitTests.xml"
+        "test:functional": "php -d memory_limit=1G .Build/bin/phpunit -c Build/phpunit/FunctionalTests.xml",
+        "test:unit": ".Build/bin/phpunit -c Build/phpunit/UnitTests.xml"
     }
 }

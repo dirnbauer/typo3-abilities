@@ -3,7 +3,7 @@
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.4/phpunit.xsd"
          backupGlobals="true"
          bootstrap="FunctionalTestsBootstrap.php"
-         cacheDirectory=".phpunit.cache"
+         cacheDirectory="../../.Build/.phpunit.cache"
          colors="true"
          failOnWarning="true"
          failOnNotice="true"

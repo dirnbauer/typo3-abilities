@@ -1,6 +1,6 @@
 includes:
-    - vendor/saschaegerer/phpstan-typo3/extension.neon
-    - vendor/phpstan/phpstan-phpunit/extension.neon
+    - .Build/vendor/saschaegerer/phpstan-typo3/extension.neon
+    - .Build/vendor/phpstan/phpstan-phpunit/extension.neon
 
 parameters:
     level: 8
@@ -8,6 +8,8 @@ parameters:
         - Classes
         - Configuration
         - Tests
-        - ext_localconf.php
+    # Optional dependencies referenced behind class_exists() guards; see the file.
+    scanFiles:
+        - Build/phpstan/OptionalDependencies.php
     treatPhpDocTypesAsCertain: false
     reportUnmatchedIgnoredErrors: true
