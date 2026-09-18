@@ -7,21 +7,28 @@ services:
   Webconsulting\Abilities\:
     resource: '../Classes/*'
     exclude:
-      - '../Classes/Ability/Support/*'
       - '../Classes/Attribute/*'
+      - '../Classes/Catalog/CapabilityEntry.php'
       - '../Classes/Category/AsAbilityCategory.php'
       - '../Classes/Domain/*'
       - '../Classes/Event/*'
-      - '../Classes/Policy/AbilityPolicy.php'
       - '../Classes/Http/CorsPolicy.php'
       - '../Classes/Http/InvalidRestInputException.php'
       - '../Classes/Http/RestConfiguration.php'
-      - '../Classes/Http/RestIdentity.php'
+      - '../Classes/Http/RestEndpoint.php'
       - '../Classes/Http/RestRoute.php'
+      - '../Classes/Permission/BackendUserContext.php'
+      - '../Classes/Policy/AbilityPolicy.php'
       - '../Classes/Policy/PolicyDecision.php'
       - '../Classes/Projection/Mcp/McpToolDescriptor.php'
+      - '../Classes/Reaction/*'
       - '../Classes/Security/IssuedToken.php'
       - '../Classes/Security/Token.php'
+
+  # The REST settings, read once per container boot from the extension configuration.
+  Webconsulting\Abilities\Http\RestConfiguration:
+    factory: ['Webconsulting\Abilities\Http\RestConfiguration', 'fromExtensionConfiguration']
+    arguments: ['@TYPO3\CMS\Core\Configuration\ExtensionConfiguration']
 
   Webconsulting\Abilities\Registry\AbilitiesRegistry:
     public: true
@@ -30,6 +37,9 @@ services:
     public: true
 
   Webconsulting\Abilities\Execution\AbilityExecutor:
+    public: true
+
+  Webconsulting\Abilities\Catalog\CapabilityCatalog:
     public: true
 
   Webconsulting\Abilities\Projection\Mcp\McpProjection:
@@ -41,16 +51,19 @@ services:
   Webconsulting\Abilities\Permission\BackendUserScopeResolver:
     public: true
 
-  Webconsulting\Abilities\Permission\ScopeItemsProcFunc:
-    public: true
-
   Webconsulting\Abilities\Security\TokenService:
     public: true
 
   Webconsulting\Abilities\Security\TokenStorageInterface:
     alias: Webconsulting\Abilities\Security\DatabaseTokenStorage
 
-  # Backend module route targets
+  # Instantiated by TYPO3, not injected: TCA itemsProcFunc, data processor, backend routes
+  Webconsulting\Abilities\Backend\Tca\RegistryItemsProcFunc:
+    public: true
+
+  Webconsulting\Abilities\DataProcessing\AbilityProcessor:
+    public: true
+
   Webconsulting\Abilities\Backend\Controller\AbilitiesModuleController:
     public: true
 

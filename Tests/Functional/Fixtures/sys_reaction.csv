@@ -1,0 +1,4 @@
+"sys_reaction"
+,"uid","pid","deleted","disabled","name","description","identifier","secret","reaction_type","impersonate_user","tx_abilities_ability"
+,1,0,0,0,"Search webhook","Lets n8n search the site.","search-hook","not-a-real-hash","abilities-run",2,"content/search"
+,2,0,0,1,"Disabled webhook","","disabled-hook","not-a-real-hash","abilities-run",2,"content/search"
