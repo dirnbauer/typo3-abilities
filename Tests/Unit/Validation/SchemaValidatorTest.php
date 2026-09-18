@@ -149,6 +149,34 @@ final class SchemaValidatorTest extends TestCase
     }
 
     #[Test]
+    public function coercesStringsToTheDeclaredScalarTypes(): void
+    {
+        $schema = [
+            'type' => 'object',
+            'properties' => [
+                'id' => ['type' => 'integer'],
+                'ratio' => ['type' => 'number'],
+                'force' => ['type' => 'boolean'],
+                'tags' => ['type' => 'array'],
+                'meta' => ['type' => 'object'],
+                'maybe' => ['type' => ['integer', 'null']],
+                'title' => ['type' => 'string'],
+            ],
+        ];
+
+        self::assertSame(
+            ['id' => 42, 'ratio' => 0.5, 'force' => true, 'tags' => ['a', 'b'], 'meta' => ['k' => 1], 'maybe' => null, 'title' => '7', 'unknown' => 'x'],
+            $this->validator->coerce(
+                ['id' => '42', 'ratio' => '0.5', 'force' => 'true', 'tags' => 'a, b', 'meta' => '{"k":1}', 'maybe' => '', 'title' => '7', 'unknown' => 'x'],
+                $schema,
+            ),
+        );
+        self::assertSame(['id' => 'abc', 'force' => 'maybe', 'ratio' => 3], $this->validator->coerce(['id' => 'abc', 'force' => 'maybe', 'ratio' => 3], $schema), 'unparseable strings and non-strings are left alone');
+        self::assertSame(['maybe' => 5], $this->validator->coerce(['maybe' => '5'], $schema), 'the first matching union member wins');
+        self::assertSame(['x' => '1'], $this->validator->coerce(['x' => '1'], []), 'no schema, no coercion');
+    }
+
+    #[Test]
     public function appliesTopLevelDefaults(): void
     {
         $schema = [

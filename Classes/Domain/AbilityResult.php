@@ -5,27 +5,22 @@ declare(strict_types=1);
 namespace Webconsulting\Abilities\Domain;
 
 /**
- * Result envelope of one ability execution.
+ * Result envelope of one ability execution, identical on every surface:
+ *   {"ok": true,  "data": ...}
+ *   {"ok": false, "errorCode": "ability_...", "error": "why"}
  *
- * Error codes are the stable identifiers of AbilityErrorCode:
- *  - ability_policy_denied: blocked by the abilities policy before anything ran
- *  - ability_review_required: policy wants a human approval the context lacks
- *  - ability_invalid_input: input violated the input schema; nothing ran
- *  - ability_invalid_permissions: scope or ability permission check failed; nothing ran
- *  - ability_cannot_execute: the ability threw
- *  - ability_invalid_output: the ability ran (side effects may have happened!) but
- *    returned data violating its output contract
- *  - ability_not_found: the requested ability is not registered
+ * $errorCode is the string value of an AbilityErrorCode; the ERROR_*
+ * constants name the same values for callers that compare strings.
  */
 final readonly class AbilityResult
 {
-    public const ERROR_POLICY_DENIED = 'ability_policy_denied';
-    public const ERROR_REVIEW_REQUIRED = 'ability_review_required';
-    public const ERROR_INVALID_INPUT = 'ability_invalid_input';
-    public const ERROR_PERMISSION_DENIED = 'ability_invalid_permissions';
-    public const ERROR_EXECUTION_ERROR = 'ability_cannot_execute';
-    public const ERROR_INVALID_OUTPUT = 'ability_invalid_output';
-    public const ERROR_NOT_FOUND = 'ability_not_found';
+    public const ERROR_POLICY_DENIED = AbilityErrorCode::PolicyDenied->value;
+    public const ERROR_REVIEW_REQUIRED = AbilityErrorCode::ReviewRequired->value;
+    public const ERROR_INVALID_INPUT = AbilityErrorCode::InvalidInput->value;
+    public const ERROR_PERMISSION_DENIED = AbilityErrorCode::InvalidPermissions->value;
+    public const ERROR_EXECUTION_ERROR = AbilityErrorCode::CannotExecute->value;
+    public const ERROR_INVALID_OUTPUT = AbilityErrorCode::InvalidOutput->value;
+    public const ERROR_NOT_FOUND = AbilityErrorCode::NotFound->value;
 
     private function __construct(
         public bool $ok,
@@ -39,18 +34,13 @@ final readonly class AbilityResult
         return new self(true, $data, null, null);
     }
 
-    public static function failure(string|AbilityErrorCode $errorCode, string $error): self
+    public static function failure(AbilityErrorCode $errorCode, string $error): self
     {
-        return new self(false, null, $errorCode instanceof AbilityErrorCode ? $errorCode->value : $errorCode, $error);
-    }
-
-    public function errorCodeEnum(): ?AbilityErrorCode
-    {
-        return $this->errorCode === null ? null : AbilityErrorCode::tryFrom($this->errorCode);
+        return new self(false, null, $errorCode->value, $error);
     }
 
     /**
-     * HTTP status this result maps to on HTTP surfaces (REST, backend AJAX).
+     * HTTP status this result maps to on HTTP surfaces (REST, webhook, backend AJAX).
      */
     public function httpStatus(): int
     {

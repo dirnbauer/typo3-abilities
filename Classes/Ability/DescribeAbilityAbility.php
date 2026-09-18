@@ -74,12 +74,6 @@ final class DescribeAbilityAbility extends AbstractAbility
             throw new \OutOfBoundsException(sprintf('Unknown ability "%s".', $name), 7480291030);
         }
 
-        $ability = $registry->get($name);
-
-        return [
-            ...$registry->getDefinition($name)->toArray(),
-            'inputSchema' => $ability->getInputSchema() ?: new \stdClass(),
-            'outputSchema' => $ability->getOutputSchema() ?: new \stdClass(),
-        ];
+        return $registry->describe($name);
     }
 }

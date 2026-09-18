@@ -11,14 +11,15 @@ use TYPO3\CMS\Core\Context\UserAspect;
 use TYPO3\CMS\Core\Core\Bootstrap;
 use TYPO3\CMS\Core\Localization\LanguageServiceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Permission\BackendUserScopeResolver;
 use Webconsulting\Abilities\Security\TokenService;
 
 /**
  * Authenticates REST requests and boots the acting TYPO3 backend user into
  * $GLOBALS['BE_USER'] (group data, workspace hint, language, context aspect)
- * so abilities run with real permissions — the pattern of sg_apicore's
- * BackendBearerOpaqueTokenProvider and the MCP server's backend-user bootstrap.
+ * so abilities run with real permissions. The result is the REST execution
+ * context: the acting user and the effective scopes.
  *
  * Two identities are accepted:
  *  - "Authorization: Bearer <token>": an abilities token (TokenService);
@@ -38,9 +39,9 @@ final class RestAuthenticator
         private readonly Context $context,
     ) {}
 
-    public function authenticate(ServerRequestInterface $request): ?RestIdentity
+    public function authenticate(ServerRequestInterface $request): ?ExecutionContext
     {
-        $bearer = self::extractBearerToken($request);
+        $bearer = $this->extractBearerToken($request);
         if ($bearer !== '') {
             return $this->authenticateToken($bearer, $request);
         }
@@ -52,7 +53,7 @@ final class RestAuthenticator
         return null;
     }
 
-    public static function extractBearerToken(ServerRequestInterface $request): string
+    private function extractBearerToken(ServerRequestInterface $request): string
     {
         $header = $request->getHeaderLine('Authorization');
         if ($header === '') {
@@ -67,7 +68,7 @@ final class RestAuthenticator
         return trim($matches[1]);
     }
 
-    private function authenticateToken(string $plaintext, ServerRequestInterface $request): ?RestIdentity
+    private function authenticateToken(string $plaintext, ServerRequestInterface $request): ?ExecutionContext
     {
         $token = $this->tokenService->authenticate($plaintext);
         if ($token === null) {
@@ -84,16 +85,13 @@ final class RestAuthenticator
         $backendUser->initializeUserSessionManager();
         $this->establish($backendUser, $request);
 
-        return new RestIdentity(
-            backendUserUid: $token->backendUserUid,
-            username: $this->username($backendUser),
-            scopes: BackendUserScopeResolver::intersect($token->scopes, $this->scopeResolver->resolveForUser($backendUser)),
-            via: RestIdentity::VIA_TOKEN,
-            tokenUid: $token->uid,
+        return ExecutionContext::rest(
+            BackendUserScopeResolver::intersect($token->scopes, $this->scopeResolver->resolveForUser($backendUser)),
+            $token->backendUserUid,
         );
     }
 
-    private function authenticateSession(ServerRequestInterface $request): ?RestIdentity
+    private function authenticateSession(ServerRequestInterface $request): ?ExecutionContext
     {
         if (!in_array($request->getMethod(), ['GET', 'HEAD', 'OPTIONS'], true)
             && $request->getHeaderLine('X-Requested-With') === ''
@@ -113,12 +111,7 @@ final class RestAuthenticator
 
         $this->establish($backendUser, $request);
 
-        return new RestIdentity(
-            backendUserUid: $uid,
-            username: $this->username($backendUser),
-            scopes: $this->scopeResolver->resolveForUser($backendUser),
-            via: RestIdentity::VIA_SESSION,
-        );
+        return ExecutionContext::rest($this->scopeResolver->resolveForUser($backendUser), $uid);
     }
 
     private function establish(BackendUserAuthentication $backendUser, ServerRequestInterface $request): void
@@ -134,12 +127,5 @@ final class RestAuthenticator
         $GLOBALS['LANG'] = $this->languageServiceFactory->createFromUserPreferences($backendUser);
         $this->context->setAspect('backend.user', new UserAspect($backendUser));
         Bootstrap::loadExtTables();
-    }
-
-    private function username(BackendUserAuthentication $backendUser): string
-    {
-        $username = is_array($backendUser->user) ? ($backendUser->user['username'] ?? '') : '';
-
-        return is_string($username) ? $username : '';
     }
 }

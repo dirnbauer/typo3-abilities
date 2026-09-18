@@ -22,7 +22,7 @@ final class RestResponseFactory
     public const ERROR_ABILITY_NOT_FOUND = 'rest_ability_not_found';
     public const ERROR_ABILITY_INVALID_METHOD = 'rest_ability_invalid_method';
     public const ERROR_ABILITY_CANNOT_EXECUTE = 'rest_ability_cannot_execute';
-    public const ERROR_CATEGORY_NOT_FOUND = 'rest_category_not_found';
+    public const ERROR_CATEGORY_NOT_FOUND = 'rest_ability_category_not_found';
     public const ERROR_INVALID_METHOD = 'rest_invalid_method';
 
     /**

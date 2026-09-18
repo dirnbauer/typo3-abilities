@@ -14,10 +14,6 @@ use Webconsulting\Abilities\Registry\AbilityInterface;
  */
 final readonly class AbilityDefinition
 {
-    public const REST_METHOD_READ = 'GET';
-    public const REST_METHOD_WRITE = 'POST';
-    public const REST_METHOD_DESTROY = 'DELETE';
-
     private function __construct(
         public string $name,
         public string $title,
@@ -104,19 +100,9 @@ final readonly class AbilityDefinition
         );
     }
 
-    public function category(): string
-    {
-        return $this->category;
-    }
-
     public function isReadOnly(): bool
     {
         return $this->readOnly;
-    }
-
-    public function instructions(): string
-    {
-        return $this->instructions;
     }
 
     public function isExposedTo(string $surface): bool
@@ -147,10 +133,10 @@ final readonly class AbilityDefinition
     public function restMethod(): string
     {
         if ($this->readOnly) {
-            return self::REST_METHOD_READ;
+            return 'GET';
         }
 
-        return $this->destructive ? self::REST_METHOD_DESTROY : self::REST_METHOD_WRITE;
+        return $this->destructive ? 'DELETE' : 'POST';
     }
 
     /**

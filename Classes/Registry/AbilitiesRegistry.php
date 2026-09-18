@@ -92,6 +92,25 @@ final class AbilitiesRegistry
     }
 
     /**
+     * The full contract of one ability — the registry entry plus both JSON
+     * Schemas — as every surface publishes it (abilities:describe, REST
+     * describe, abilities/describe, backend module). Empty schemas are
+     * emitted as {} so JSON consumers always see an object.
+     *
+     * @return array<string, mixed>
+     */
+    public function describe(string $name): array
+    {
+        $ability = $this->get($name);
+
+        return [
+            ...$this->getDefinition($name)->toArray(),
+            'inputSchema' => $ability->getInputSchema() ?: new \stdClass(),
+            'outputSchema' => $ability->getOutputSchema() ?: new \stdClass(),
+        ];
+    }
+
+    /**
      * @return list<string>
      */
     public function getNames(): array

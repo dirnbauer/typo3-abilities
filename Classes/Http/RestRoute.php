@@ -9,17 +9,11 @@ namespace Webconsulting\Abilities\Http;
  */
 final readonly class RestRoute
 {
-    public const LIST = 'list';
-    public const DESCRIBE = 'describe';
-    public const RUN = 'run';
-    public const CATEGORIES = 'categories';
-    public const CATEGORY = 'category';
-
     /**
      * @param array<string, string> $params
      */
     public function __construct(
-        public string $name,
+        public RestEndpoint $endpoint,
         public array $params = [],
     ) {}
 

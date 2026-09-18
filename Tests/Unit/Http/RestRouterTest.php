@@ -7,22 +7,23 @@ namespace Webconsulting\Abilities\Tests\Unit\Http;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Webconsulting\Abilities\Http\RestRoute;
+use Webconsulting\Abilities\Http\RestEndpoint;
 use Webconsulting\Abilities\Http\RestRouter;
 
 final class RestRouterTest extends TestCase
 {
     /**
-     * @return iterable<string, array{string, string|null, array<string, string>}>
+     * @return iterable<string, array{string, RestEndpoint|null, array<string, string>}>
      */
     public static function paths(): iterable
     {
-        yield 'list' => ['/abilities/v1/abilities', RestRoute::LIST, []];
-        yield 'list trailing slash' => ['/abilities/v1/abilities/', RestRoute::LIST, []];
-        yield 'describe' => ['/abilities/v1/abilities/system/site-info', RestRoute::DESCRIBE, ['namespace' => 'system', 'name' => 'site-info', 'ability' => 'system/site-info']];
-        yield 'run' => ['/abilities/v1/abilities/system/site-info/run', RestRoute::RUN, ['namespace' => 'system', 'name' => 'site-info', 'ability' => 'system/site-info']];
-        yield 'categories' => ['/abilities/v1/categories', RestRoute::CATEGORIES, []];
-        yield 'category' => ['/abilities/v1/categories/content', RestRoute::CATEGORY, ['slug' => 'content']];
+        yield 'list' => ['/abilities/v1/abilities', RestEndpoint::Listing, []];
+        yield 'list trailing slash' => ['/abilities/v1/abilities/', RestEndpoint::Listing, []];
+        yield 'describe' => ['/abilities/v1/abilities/system/site-info', RestEndpoint::Describe, ['namespace' => 'system', 'name' => 'site-info', 'ability' => 'system/site-info']];
+        yield 'run' => ['/abilities/v1/abilities/system/site-info/run', RestEndpoint::Run, ['namespace' => 'system', 'name' => 'site-info', 'ability' => 'system/site-info']];
+        yield 'categories' => ['/abilities/v1/categories', RestEndpoint::Categories, []];
+        yield 'category' => ['/abilities/v1/categories/content', RestEndpoint::Category, ['slug' => 'content']];
+        yield 'catalog' => ['/abilities/v1/catalog', RestEndpoint::Catalog, []];
         yield 'base only' => ['/abilities/v1', null, []];
         yield 'unknown below base' => ['/abilities/v1/whatever', null, []];
         yield 'uppercase name' => ['/abilities/v1/abilities/System/Info', null, []];
@@ -34,7 +35,7 @@ final class RestRouterTest extends TestCase
      */
     #[Test]
     #[DataProvider('paths')]
-    public function matchesRoutesBelowTheBasePath(string $path, ?string $route, array $params): void
+    public function matchesRoutesBelowTheBasePath(string $path, ?RestEndpoint $route, array $params): void
     {
         $matched = (new RestRouter())->match($path, '/abilities/v1');
 
@@ -44,7 +45,7 @@ final class RestRouterTest extends TestCase
             return;
         }
         self::assertNotNull($matched);
-        self::assertSame($route, $matched->name);
+        self::assertSame($route, $matched->endpoint);
         self::assertSame($params, $matched->params);
     }
 
@@ -59,6 +60,6 @@ final class RestRouterTest extends TestCase
         self::assertTrue($router->isApiRequest('/abilities/v1', '/abilities/v1'));
         self::assertTrue($router->isApiRequest('/api/x/abilities', '/api/x/'));
         self::assertNull($router->match('/other/abilities', '/abilities/v1'));
-        self::assertSame(RestRoute::LIST, $router->match('/api/x/abilities', '/api/x')?->name);
+        self::assertSame(RestEndpoint::Listing, $router->match('/api/x/abilities', '/api/x')?->endpoint);
     }
 }

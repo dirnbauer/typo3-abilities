@@ -9,7 +9,6 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerInterface;
-use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 
 /**
  * PSR-15 entry point of the REST projection, mounted in the frontend
@@ -25,7 +24,7 @@ use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 final class RestMiddleware implements MiddlewareInterface
 {
     public function __construct(
-        private readonly ExtensionConfiguration $extensionConfiguration,
+        private readonly RestConfiguration $configuration,
         private readonly RestRouter $router,
         private readonly RestAuthenticator $authenticator,
         private readonly RestRequestHandler $handler,
@@ -35,30 +34,29 @@ final class RestMiddleware implements MiddlewareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $configuration = RestConfiguration::fromExtensionConfiguration($this->extensionConfiguration);
         $path = $request->getUri()->getPath();
-        if (!$configuration->enabled || !$this->router->isApiRequest($path, $configuration->basePath)) {
+        if (!$this->configuration->enabled || !$this->router->isApiRequest($path, $this->configuration->basePath)) {
             return $handler->handle($request);
         }
 
-        $cors = CorsPolicy::fromString($configuration->corsOrigins);
+        $cors = CorsPolicy::fromString($this->configuration->corsOrigins);
         if (strtoupper($request->getMethod()) === 'OPTIONS') {
             return $cors->preflight($request, $this->responses->empty());
         }
 
-        return $cors->apply($request, $this->dispatch($request, $path, $configuration));
+        return $cors->apply($request, $this->dispatch($request, $path));
     }
 
-    private function dispatch(ServerRequestInterface $request, string $path, RestConfiguration $configuration): ResponseInterface
+    private function dispatch(ServerRequestInterface $request, string $path): ResponseInterface
     {
-        $route = $this->router->match($path, $configuration->basePath);
+        $route = $this->router->match($path, $this->configuration->basePath);
         if ($route === null) {
             return $this->responses->error(RestResponseFactory::ERROR_NOT_FOUND, 'No such endpoint.', 404);
         }
 
         try {
-            $identity = $this->authenticator->authenticate($request);
-            if ($identity === null) {
+            $context = $this->authenticator->authenticate($request);
+            if ($context === null) {
                 return $this->responses->error(
                     RestResponseFactory::ERROR_UNAUTHORIZED,
                     'Authentication required: send "Authorization: Bearer <token>" (see abilities:token:create) or use a same-origin backend session with X-Requested-With.',
@@ -67,7 +65,7 @@ final class RestMiddleware implements MiddlewareInterface
                 );
             }
 
-            return $this->handler->handle($route, $request, $identity);
+            return $this->handler->handle($route, $request, $context);
         } catch (\Throwable $exception) {
             $this->logger?->error('Abilities REST request failed: {message}', [
                 'message' => $exception->getMessage(),

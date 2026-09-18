@@ -35,7 +35,6 @@ final class CategoryRegistryTest extends TestCase
             self::assertTrue($registry->has($slug), $slug);
         }
         self::assertSame('Registry', $registry->get('registry')->label);
-        self::assertSame($registry->slugs(), array_keys($registry->all()));
         self::assertSame(array_keys($registry->all()), (static function (array $slugs): array {
             sort($slugs);
 

@@ -49,7 +49,7 @@ final class ListAbilitiesAbility extends AbstractAbility
                 'category' => ['type' => 'string', 'description' => 'Only abilities of this category slug'],
                 'surface' => [
                     'type' => 'string',
-                    'enum' => [ExecutionContext::SURFACE_MCP, ExecutionContext::SURFACE_CLI, ExecutionContext::SURFACE_REST],
+                    'enum' => ExecutionContext::PROJECTION_SURFACES,
                     'description' => 'Only abilities exposed to this surface',
                 ],
             ],

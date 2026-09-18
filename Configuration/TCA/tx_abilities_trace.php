@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+$ll = 'LLL:EXT:abilities/Resources/Private/Language/locallang_db.xlf:';
+
 return [
     'ctrl' => [
-        'title' => 'Ability execution trace',
+        'title' => $ll . 'tx_abilities_trace',
         'label' => 'ability',
         'label_alt' => 'surface,error_code',
         'label_alt_force' => true,
@@ -19,35 +21,35 @@ return [
     ],
     'columns' => [
         'ability' => [
-            'label' => 'Ability',
+            'label' => $ll . 'tx_abilities_trace.ability',
             'config' => ['type' => 'input', 'readOnly' => true],
         ],
         'surface' => [
-            'label' => 'Surface',
+            'label' => $ll . 'tx_abilities_trace.surface',
             'config' => ['type' => 'input', 'readOnly' => true],
         ],
         'ok' => [
-            'label' => 'Success',
+            'label' => $ll . 'tx_abilities_trace.ok',
             'config' => ['type' => 'check', 'readOnly' => true],
         ],
         'error_code' => [
-            'label' => 'Error code',
+            'label' => $ll . 'tx_abilities_trace.error_code',
             'config' => ['type' => 'input', 'readOnly' => true],
         ],
         'error' => [
-            'label' => 'Error',
+            'label' => $ll . 'tx_abilities_trace.error',
             'config' => ['type' => 'text', 'readOnly' => true],
         ],
         'input' => [
-            'label' => 'Input (JSON)',
+            'label' => $ll . 'tx_abilities_trace.input',
             'config' => ['type' => 'text', 'readOnly' => true],
         ],
         'duration_ms' => [
-            'label' => 'Duration (ms)',
+            'label' => $ll . 'tx_abilities_trace.duration_ms',
             'config' => ['type' => 'number', 'readOnly' => true],
         ],
         'be_user' => [
-            'label' => 'Backend user',
+            'label' => $ll . 'tx_abilities_trace.be_user',
             'config' => ['type' => 'number', 'readOnly' => true],
         ],
     ],

@@ -22,12 +22,12 @@ final class TokenService
         private readonly TokenStorageInterface $storage,
     ) {}
 
-    public static function hash(string $plaintext): string
+    private static function hash(string $plaintext): string
     {
         return hash('sha256', $plaintext);
     }
 
-    public static function generate(): string
+    private static function generate(): string
     {
         return self::TOKEN_PREFIX . bin2hex(random_bytes(self::TOKEN_BYTES));
     }

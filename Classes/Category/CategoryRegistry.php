@@ -84,14 +84,6 @@ final class CategoryRegistry
     }
 
     /**
-     * @return list<string>
-     */
-    public function slugs(): array
-    {
-        return array_keys($this->categories);
-    }
-
-    /**
      * @return iterable<AbilityCategory>
      */
     private function categoriesOf(object $provider): iterable

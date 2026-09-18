@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
-use Webconsulting\Abilities\Permission\ScopeItemsProcFunc;
+use Webconsulting\Abilities\Backend\Tca\RegistryItemsProcFunc;
 
 defined('TYPO3') or die();
 
@@ -20,7 +20,7 @@ ExtensionManagementUtility::addTCAcolumns('be_groups', [
                     'value' => '*',
                 ],
             ],
-            'itemsProcFunc' => ScopeItemsProcFunc::class . '->addAbilityScopes',
+            'itemsProcFunc' => RegistryItemsProcFunc::class . '->addAbilityScopes',
             'size' => 8,
             'autoSizeMax' => 20,
             'maxitems' => 999,

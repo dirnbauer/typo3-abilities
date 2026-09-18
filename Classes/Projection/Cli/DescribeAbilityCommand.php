@@ -47,15 +47,8 @@ final class DescribeAbilityCommand extends Command
             return Command::FAILURE;
         }
 
-        $ability = $this->registry->get($name);
-        $definition = $this->registry->getDefinition($name);
-
         $output->writeln((string)json_encode(
-            [
-                ...$definition->toArray(),
-                'inputSchema' => $ability->getInputSchema() ?: new \stdClass(),
-                'outputSchema' => $ability->getOutputSchema() ?: new \stdClass(),
-            ],
+            $this->registry->describe($name),
             JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
         ));
 

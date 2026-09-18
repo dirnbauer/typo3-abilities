@@ -9,15 +9,14 @@ use Webconsulting\Abilities\Domain\AbilityDefinition;
 use Webconsulting\Abilities\Domain\AbilityErrorCode;
 use Webconsulting\Abilities\Domain\AbilityResult;
 use Webconsulting\Abilities\Domain\ExecutionContext;
-use Webconsulting\Abilities\Event\AbilityExecutedEvent;
+use Webconsulting\Abilities\Event\AfterAbilityExecutionEvent;
 use Webconsulting\Abilities\Event\BeforeAbilityExecutionEvent;
 use Webconsulting\Abilities\Policy\PolicyProvider;
 use Webconsulting\Abilities\Registry\AbilityInterface;
 use Webconsulting\Abilities\Validation\SchemaValidator;
 
 /**
- * The one execution pipeline every projection (MCP, CLI, REST, PHP) goes
- * through:
+ * The one execution pipeline every surface goes through:
  *
  *   0. BeforeAbilityExecutionEvent (listeners may rewrite input or veto)
  *   1. policy gate        (site-wide abilities policy: deny/review/risk cap)
@@ -31,7 +30,7 @@ use Webconsulting\Abilities\Validation\SchemaValidator;
  * Mirrors the WordPress Abilities API execution order, with the policy gate
  * in front because governance outranks contracts.
  */
-class AbilityExecutor
+final class AbilityExecutor
 {
     public function __construct(
         private readonly SchemaValidator $validator,
@@ -62,10 +61,7 @@ class AbilityExecutor
             )
             : $this->runPipeline($ability, $definition, $before->getInput(), $context);
 
-        // The deprecated subclass is dispatched on purpose for one release:
-        // listeners on AbilityExecutedEvent and on AfterAbilityExecutionEvent
-        // both receive it (TYPO3's ListenerProvider resolves parent classes).
-        $this->eventDispatcher?->dispatch(new AbilityExecutedEvent(
+        $this->eventDispatcher?->dispatch(new AfterAbilityExecutionEvent(
             definition: $definition,
             context: $context,
             input: $input,

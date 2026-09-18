@@ -52,7 +52,6 @@ final class ExecutionContextTest extends TestCase
         $all = new ExecutionContext(ExecutionContext::SURFACE_REST, ['*']);
         self::assertTrue($all->hasScope('news:write'));
         self::assertSame([], $all->missingScopes(['a:b', 'c:d']));
-        self::assertFalse($all->isTrusted());
 
         $resource = new ExecutionContext(ExecutionContext::SURFACE_REST, ['news:*']);
         self::assertTrue($resource->hasScope('news:write'));
@@ -68,14 +67,22 @@ final class ExecutionContextTest extends TestCase
         self::assertSame(7, $context->backendUserUid);
         self::assertFalse($context->reviewApproved);
 
-        $changed = $context->withBackendUser(9)->withGrantedScopes(null)->withReviewApproved(true);
+        $changed = $context->withBackendUser(9)->withGrantedScopes(null);
         self::assertSame(9, $changed->backendUserUid);
-        self::assertTrue($changed->isTrusted());
-        self::assertTrue($changed->reviewApproved);
+        self::assertNull($changed->grantedScopes);
         self::assertSame(7, $context->backendUserUid, 'original is untouched');
 
         $backend = ExecutionContext::backend(grantedScopes: ['*'], backendUserUid: 3);
         self::assertSame(['*'], $backend->grantedScopes);
         self::assertSame(3, $backend->backendUserUid);
+
+        $webhook = ExecutionContext::webhook(['content:read'], 5);
+        self::assertSame(ExecutionContext::SURFACE_WEBHOOK, $webhook->surface);
+        self::assertFalse($webhook->reviewApproved);
+        self::assertSame(5, $webhook->backendUserUid);
+
+        $frontend = ExecutionContext::frontend();
+        self::assertSame(ExecutionContext::SURFACE_FRONTEND, $frontend->surface);
+        self::assertNull($frontend->grantedScopes, 'TypoScript is integrator-authored and trusted');
     }
 }

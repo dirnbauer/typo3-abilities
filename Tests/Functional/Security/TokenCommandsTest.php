@@ -7,9 +7,9 @@ namespace Webconsulting\Abilities\Tests\Functional\Security;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\Console\Tester\CommandTester;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
-use Webconsulting\Abilities\Command\TokenCreateCommand;
-use Webconsulting\Abilities\Command\TokenListCommand;
-use Webconsulting\Abilities\Command\TokenRevokeCommand;
+use Webconsulting\Abilities\Projection\Cli\TokenCreateCommand;
+use Webconsulting\Abilities\Projection\Cli\TokenListCommand;
+use Webconsulting\Abilities\Projection\Cli\TokenRevokeCommand;
 use Webconsulting\Abilities\Security\TokenService;
 use Webconsulting\Abilities\Tests\Support\TypeNarrowing;
 

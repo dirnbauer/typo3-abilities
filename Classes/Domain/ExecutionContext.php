@@ -8,23 +8,34 @@ namespace Webconsulting\Abilities\Domain;
  * Who is executing an ability, from which surface, with which grants.
  *
  * $grantedScopes semantics:
- *  - null: trusted surface (CLI as _cli_ admin, or an MCP session that the
- *    MCP server has already authenticated and gated) — scope checks are
- *    skipped, policy and the ability's own permission check still apply.
+ *  - null: trusted surface (CLI as _cli_ admin, an MCP session the server has
+ *    already authenticated and gated, TypoScript written by an integrator) —
+ *    scope checks are skipped, policy and the ability's own permission check
+ *    still apply.
  *  - array: explicit grant list; every scope the ability declares must be
  *    present or execution is denied. "*" grants every scope, "news:*"
  *    grants every scope of the "news" resource.
  *
  * $backendUserUid is the acting TYPO3 backend user when the surface has
- * resolved one (backend module, REST token, CLI --as-user); traces record it.
+ * resolved one (backend module, REST token, webhook, CLI --as-user); traces
+ * record it.
  */
 final readonly class ExecutionContext
 {
     public const SURFACE_CLI = 'cli';
     public const SURFACE_MCP = 'mcp';
     public const SURFACE_REST = 'rest';
-    public const SURFACE_PHP = 'php';
+    public const SURFACE_WEBHOOK = 'webhook';
     public const SURFACE_BACKEND = 'backend';
+    public const SURFACE_FRONTEND = 'frontend';
+    public const SURFACE_PHP = 'php';
+
+    /**
+     * The surfaces an ability's `expose` list may name. Webhooks follow the
+     * REST exposure (they are HTTP clients), the backend module shows the
+     * whole registry, Fluid is limited to read-only abilities.
+     */
+    public const PROJECTION_SURFACES = [self::SURFACE_MCP, self::SURFACE_CLI, self::SURFACE_REST];
 
     public const SCOPE_WILDCARD = '*';
 
@@ -53,9 +64,8 @@ final readonly class ExecutionContext
 
     /**
      * A logged-in backend user driving the registry from the TYPO3 backend
-     * module. The BE session already authenticated the user; the surface
-     * passes the scopes resolved from the user's be_groups so scope checks
-     * apply like on every other surface (admins resolve to "*").
+     * module: the session authenticated the user, the scopes come from the
+     * user's be_groups (admins resolve to "*").
      *
      * @param list<string>|null $grantedScopes
      */
@@ -75,6 +85,26 @@ final readonly class ExecutionContext
         return new self(self::SURFACE_REST, $grantedScopes, false, $backendUserUid);
     }
 
+    /**
+     * An EXT:reactions webhook acting as the reaction's impersonated backend
+     * user: that user's scopes, never a review approval.
+     *
+     * @param list<string> $grantedScopes
+     */
+    public static function webhook(array $grantedScopes, ?int $backendUserUid = null): self
+    {
+        return new self(self::SURFACE_WEBHOOK, $grantedScopes, false, $backendUserUid);
+    }
+
+    /**
+     * TypoScript / Fluid rendering: trusted (the integrator wrote it), no
+     * backend user, limited to read-only abilities by the data processor.
+     */
+    public static function frontend(): self
+    {
+        return new self(self::SURFACE_FRONTEND);
+    }
+
     public function withBackendUser(?int $backendUserUid): self
     {
         return new self($this->surface, $this->grantedScopes, $this->reviewApproved, $backendUserUid);
@@ -86,16 +116,6 @@ final readonly class ExecutionContext
     public function withGrantedScopes(?array $grantedScopes): self
     {
         return new self($this->surface, $grantedScopes, $this->reviewApproved, $this->backendUserUid);
-    }
-
-    public function withReviewApproved(bool $reviewApproved): self
-    {
-        return new self($this->surface, $this->grantedScopes, $reviewApproved, $this->backendUserUid);
-    }
-
-    public function isTrusted(): bool
-    {
-        return $this->grantedScopes === null;
     }
 
     public function hasScope(string $scope): bool

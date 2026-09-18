@@ -11,10 +11,10 @@ use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use Webconsulting\Abilities\Ability\Support\BackendUserContext;
 use Webconsulting\Abilities\Attribute\AsAbility;
 use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Domain\RiskTier;
+use Webconsulting\Abilities\Permission\BackendUserContext;
 use Webconsulting\Abilities\Registry\AbstractAbility;
 
 /**

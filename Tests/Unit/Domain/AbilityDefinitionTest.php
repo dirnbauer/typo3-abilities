@@ -100,8 +100,8 @@ final class AbilityDefinitionTest extends TestCase
             ['readonly' => false, 'destructive' => false, 'idempotent' => false, 'instructions' => 'Send the value to store.'],
             $definition->annotations(),
         );
-        self::assertSame('Send the value to store.', $definition->instructions());
-        self::assertSame('testing', $definition->category());
+        self::assertSame('Send the value to store.', $definition->instructions);
+        self::assertSame('testing', $definition->category);
     }
 
     /**

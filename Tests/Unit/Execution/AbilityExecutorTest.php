@@ -9,7 +9,6 @@ use PHPUnit\Framework\TestCase;
 use Webconsulting\Abilities\Domain\AbilityDefinition;
 use Webconsulting\Abilities\Domain\AbilityResult;
 use Webconsulting\Abilities\Domain\ExecutionContext;
-use Webconsulting\Abilities\Event\AbilityExecutedEvent;
 use Webconsulting\Abilities\Event\AfterAbilityExecutionEvent;
 use Webconsulting\Abilities\Event\BeforeAbilityExecutionEvent;
 use Webconsulting\Abilities\Execution\AbilityExecutor;
@@ -305,19 +304,6 @@ final class AbilityExecutorTest extends TestCase
         self::assertSame('Vetoed by listener.', $result->error);
         self::assertFalse($executed);
         self::assertCount(1, $dispatcher->of(AfterAbilityExecutionEvent::class), 'denials are announced too');
-    }
-
-    #[Test]
-    public function afterEventIsDispatchedAsTheDeprecatedSubclassForCompatibility(): void
-    {
-        $dispatcher = new CollectingDispatcher();
-        $executor = new AbilityExecutor(new SchemaValidator(), new PolicyProvider('/nonexistent/policy.yaml'), $dispatcher);
-
-        $executor->execute(new EchoAbility(), ['message' => 'hi'], ExecutionContext::cli());
-
-        $after = $dispatcher->of(AfterAbilityExecutionEvent::class);
-        self::assertCount(1, $after);
-        self::assertInstanceOf(AbilityExecutedEvent::class, $after[0]);
     }
 
     #[Test]

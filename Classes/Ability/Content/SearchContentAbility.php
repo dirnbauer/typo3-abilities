@@ -13,10 +13,10 @@ use TYPO3\CMS\Core\Database\Query\Restriction\WorkspaceRestriction;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Versioning\VersionState;
-use Webconsulting\Abilities\Ability\Support\BackendUserContext;
 use Webconsulting\Abilities\Attribute\AsAbility;
 use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Domain\RiskTier;
+use Webconsulting\Abilities\Permission\BackendUserContext;
 use Webconsulting\Abilities\Registry\AbstractAbility;
 
 /**

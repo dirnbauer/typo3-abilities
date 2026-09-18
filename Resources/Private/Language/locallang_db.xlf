@@ -35,6 +35,45 @@
       <trans-unit id="tx_abilities_token.token_hash">
         <source>Token hash (SHA-256)</source>
       </trans-unit>
+      <trans-unit id="tx_abilities_trace">
+        <source>Ability execution trace</source>
+      </trans-unit>
+      <trans-unit id="tx_abilities_trace.ability">
+        <source>Ability</source>
+      </trans-unit>
+      <trans-unit id="tx_abilities_trace.surface">
+        <source>Surface</source>
+      </trans-unit>
+      <trans-unit id="tx_abilities_trace.ok">
+        <source>Success</source>
+      </trans-unit>
+      <trans-unit id="tx_abilities_trace.error_code">
+        <source>Error code</source>
+      </trans-unit>
+      <trans-unit id="tx_abilities_trace.error">
+        <source>Error</source>
+      </trans-unit>
+      <trans-unit id="tx_abilities_trace.input">
+        <source>Input (JSON)</source>
+      </trans-unit>
+      <trans-unit id="tx_abilities_trace.duration_ms">
+        <source>Duration (ms)</source>
+      </trans-unit>
+      <trans-unit id="tx_abilities_trace.be_user">
+        <source>Backend user</source>
+      </trans-unit>
+      <trans-unit id="sys_reaction.reaction_type.abilities_run">
+        <source>Run ability (abilities registry)</source>
+      </trans-unit>
+      <trans-unit id="sys_reaction.tx_abilities_ability">
+        <source>Ability</source>
+      </trans-unit>
+      <trans-unit id="sys_reaction.tx_abilities_ability.description">
+        <source>The ability this webhook runs through the governed pipeline as the impersonated backend user. The JSON payload of the request is the ability input ({"input": {...}} or a bare object); the response is the REST envelope. Only REST-exposed abilities are offered, review-gated abilities always answer 409.</source>
+      </trans-unit>
+      <trans-unit id="sys_reaction.tx_abilities_ability.select">
+        <source>— select an ability —</source>
+      </trans-unit>
     </body>
   </file>
 </xliff>

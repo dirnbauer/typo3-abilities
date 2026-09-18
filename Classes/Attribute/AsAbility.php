@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Webconsulting\Abilities\Attribute;
 
+use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Domain\RiskTier;
 
 /**
@@ -49,7 +50,7 @@ final class AsAbility
         public readonly array $sideEffects = [],
         public readonly bool $idempotent = false,
         public readonly bool $destructive = false,
-        public readonly array $expose = ['mcp', 'cli', 'rest'],
+        public readonly array $expose = ExecutionContext::PROJECTION_SURFACES,
         public readonly array $meta = [],
         public readonly ?bool $readOnly = null,
         public readonly string $instructions = '',

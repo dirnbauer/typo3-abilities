@@ -35,11 +35,10 @@ final class AbilityErrorCodeTest extends TestCase
     }
 
     #[Test]
-    public function resultExposesEnumAndStatus(): void
+    public function resultExposesCodeAndStatus(): void
     {
         $failure = AbilityResult::failure(AbilityErrorCode::ReviewRequired, 'needs a human');
         self::assertSame('ability_review_required', $failure->errorCode);
-        self::assertSame(AbilityErrorCode::ReviewRequired, $failure->errorCodeEnum());
         self::assertSame(409, $failure->httpStatus());
         self::assertSame(200, AbilityResult::success('x')->httpStatus());
     }

@@ -19,6 +19,72 @@ namespace Webconsulting\Abilities\Validation;
 final class SchemaValidator
 {
     /**
+     * Coerce string values of top-level object properties to the scalar type
+     * the schema declares — for surfaces where everything arrives as text
+     * (query parameters, TypoScript). Strings that do not parse are left
+     * alone so validate() reports them.
+     *
+     * @param array<string, mixed> $input
+     * @param array<mixed> $schema
+     * @return array<string, mixed>
+     */
+    public function coerce(array $input, array $schema): array
+    {
+        $properties = is_array($schema['properties'] ?? null) ? $schema['properties'] : [];
+        foreach ($input as $property => $value) {
+            $propertySchema = $properties[$property] ?? null;
+            if (is_string($value) && is_array($propertySchema)) {
+                $input[$property] = $this->coerceScalar($value, $propertySchema);
+            }
+        }
+
+        return $input;
+    }
+
+    /**
+     * @param array<mixed> $propertySchema
+     */
+    private function coerceScalar(string $value, array $propertySchema): mixed
+    {
+        $type = $propertySchema['type'] ?? null;
+        foreach (is_array($type) ? $type : [$type] as $candidate) {
+            $coerced = match ($candidate) {
+                'integer' => preg_match('/^-?\d+$/', $value) === 1 ? (int)$value : null,
+                'number' => is_numeric($value)
+                    ? (str_contains($value, '.') || str_contains(strtolower($value), 'e') ? (float)$value : (int)$value)
+                    : null,
+                'boolean' => filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE),
+                'null' => $value === '' || strtolower($value) === 'null' ? [null] : null,
+                'array', 'object' => $this->coerceStructure($value, $candidate === 'array'),
+                default => null,
+            };
+            if ($coerced !== null) {
+                // "null" is wrapped so a successful coercion to null is distinguishable from "no match".
+                return $candidate === 'null' ? null : $coerced;
+            }
+        }
+
+        return $value;
+    }
+
+    /**
+     * JSON when it parses to an array; a comma-separated list for "array".
+     *
+     * @return array<mixed>|null
+     */
+    private function coerceStructure(string $value, bool $list): ?array
+    {
+        $decoded = json_decode($value, true);
+        if (is_array($decoded)) {
+            return $decoded;
+        }
+
+        return $list
+            ? array_values(array_filter(array_map(trim(...), explode(',', $value)), static fn(string $item): bool => $item !== ''))
+            : null;
+    }
+
+    /**
      * Fill in declared defaults for missing top-level object properties.
      *
      * @param array<string, mixed> $input

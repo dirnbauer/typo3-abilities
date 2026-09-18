@@ -11,7 +11,7 @@ use TYPO3\CMS\Core\Core\Environment;
  * (project root, next to capability-policy.yaml). No file means allow-all —
  * the policy layer is opt-in; scope and permission checks always run.
  */
-class PolicyProvider
+final class PolicyProvider
 {
     public const POLICY_FILE = 'config/abilities-policy.yaml';
 

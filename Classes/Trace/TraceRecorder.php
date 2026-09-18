@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Webconsulting\Abilities\Trace;
 
 use TYPO3\CMS\Core\Attribute\AsEventListener;
-use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use Webconsulting\Abilities\Event\AfterAbilityExecutionEvent;
+use Webconsulting\Abilities\Permission\BackendUserContext;
 
 /**
  * Persists one tx_abilities_trace row per execution attempt — ability,
@@ -68,7 +68,7 @@ final class TraceRecorder
                     self::MAX_TEXT_LENGTH,
                 ),
                 'duration_ms' => (int)round($event->durationMs),
-                'be_user' => $event->context->backendUserUid ?? $this->currentBackendUserId(),
+                'be_user' => $event->context->backendUserUid ?? BackendUserContext::currentUid() ?? 0,
             ]);
             $this->lastTraceUid = (int)$connection->lastInsertId() ?: null;
 
@@ -83,20 +83,17 @@ final class TraceRecorder
     }
 
     /**
-     * Delete traces older than the retention window. Public so a scheduler
-     * task or CLI can call it explicitly; returns the number of deleted rows.
+     * Delete traces older than the retention window.
      */
-    public function prune(?Connection $connection = null): int
+    private function prune(Connection $connection): void
     {
         $retentionDays = $this->retentionDays();
         if ($retentionDays <= 0) {
-            return 0;
+            return;
         }
 
-        $connection ??= $this->connectionPool->getConnectionForTable(self::TABLE);
         $queryBuilder = $connection->createQueryBuilder();
-
-        return (int)$queryBuilder
+        $queryBuilder
             ->delete(self::TABLE)
             ->where(
                 $queryBuilder->expr()->lt(
@@ -120,17 +117,5 @@ final class TraceRecorder
         }
 
         return is_numeric($value) ? max(0, (int)$value) : 0;
-    }
-
-    private function currentBackendUserId(): int
-    {
-        $backendUser = $GLOBALS['BE_USER'] ?? null;
-        if (!$backendUser instanceof BackendUserAuthentication) {
-            return 0;
-        }
-
-        $uid = $backendUser->user['uid'] ?? 0;
-
-        return is_numeric($uid) ? (int)$uid : 0;
     }
 }
