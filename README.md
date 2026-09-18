@@ -1,19 +1,29 @@
 # TYPO3 Abilities Registry
 
-One typed, permissioned registry of what a TYPO3 installation can do. CLI commands, REST routes, MCP tools, the backend module and agent skills are **projections** of that registry — never hand-rolled endpoints.
+[![CI](https://github.com/dirnbauer/typo3-abilities/actions/workflows/ci.yml/badge.svg)](https://github.com/dirnbauer/typo3-abilities/actions/workflows/ci.yml)
+[![TYPO3 14.3](https://img.shields.io/badge/TYPO3-14.3-orange.svg)](https://get.typo3.org/version/14)
+[![PHP 8.4](https://img.shields.io/badge/PHP-8.4-blue.svg)](https://www.php.net/)
+[![License GPL-2.0-or-later](https://img.shields.io/badge/license-GPL--2.0--or--later-green.svg)](LICENSE)
 
-An ability declares in one attribute what it is, which scopes it needs, how risky it is and which subsystems it touches; its input and output are JSON Schemas. Add the class, and it appears on every surface at once, governed by one execution pipeline:
+One typed, permissioned registry of what a TYPO3 installation can do, plus a capability catalogue of everything else an AI agent could use — MCP tools, skills, REST and webhook endpoints, console commands — served on every surface so an agent can discover, then use.
+
+## What it is
+
+An **ability** is a PHP class with one `#[AsAbility]` attribute (name, scopes, risk tier, side effects, `readOnly`/`destructive`/`idempotent` annotations) and JSON Schemas for input and output. Register the class and it appears on every surface at once — CLI, REST, MCP, webhooks, Fluid, the backend module, agent skills — through one governed pipeline:
 
 ```
-policy gate → input validation → scope check → permission check → execute → output validation
+Before event → policy gate → input validation → scope check → permission check → execute → output validation → After event
 ```
 
-WordPress proved the architecture with the **Abilities API** (core 6.9) and its MCP Adapter. This is that bet for TYPO3, with the governance layer WordPress does not have: a site policy, human-in-the-loop review, risk tiers and execution traces.
+The **capability catalogue** puts the registry next to the native tools of `hn/typo3-mcp-server`, the skills of nr-llm/skillflow, EXT:reactions webhooks, sg-apicore endpoints and every console command, in one shape: id, title, description, source, surfaces, input schema, annotations and how to invoke it from each surface. It follows the WordPress Abilities API (core 6.9) vocabulary and REST layout; the manual carries the parity checklist.
 
 ## Requirements
 
-- TYPO3 14.3 LTS
-- PHP 8.4+
+| Requirement | Version |
+|---|---|
+| TYPO3 | 14.3 LTS |
+| PHP | 8.4+ |
+| Optional | `hn/typo3-mcp-server` (MCP), `typo3/cms-reactions` (webhooks), `typo3/cms-workspaces` (`workspace/publish`), `typo3/cms-scheduler`, `webconsulting/skillflow` or `netresearch/nr-llm` (skills), `sgalinski/sg-apicore` |
 
 ## Install
 
@@ -25,43 +35,36 @@ vendor/bin/typo3 abilities:list
 
 ## Configure
 
-Extension settings (*Admin Tools > Settings > Extension Configuration*):
+Extension settings: `restEnabled` (1), `restBasePath` (`/abilities/v1`), `restCorsOrigins` (empty), `traceRetentionDays` (30).
 
-| Setting | Default | Purpose |
-|---|---|---|
-| `restEnabled` | `1` | Serve the REST projection |
-| `restBasePath` | `/abilities/v1` | URL prefix, mounted before site resolution |
-| `restCorsOrigins` | *(empty)* | Comma-separated browser origins, `*` for any |
-| `traceRetentionDays` | `30` | Trace retention; `0` keeps them forever |
-
-Optional `config/abilities-policy.yaml` — deny rules, a risk cap and human review (copy [`Resources/Private/Examples/abilities-policy.yaml`](Resources/Private/Examples/abilities-policy.yaml)):
+Optional `config/abilities-policy.yaml` — deny rules, a risk cap and human review (example in `Resources/Private/Examples/`):
 
 ```yaml
 policy:
-  name: "Production"
-  deny:
-    - "side-effect:network:outbound"
-  review_required:
-    - "risk:high"          # needs --approve-review or the module checkbox
-  max_risk_tier: "high"    # critical abilities never run
+  review_required: ["risk:high"]   # needs --approve-review or the module checkbox
+  max_risk_tier: "high"            # critical abilities never run
 ```
 
-Scopes for non-admin editors are granted per backend user group (*Abilities* tab); administrators hold `*`.
+Scopes for editors are granted per backend group (*Abilities* tab); admins hold `*`. REST tokens: `abilities:token:create --user=editor --scopes=content:read`.
 
 ## Use
 
-Register an ability — that is the whole registration, the DI container collects it:
+```bash
+vendor/bin/typo3 abilities:catalog --format=json                 # everything the site can do, as LLM tool context
+vendor/bin/typo3 abilities:run content/search --input '{"term": "roadmap"}'
+vendor/bin/typo3 abilities:run content/delete-page --input '{"uid": 42}' --approve-review
+
+curl -H "Authorization: Bearer $TOKEN" "https://example.org/abilities/v1/abilities/content/search/run?term=roadmap"
+curl -H "Authorization: Bearer $TOKEN" "https://example.org/abilities/v1/catalog?surface=mcp"
+```
+
+MCP tools are named `ability_<ns>_<name>` (`ability_abilities_catalog` first). Webhooks: the *Run ability* reaction type. Fluid: `dataProcessing.10 = Webconsulting\Abilities\DataProcessing\AbilityProcessor` for read-only abilities. Backend module: *System > Abilities* (Registry, Catalogue, Run, Traces, Tokens). JavaScript: `import { executeAbility, getCatalog } from "@webconsulting/abilities/client.js"`.
+
+Register your own ability:
 
 ```php
-#[AsAbility(
-    name: 'news/create-article',
-    title: 'Create news article',
-    description: 'Creates a news article as a hidden draft.',
-    category: 'content',
-    scopes: ['news:write'],
-    riskTier: RiskTier::Medium,
-    sideEffects: ['database:write'],
-)]
+#[AsAbility(name: 'news/create-article', title: 'Create news article', description: 'Creates a hidden news draft.',
+    category: 'content', scopes: ['news:write'], riskTier: RiskTier::Medium, sideEffects: ['database:write'])]
 final class CreateArticleAbility extends AbstractAbility
 {
     public function getInputSchema(): array { /* JSON Schema */ }
@@ -69,50 +72,18 @@ final class CreateArticleAbility extends AbstractAbility
 }
 ```
 
-**CLI**
-
-```bash
-vendor/bin/typo3 abilities:run content/search --input '{"term": "roadmap", "limit": 5}'
-```
-
-**REST** — the method follows the annotations: read-only `GET`, destructive `DELETE`, otherwise `POST`.
-
-```bash
-curl -H "Authorization: Bearer $TOKEN" \
-  "https://example.org/abilities/v1/abilities/content/search/run?term=roadmap&limit=5"
-```
-
-**MCP** — `Projection\Mcp\McpProjection` emits protocol-neutral tool descriptors (`content/search` → `ability_content_search`) with honest `readOnlyHint` / `destructiveHint` / `idempotentHint` annotations; an MCP server extension bridges them. No MCP SDK is required here.
-
-**Skills** — a skill declares the abilities it needs; `Skills\SkillAbilityContract` resolves them to client tool names and validates them against the registry and the policy:
-
-```yaml
----
-name: publish-editorial-drafts
-description: Reviews pending drafts with a human and publishes them once approved.
-abilities:
-  - workspace/publish
-  - content/search
----
-```
-
-**Backend module** — *System > Abilities*: browse and filter the registry, run any ability from a form generated out of its input schema, read the execution traces, manage REST tokens.
-
-Seven abilities ship: `system/site-info`, `abilities/list`, `abilities/describe`, and four demos — `content/search`, `content/create-page-draft`, `content/delete-page` and `workspace/publish`.
+Eight abilities ship: `abilities/catalog`, `abilities/list`, `abilities/describe`, `system/site-info`, `content/search`, `content/create-page-draft`, `content/delete-page`, `workspace/publish`.
 
 ## Develop
 
 ```bash
-composer install
-composer test        # unit + functional (sqlite)
-composer phpstan     # level 8
-vendor/bin/php-cs-fixer fix --dry-run --diff
-docker run --rm -v $PWD:/project ghcr.io/typo3-documentation/render-guides:latest --config=Documentation
+composer install          # into .Build/
+composer ci               # cgl + PHPStan level 8 + unit + functional (sqlite)
 ```
 
 ## Docs
 
-Full manual in [`Documentation/`](Documentation/Index.rst): concepts, registering abilities, all six surfaces, permissions, policy, events, the demo abilities, and a comparison table against the WordPress Abilities API.
+Full manual in [`Documentation/`](Documentation/Index.rst): introduction with the WordPress parity checklist, installation, configuration (settings, scopes, tokens, policy, webhook, Fluid, scheduler), a seeded walkthrough of every surface, and the developer guide.
 
 ## License
 

@@ -11,192 +11,226 @@ Introduction
 What this extension does
 ========================
 
-The extension adds one **abilities registry** to a TYPO3 installation: a
-single, typed, permissioned list of the things this site can do. An ability
-is a PHP class that declares — in one attribute — its name, what it is for,
-which scopes a caller needs, how risky it is, which subsystems it touches,
-and whether it is read-only, destructive or idempotent. Its input and output
-contracts are JSON Schemas on the class itself.
+The extension adds two things to a TYPO3 installation.
 
-Everything else is a **projection** of that registry:
+An **abilities registry**: a single, typed, permissioned list of the things
+this site can do. An ability is a PHP class that declares — in one attribute —
+its name, what it is for, which scopes a caller needs, how risky it is, which
+subsystems it touches and whether it is read-only, destructive or idempotent.
+Its input and output contracts are JSON Schemas. Everything else is a
+**projection** of that registry: a CLI command, a REST endpoint, an MCP tool,
+a webhook reaction, a Fluid data processor, the backend module and the
+skills contract all look an ability up and call the same executor. Adding a
+class makes it appear everywhere at once.
 
-*   a CLI command runs an ability,
-*   a REST endpoint lists, describes and runs abilities,
-*   an MCP server turns each ability into a tool an AI agent can call,
-*   the backend module lets an editor browse and run them,
-*   a skill declares which abilities it needs.
-
-Adding a new ability class makes it appear on all of those at once. There is
-no endpoint to write, no tool list to maintain and no client to redeploy.
+A **capability catalogue**: the union of that registry with everything else
+an AI agent could use on this installation — the native tools of the MCP
+server, the agent skills stored by nr-llm or skillflow, the REST and webhook
+endpoints and the console commands. Every entry has the same shape (id,
+title, description, source, surfaces, input schema, annotations and how to
+invoke it from each surface), and the catalogue itself is served on every
+surface: :bash:`abilities:catalog`, :code:`GET /abilities/v1/catalog`, the
+MCP tool :code:`ability_abilities_catalog` and the module's Catalogue tab.
+An agent discovers first, then uses.
 
 ..  _introduction-why:
 
-Why a registry instead of endpoints
-===================================
+Why a registry and a catalogue
+==============================
 
-Automation — agents, MCP clients, n8n, Zapier, a mobile app — needs to ask a
-site *what it can do* and get a machine-readable answer. Hand-rolled
-endpoints cannot answer that question: each one has to be discovered,
-documented and integrated by a human.
-
-Because every ability is a typed record in one registry, the site describes
-itself:
+Automation — agents, MCP clients, n8n, a mobile app — needs to ask a site
+*what it can do* and get a machine-readable answer. Hand-rolled endpoints
+cannot answer that: each one has to be discovered, documented and integrated
+by a human. A typed registry describes itself, and the catalogue extends the
+answer to the parts of the installation the registry did not create:
 
 ..  code-block:: bash
 
-    curl -H "Authorization: Bearer $TOKEN" https://example.org/abilities/v1/abilities
+    vendor/bin/typo3 abilities:catalog --format=json > capabilities.json
 
-The answer carries each ability's JSON Schemas, its scopes, its risk tier
-and its annotations. A generic client can build a correct call from that
-alone — for an ability that did not exist when the client was written.
+The file carries every entry's schema, annotations and invocations. Handed to
+an LLM as tool context, it lets a generic agent build a correct call for a
+capability that did not exist when the agent was written.
 
 ..  _introduction-wordpress:
 
-Compared to the WordPress Abilities API
-=======================================
+WordPress Abilities API parity
+==============================
 
-WordPress shipped the **Abilities API** in core 6.9 together with an
-official **MCP Adapter** plugin. This extension is the same architectural
-bet for TYPO3, and it deliberately borrows the WordPress vocabulary —
-categories, the `readonly` / `destructive` / `idempotent` / `instructions`
-annotations, the `ability_invalid_input` / `ability_invalid_permissions` /
-`ability_invalid_output` error codes and the method-by-annotation REST
-layout — so that a team or an agent that knows one can read the other.
+WordPress shipped the **Abilities API** in core 6.9 with an official MCP
+adapter. This extension is the same architectural bet for TYPO3 and follows
+the WordPress best practices literally where TYPO3 has an equivalent — the
+checklist below says what matches, what differs and why. Sources: the
+`Abilities API handbook <https://developer.wordpress.org/apis/abilities-api/>`__
+and its PHP, REST, hooks and JavaScript references.
 
-The differences are where TYPO3 is not WordPress: attributes and the DI
-container instead of registration hooks, PSR-14 events instead of actions
-and filters, backend groups and opaque tokens instead of capabilities, and
-a governance layer (policy, human review, traces, risk tiers) that
-WordPress does not have.
-
-..  list-table:: WordPress Abilities API and TYPO3 Abilities Registry side by side
+..  list-table:: Parity checklist
     :header-rows: 1
-    :widths: 18 41 41
+    :widths: 18 30 30 22
 
     *   -   Concern
         -   WordPress Abilities API
         -   This extension
+        -   Verdict
 
     *   -   Registration
-        -   :php:`wp_register_ability( 'my-plugin/create-post', [ 'label' =>
-            …, 'description' => …, 'category' => …, 'input_schema' => …,
-            'output_schema' => …, 'execute_callback' => …,
-            'permission_callback' => …, 'meta' => … ] )`, called on the
+        -   :php:`wp_register_ability( 'ns/name', $args )` on the
             `wp_abilities_api_init` action.
-        -   The :php:`#[AsAbility]` attribute on a class implementing
-            :php:`AbilityInterface`. The DI container collects it — there is
-            no registration call and no init hook to miss.
+        -   :php:`#[AsAbility]` on a class implementing :php:`AbilityInterface`;
+            the DI container collects it at compile time.
+        -   Matches (attribute instead of a hook call).
+
+    *   -   Naming
+        -   `namespace/ability-name`, lowercase, hyphens, one slash;
+            namespace = plugin slug.
+        -   Identical pattern, validated when the container is built; namespace
+            names the thing acted on (`content`, `workspace`).
+        -   Matches.
+
+    *   -   Label and description
+        -   `label` + `description`, "crucial for AI agents to understand
+            how and when to use the ability".
+        -   `title` + `description` + `instructions` (when to call, what to
+            do first); the catalogue writes every entry the same way.
+        -   Matches, plus `instructions`.
+
+    *   -   Category
+        -   Required; must be registered first with
+            :php:`wp_register_ability_category()` on
+            `wp_abilities_api_categories_init`.
+        -   :php:`#[AsAbilityCategory]` or a provider service; nine
+            categories ship built in; an unknown slug is logged, not fatal.
+        -   Differs: lenient by design — a missing category must not take an
+            ability offline.
 
     *   -   Contracts
-        -   `input_schema` and `output_schema` array keys, fixed at
-            registration time.
-        -   :php:`getInputSchema()` and :php:`getOutputSchema()` methods, so
-            a schema may be computed at runtime (from TCA, from site
-            configuration, from the caller's permissions).
+        -   `input_schema` optional, `output_schema` required; JSON Schema;
+            input is validated before the permission callback runs.
+        -   :php:`getInputSchema()` / :php:`getOutputSchema()`, computed at
+            runtime; :php:`[]` skips validation; input is validated before
+            the permission check.
+        -   Matches (output schema optional here).
 
-    *   -   Categories
-        -   :php:`wp_register_ability_category()` on the
-            `wp_abilities_api_categories_init` action.
-        -   :php:`#[AsAbilityCategory]` on any DI-managed class, or an
-            :php:`AbilityCategoryProviderInterface` service. Nine categories
-            ship built in; an unknown category is logged, never fatal.
+    *   -   Permission
+        -   One `permission_callback`, boolean or `WP_Error`.
+        -   Three layers: granted **scopes**, the site **policy**, the
+            ability's :php:`checkPermission()` returning `true`, `false` or a
+            reason string.
+        -   Matches, plus scopes and policy.
+
+    *   -   Execution order
+        -   validate input → permission → execute → validate output.
+        -   Before event → policy → validate input → scopes → permission →
+            execute → validate output → After event.
+        -   Matches; governance runs first.
 
     *   -   Annotations
-        -   `readonly`, `destructive`, `idempotent` and free-form
-            instructions in `meta`.
-        -   The same four, as first-class attribute arguments.
-            `readOnly` defaults to "declares no side effects", so the
-            annotation cannot silently disagree with the side-effect list.
+        -   `meta.annotations`: `readonly` (default false), `destructive`
+            (default **true**), `idempotent` (default false), `instructions`.
+        -   The same four as attribute arguments. `readOnly` defaults to
+            "declares no side effects"; `destructive` defaults to false.
+        -   Differs on the `destructive` default: here `sideEffects` and the
+            `riskTier` already say what an ability touches, so `destructive`
+            keeps its narrow meaning (irreversible deletion).
 
-    *   -   Permissions
-        -   One `permission_callback` per ability, evaluated against the
-            WordPress capability of the current user.
-        -   Three layers: the token/BE-group **scopes**
-            (`resource:operation`) the caller was granted, TYPO3's own
-            backend user and page permissions, and the ability's
-            :php:`checkPermission()` for anything input-specific.
+    *   -   REST exposure
+        -   `meta.show_in_rest`, default false.
+        -   `expose: ['mcp', 'cli', 'rest']`, default all three; drop a
+            surface to hide an ability from it.
+        -   Differs: opt-out instead of opt-in, because the registry exists
+            for agents; tokens, scopes and the policy gate the run.
 
-    *   -   Authentication
-        -   Cookie, application passwords or whatever the REST request
-            carries.
-        -   Opaque bearer tokens bound to a backend user (SHA-256 hashed,
-            scoped, expiring, revocable) or a same-origin backend session.
-            A token can never exceed its user's own scopes.
+    *   -   REST paths
+        -   `/wp-abilities/v1/abilities`, `…/{ns}/{ability}`,
+            `…/{ns}/{ability}/run`, `…/categories`, `…/categories/{slug}`.
+        -   `/abilities/v1/abilities`, `…/abilities/{ns}/{name}`,
+            `…/abilities/{ns}/{name}/run`, `…/categories`,
+            `…/categories/{slug}`, plus `…/catalog`.
+        -   Differs in one segment: describe and run sit below `/abilities/`
+            because the registry itself owns the `abilities/` namespace
+            (`abilities/list`) and the two would collide.
 
-    *   -   REST
-        -   `/wp-json/wp-abilities/v1/abilities`, `…/{namespace}/{ability}`
-            and `…/{namespace}/{ability}/run`; `show_in_rest` controls
-            exposure.
-        -   `/abilities/v1/abilities`, `…/abilities/{ns}/{name}` and
-            `…/abilities/{ns}/{name}/run`, plus `…/categories`. The
-            `expose` argument controls which surfaces may project an
-            ability.
+    *   -   REST run method
+        -   GET for `readonly`, DELETE for `destructive`, POST otherwise.
+        -   Identical, derived by :php:`AbilityDefinition::restMethod()`;
+            the wrong method answers 405 with `Allow`.
+        -   Matches.
 
-    *   -   Run method
-        -   GET for read-only, DELETE for destructive, POST otherwise.
-        -   Identical, derived from the same annotations
-            (:php:`AbilityDefinition::restMethod()`).
+    *   -   REST input
+        -   GET/DELETE: `input` query parameter (JSON); POST: JSON body with
+            an `input` key.
+        -   The same, plus plain query parameters coerced to the schema types
+            and a bare JSON object body.
+        -   Matches (superset).
 
-    *   -   Extension points
-        -   The `wp_before_execute_ability` and `wp_after_execute_ability`
-            actions plus a set of filters.
-        -   PSR-14 events: :php:`BeforeAbilityExecutionEvent` (rewrite the
-            input or veto the run), :php:`AfterAbilityExecutionEvent` (every
-            attempt, denials included) and
-            :php:`ModifyAbilityDefinitionEvent` (change governance facts per
-            installation).
+    *   -   Error codes
+        -   `ability_invalid_input`, `ability_invalid_permissions`,
+            `ability_invalid_output`, `rest_ability_not_found`,
+            `rest_ability_invalid_method`, `rest_ability_category_not_found`,
+            `rest_ability_cannot_execute`.
+        -   The same names, plus `ability_cannot_execute`,
+            `ability_policy_denied`, `ability_review_required` and
+            `ability_not_found` for the governance outcomes.
+        -   Matches (superset).
+
+    *   -   Hooks
+        -   `wp_before_execute_ability` (after permission, before execute),
+            `wp_after_execute_ability` (after a successful run); filters
+            `wp_register_ability_args`, `wp_register_ability_category_args`.
+        -   PSR-14 :php:`BeforeAbilityExecutionEvent` (before the pipeline;
+            may rewrite input or veto), :php:`AfterAbilityExecutionEvent`
+            (every attempt, denials included),
+            :php:`ModifyAbilityDefinitionEvent` (the registration filter).
+        -   Differs on timing, on purpose: governance wants to see denials,
+            and a veto must happen before anything is validated.
+
+    *   -   Consumer API
+        -   :php:`wp_get_ability()`, :php:`wp_get_abilities()`,
+            :php:`wp_has_ability()`, :php:`$ability->execute()`,
+            :php:`check_permissions()`, :php:`get_input_schema()` …
+        -   :php:`AbilitiesRegistry::get()` / :php:`getDefinitions()` /
+            :php:`has()` / :php:`describe()`, :php:`AbilityExecutor::execute()`,
+            :php:`checkPermission()`, :php:`getInputSchema()`.
+        -   Matches.
+
+    *   -   JavaScript
+        -   `@wordpress/abilities`: `getAbilities`, `getAbility`,
+            `executeAbility`, `registerAbility`, `unregisterAbility`,
+            `getAbilityCategories`, `registerAbilityCategory`.
+        -   `@webconsulting/abilities/client.js`: `getAbilities`,
+            `getAbility`, `executeAbility`, `registerAbility`,
+            `unregisterAbility`, `getCategories`, `getCatalog`, tokens and
+            traces.
+        -   Matches except client-side category registration (categories are
+            server-side here).
 
     *   -   MCP
         -   A separate MCP Adapter plugin exposes abilities as MCP tools.
-        -   :php:`McpProjection` produces protocol-neutral tool descriptors;
-            an MCP server extension bridges them. This extension never
-            depends on an MCP SDK.
+        -   :php:`McpProjection` emits protocol-neutral tool descriptors;
+            `hn/typo3-mcp-server` bridges them. No MCP SDK dependency here.
+        -   Matches.
 
-    *   -   JavaScript
-        -   The `@wordpress/abilities` package (`registerAbility`,
-            `getAbilities`, `executeAbility`, …).
-        -   The `@webconsulting/abilities/client.js` ES module with the same
-            shape, talking to session-guarded backend AJAX routes.
-
-    *   -   Policy
+    *   -   Discovery beyond abilities
         -   —
-        -   :file:`config/abilities-policy.yaml`: deny rules, a maximum risk
-            tier and `review_required` rules, matched by name, namespace,
-            risk tier, scope or side effect.
+        -   The capability catalogue: MCP tools, skills, REST and webhook
+            endpoints and console commands in the ability shape, on every
+            surface.
+        -   TYPO3 extra.
 
-    *   -   Human in the loop
+    *   -   Governance
         -   —
-        -   A `review_required` ability only runs with an explicit approval:
-            :bash:`--approve-review` on the CLI, a checkbox in the backend
-            module. REST can never approve and answers
-            :code:`409 ability_review_required`.
+        -   :file:`config/abilities-policy.yaml` (deny, review, risk cap),
+            human-in-the-loop approval on CLI and in the module, execution
+            traces, scoped and expiring bearer tokens, backend-group scopes,
+            risk tiers and a side-effect vocabulary.
+        -   TYPO3 extra.
 
-    *   -   Auditing
+    *   -   More surfaces
         -   —
-        -   Every attempt from every surface writes a
-            :sql:`tx_abilities_trace` row: ability, surface, outcome, error
-            code, duration, input and acting backend user.
-
-    *   -   Risk and side effects
-        -   —
-        -   A four-step risk tier (low, medium, high, critical) and a
-            subsystem side-effect vocabulary (`database:write`,
-            `network:outbound`, `mail:send`, …) shared with TYPO3 capability
-            manifests, so policies can reason about abilities without
-            knowing them individually.
-
-..  _introduction-screenshot:
-
-The backend module
-==================
-
-*System > Abilities* is the registry seen from inside TYPO3: browse and
-filter what is registered, run an ability as yourself through the governed
-pipeline, read the execution traces and manage your REST tokens.
-
-..  note::
-    Screenshots of the four tabs are pending and will be added in a future
-    revision of this manual.
+        -   Webhooks (EXT:reactions "Run ability"), Fluid
+            (:php:`AbilityProcessor`, read-only), the Scheduler (through the
+            Core's "Execute console command" task).
+        -   TYPO3 extra.
 
 ..  _introduction-support:
 

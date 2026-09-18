@@ -5,11 +5,7 @@
 
     /Introduction/Index
     /Installation/Index
-    /Concepts/Index
-    /RegisteringAbilities/Index
-    /Surfaces/Index
-    /Permissions/Index
-    /Policy/Index
-    /Events/Index
-    /DemoAbilities/Index
+    /Configuration/Index
+    /Usage/Index
+    /Developer/Index
     /Changelog/Index

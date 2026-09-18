@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.1" encoding="UTF-8"?>
 <guides xmlns="https://www.phpdoc.org/guides"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="https://www.phpdoc.org/guides vendor/phpdocumentor/guides-cli/resources/schema/guides.xsd"
@@ -15,7 +15,7 @@
                interlink-shortcode="abilities"
     />
     <project title="TYPO3 Abilities Registry"
-             version="1.0"
-             release="1.0.0"
+             version="1.1"
+             release="1.1.0"
              copyright="2026 by Kurt Dirnbauer, webconsulting business services gmbh"/>
 </guides>

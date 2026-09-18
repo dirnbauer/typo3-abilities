@@ -4,6 +4,86 @@ All notable changes to `webconsulting/typo3-abilities` are documented here.
 This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/).
 
+## 1.1.0 — 2026-09-18
+
+The registry becomes the capability catalogue of the whole installation and
+gains two surfaces. Backwards compatible for consumers of the public API
+(`AbilityDefinition::mcpToolName()`, the registry, the executor, the MCP
+projection); the deprecated `AbilityExecutedEvent` is removed as announced.
+
+### Added
+
+- **Capability catalogue** (`Catalog\CapabilityCatalog`): the union of
+  every `CapabilitySourceInterface` (tag `abilities.capability_source`),
+  each entry a `CapabilityEntry` with id (`namespace/name`), title,
+  description, source, surfaces, input schema, `readonly`/`destructive`/
+  `idempotent` annotations and per-surface invocations. Shipped sources:
+  `AbilitiesSource`, `McpToolSource` (native tools of hn/typo3-mcp-server,
+  optional), `SkillSource` (`tx_nrllm_skill`, `tx_skillflow_skill`,
+  optional), `RestEndpointSource` (the REST projection, EXT:reactions
+  webhooks, sgalinski/sg-apicore endpoints, optional) and `CliCommandSource`
+  (every console command with a schema derived from its InputDefinition).
+- The catalogue on every surface: `abilities:catalog
+  [--source|--surface|--search] [--format=table|json]`,
+  `abilities:list --source=<slug>`, `GET {base}/catalog`, the ability
+  `abilities/catalog` (MCP tool `ability_abilities_catalog`), the backend
+  module's **Catalogue** tab, the AJAX route `abilities_catalog` and
+  `getCatalog()` in `client.js`.
+- **Webhook surface**: EXT:reactions reaction type `abilities-run`
+  (`Reaction\RunAbilityReaction`, TCA field `sys_reaction.tx_abilities_ability`)
+  runs a REST-exposed ability as the impersonated backend user with that
+  user's scopes; surface `webhook`, never approves a review. Registered only
+  when typo3/cms-reactions is installed.
+- **Fluid surface**: `DataProcessing\AbilityProcessor` runs a read-only
+  ability while rendering (`ability`, `input.*` through stdWrap and schema
+  coercion, `as`); surface `frontend`, trusted context, refuses abilities
+  with side effects.
+- `ExecutionContext::webhook()`, `::frontend()`, `SURFACE_WEBHOOK`,
+  `SURFACE_FRONTEND`, `PROJECTION_SURFACES`; `AbilitiesRegistry::describe()`
+  (the one contract-plus-schemas shape every surface publishes);
+  `SchemaValidator::coerce()` (string → declared scalar type);
+  `RestInputMapper::fromPayload()`; `BackendUserContext::currentUid()`;
+  `Backend\Tca\RegistryItemsProcFunc::addAbilities()`.
+- Documentation rewritten as six short pages with a WordPress Abilities API
+  parity checklist and a seeded walkthrough of every surface; German labels
+  for the new tab and fields; localized `tx_abilities_trace` TCA.
+- Tests: 186 unit and 39 functional tests (catalogue, every source, the
+  reaction with EXT:reactions, the data processor, the skills source against
+  fixture tables, the catalog CLI/REST/AJAX/module surfaces).
+
+### Changed
+
+- REST category error code is `rest_ability_category_not_found` (WordPress
+  name; was `rest_category_not_found`).
+- `RestRoute` carries a `RestEndpoint` enum (`Listing`, `Describe`, `Run`,
+  `Categories`, `Category`, `Catalog`) instead of string constants;
+  `RestAuthenticator::authenticate()` returns the `ExecutionContext`
+  directly and `RestRequestHandler::handle()` takes it.
+- `RestConfiguration` is a container service (factory from the extension
+  configuration) injected into the middleware and the catalogue sources.
+- `AbilityResult::failure()` takes an `AbilityErrorCode`; the `ERROR_*`
+  constants are now defined from the enum. `AbilityExecutor`,
+  `PolicyProvider` and `AfterAbilityExecutionEvent` are final.
+- `Permission\ScopeItemsProcFunc` → `Backend\Tca\RegistryItemsProcFunc`;
+  `Ability\Support\BackendUserContext` → `Permission\BackendUserContext`;
+  the token commands moved to `Projection\Cli\`.
+- Toolchain: Composer installs into `.Build/` (`composer ci`, `cgl`,
+  `phpstan`, `test`); PHPStan reads optional-dependency symbols from
+  `Build/phpstan/OptionalDependencies.php`; CI lints JavaScript too.
+- `typo3/cms-frontend` is a runtime requirement (data processor).
+
+### Removed
+
+- `Event\AbilityExecutedEvent` (deprecated in 1.0.0) — listen to
+  `AfterAbilityExecutionEvent`.
+- Dead code: `RestIdentity`, `AbilityDefinition::category()`/`instructions()`/
+  `REST_METHOD_*`, `ExecutionContext::isTrusted()`/`withReviewApproved()`,
+  `AbilityResult::errorCodeEnum()`, `CategoryRegistry::slugs()`, the
+  module's unused `ajaxUrls` JSON island (TYPO3 exposes AJAX routes itself),
+  the `button.reload` label, `ext_emconf.php`, the empty `ext_localconf.php`,
+  `Tests/bootstrap.php` and the stale `examples/abilities-studio.html`
+  (it targeted the pre-1.0 `/api/abilities/v1` path).
+
 ## 1.0.0 — 2026-09-12
 
 First stable release: registry, categories, annotations, events, permissions,

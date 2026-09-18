@@ -31,13 +31,15 @@ TYPO3 Abilities Registry
 
 ----
 
-One typed, permissioned registry of what a TYPO3 installation can do. CLI
-commands, REST routes, MCP tools, the backend module and agent skills are
-**projections** of that registry — never hand-rolled endpoints.
+One typed, permissioned registry of what a TYPO3 installation can do, and one
+**capability catalogue** that lists everything else the installation offers
+to an AI agent — native MCP tools, agent skills, REST and webhook endpoints,
+console commands — in the same shape.
 
-Register an ability once, with a JSON-Schema contract, the scopes it needs,
-a risk tier and an honest list of its side effects, and it appears on every
-surface at once, governed by the same execution pipeline.
+Register an ability once, with a JSON Schema contract, the scopes it needs, a
+risk tier and an honest list of its side effects, and it appears on every
+surface at once: CLI, REST, MCP, webhooks, Fluid, the backend module and
+agent skills, governed by the same execution pipeline.
 
 ----
 
@@ -50,34 +52,34 @@ surface at once, governed by the same execution pipeline.
 
     ..  card:: Introduction
 
-        What the registry is, and how it compares to the WordPress
-        Abilities API it takes its vocabulary from.
+        What the registry and the catalogue are, and the parity checklist
+        against the WordPress Abilities API.
 
         ..  card-footer:: :ref:`Read the introduction <introduction>`
             :button-style: btn btn-secondary stretched-link
 
-    ..  card:: Registering abilities
+    ..  card:: Usage
 
-        The :php:`#[AsAbility]` attribute, input and output schemas,
-        permission checks and categories.
+        A seeded walkthrough of every surface: CLI transcript, curl, MCP tool
+        names, webhook, Fluid, JavaScript, skills, scheduler.
 
-        ..  card-footer:: :ref:`Register an ability <registering-abilities>`
+        ..  card-footer:: :ref:`Walk through the surfaces <usage>`
             :button-style: btn btn-secondary stretched-link
 
-    ..  card:: Surfaces
+    ..  card:: Configuration
 
-        CLI, REST, MCP, the backend module, the JavaScript client and
-        agent skills — one registry, many projections.
+        Extension settings, the policy file, scopes for backend groups,
+        REST tokens and the "Run ability" webhook.
 
-        ..  card-footer:: :ref:`Browse the surfaces <surfaces>`
+        ..  card-footer:: :ref:`Configure the registry <configuration>`
             :button-style: btn btn-secondary stretched-link
 
-    ..  card:: Governance
+    ..  card:: Developer
 
-        Scopes and backend groups, the policy file, human review and the
-        execution traces.
+        Register an ability, the execution pipeline, PSR-14 events, the
+        catalogue sources and the PHP API consumers rely on.
 
-        ..  card-footer:: :ref:`Understand the policy <policy>`
+        ..  card-footer:: :ref:`Build on the registry <developer>`
             :button-style: btn btn-secondary stretched-link
 
 ..  toctree::
@@ -86,13 +88,9 @@ surface at once, governed by the same execution pipeline.
 
     Introduction/Index
     Installation/Index
-    Concepts/Index
-    RegisteringAbilities/Index
-    Surfaces/Index
-    Permissions/Index
-    Policy/Index
-    Events/Index
-    DemoAbilities/Index
+    Configuration/Index
+    Usage/Index
+    Developer/Index
     Changelog/Index
 
 ..  toctree::
