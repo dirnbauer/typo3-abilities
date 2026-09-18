@@ -6,15 +6,16 @@ namespace Webconsulting\Abilities\Backend\Controller;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use Webconsulting\Abilities\Catalog\CapabilityCatalog;
 use Webconsulting\Abilities\Category\CategoryRegistry;
 use Webconsulting\Abilities\Domain\AbilityCategory;
 use Webconsulting\Abilities\Domain\AbilityDefinition;
 use Webconsulting\Abilities\Domain\AbilityErrorCode;
 use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Execution\AbilityExecutor;
+use Webconsulting\Abilities\Permission\BackendUserContext;
 use Webconsulting\Abilities\Permission\BackendUserScopeResolver;
 use Webconsulting\Abilities\Policy\PolicyProvider;
 use Webconsulting\Abilities\Registry\AbilitiesRegistry;
@@ -37,6 +38,7 @@ final class AbilitiesAjaxController
         private readonly AbilitiesRegistry $registry,
         private readonly AbilityExecutor $executor,
         private readonly CategoryRegistry $categories,
+        private readonly CapabilityCatalog $catalog,
         private readonly BackendUserScopeResolver $scopeResolver,
         private readonly TokenService $tokenService,
         private readonly PolicyProvider $policyProvider,
@@ -47,12 +49,9 @@ final class AbilitiesAjaxController
     public function list(ServerRequestInterface $request): ResponseInterface
     {
         $query = $request->getQueryParams();
-        $category = is_string($query['category'] ?? null) && $query['category'] !== '' ? $query['category'] : null;
-        $surface = is_string($query['surface'] ?? null) && $query['surface'] !== '' ? $query['surface'] : null;
-
         $definitions = array_values(array_map(
             fn(AbilityDefinition $definition): array => $this->withPolicy($definition),
-            $this->registry->getDefinitions($category, $surface),
+            $this->registry->getDefinitions(self::filter($query, 'category'), self::filter($query, 'surface')),
         ));
 
         return new JsonResponse(['abilities' => $definitions, 'total' => count($definitions)]);
@@ -60,18 +59,14 @@ final class AbilitiesAjaxController
 
     public function describe(ServerRequestInterface $request): ResponseInterface
     {
-        $nameParam = $request->getQueryParams()['name'] ?? null;
-        $name = is_string($nameParam) ? $nameParam : '';
+        $name = self::filter($request->getQueryParams(), 'name') ?? '';
         if (!$this->registry->has($name)) {
             return new JsonResponse(['error' => 'Unknown ability.', 'errorCode' => AbilityErrorCode::NotFound->value], 404);
         }
 
-        $ability = $this->registry->get($name);
-
         return new JsonResponse([
-            ...$this->withPolicy($this->registry->getDefinition($name)),
-            'inputSchema' => $ability->getInputSchema() ?: new \stdClass(),
-            'outputSchema' => $ability->getOutputSchema() ?: new \stdClass(),
+            ...$this->registry->describe($name),
+            'policy' => $this->withPolicy($this->registry->getDefinition($name))['policy'],
         ]);
     }
 
@@ -87,6 +82,17 @@ final class AbilitiesAjaxController
         ));
 
         return new JsonResponse(['categories' => $categories, 'total' => count($categories)]);
+    }
+
+    public function catalog(ServerRequestInterface $request): ResponseInterface
+    {
+        $query = $request->getQueryParams();
+
+        return new JsonResponse($this->catalog->toArray(
+            self::filter($query, 'source'),
+            self::filter($query, 'surface'),
+            self::filter($query, 'search') ?? '',
+        ));
     }
 
     public function tokens(ServerRequestInterface $request): ResponseInterface
@@ -108,8 +114,8 @@ final class AbilitiesAjaxController
     public function tokenCreate(ServerRequestInterface $request): ResponseInterface
     {
         $body = $this->body($request);
-        $user = $this->currentUser();
-        $backendUserUid = $this->currentUserUid();
+        $user = BackendUserContext::current();
+        $backendUserUid = BackendUserContext::currentUid();
         if ($user === null || $backendUserUid === null) {
             return new JsonResponse(['error' => 'No backend user.'], 403);
         }
@@ -119,24 +125,16 @@ final class AbilitiesAjaxController
             return new JsonResponse(['error' => 'A token needs a name.'], 400);
         }
 
-        $scopes = [];
         $rawScopes = $body['scopes'] ?? [];
         if (is_string($rawScopes)) {
             $rawScopes = GeneralUtility::trimExplode(',', $rawScopes, true);
         }
-        if (is_array($rawScopes)) {
-            foreach ($rawScopes as $scope) {
-                if (is_string($scope) && trim($scope) !== '') {
-                    $scopes[] = trim($scope);
-                }
-            }
-        }
+        $scopes = is_array($rawScopes)
+            ? array_values(array_filter(array_map(static fn(mixed $scope): string => is_string($scope) ? trim($scope) : '', $rawScopes)))
+            : [];
 
         $expiresInDays = $body['expiresInDays'] ?? null;
-        $expiresAt = null;
-        if (is_numeric($expiresInDays) && (int)$expiresInDays > 0) {
-            $expiresAt = time() + (int)$expiresInDays * 86400;
-        }
+        $expiresAt = is_numeric($expiresInDays) && (int)$expiresInDays > 0 ? time() + (int)$expiresInDays * 86400 : null;
 
         $issued = $this->tokenService->create($name, $backendUserUid, $scopes, $expiresAt);
         $username = is_array($user->user) ? ($user->user['username'] ?? null) : null;
@@ -170,8 +168,6 @@ final class AbilitiesAjaxController
     public function traceList(ServerRequestInterface $request): ResponseInterface
     {
         $query = $request->getQueryParams();
-        $ability = is_string($query['ability'] ?? null) && $query['ability'] !== '' ? $query['ability'] : null;
-        $surface = is_string($query['surface'] ?? null) && $query['surface'] !== '' ? $query['surface'] : null;
         $ok = match ($query['ok'] ?? '') {
             '1', 'true' => true,
             '0', 'false' => false,
@@ -179,7 +175,7 @@ final class AbilitiesAjaxController
         };
         $limit = is_numeric($query['limit'] ?? null) ? (int)$query['limit'] : TraceRepository::DEFAULT_LIMIT;
 
-        $traces = $this->traces->findLatest($ability, $surface, $ok, $limit);
+        $traces = $this->traces->findLatest(self::filter($query, 'ability'), self::filter($query, 'surface'), $ok, $limit);
 
         return new JsonResponse([
             'traces' => $traces,
@@ -218,11 +214,7 @@ final class AbilitiesAjaxController
         $result = $this->executor->execute(
             $this->registry->get($name),
             $objectInput,
-            ExecutionContext::backend(
-                reviewApproved: filter_var($body['approveReview'] ?? false, FILTER_VALIDATE_BOOLEAN),
-                grantedScopes: $this->currentUserScopes(),
-                backendUserUid: $this->currentUserUid(),
-            ),
+            $this->context(filter_var($body['approveReview'] ?? false, FILTER_VALIDATE_BOOLEAN)),
             $this->registry->getDefinition($name),
         );
 
@@ -241,10 +233,7 @@ final class AbilitiesAjaxController
      */
     private function withPolicy(AbilityDefinition $definition): array
     {
-        $decision = $this->policyProvider->get()->decide(
-            $definition,
-            ExecutionContext::backend(grantedScopes: $this->currentUserScopes(), backendUserUid: $this->currentUserUid()),
-        );
+        $decision = $this->policyProvider->get()->decide($definition, $this->context());
 
         return [
             ...$definition->toArray(),
@@ -256,28 +245,23 @@ final class AbilitiesAjaxController
         ];
     }
 
-    private function currentUser(): ?BackendUserAuthentication
+    private function context(bool $reviewApproved = false): ExecutionContext
     {
-        $backendUser = $GLOBALS['BE_USER'] ?? null;
+        $user = BackendUserContext::current();
 
-        return $backendUser instanceof BackendUserAuthentication && is_array($backendUser->user) ? $backendUser : null;
+        return ExecutionContext::backend(
+            reviewApproved: $reviewApproved,
+            grantedScopes: $user === null ? [] : $this->scopeResolver->resolveForUser($user),
+            backendUserUid: BackendUserContext::currentUid(),
+        );
     }
 
     /**
-     * @return list<string>
+     * @param array<mixed> $query
      */
-    private function currentUserScopes(): array
+    private static function filter(array $query, string $key): ?string
     {
-        $user = $this->currentUser();
-
-        return $user === null ? [] : $this->scopeResolver->resolveForUser($user);
-    }
-
-    private function currentUserUid(): ?int
-    {
-        $uid = $this->currentUser()?->user['uid'] ?? 0;
-
-        return is_numeric($uid) && (int)$uid > 0 ? (int)$uid : null;
+        return is_string($query[$key] ?? null) && $query[$key] !== '' ? $query[$key] : null;
     }
 
     /**

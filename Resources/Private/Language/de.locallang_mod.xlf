@@ -18,10 +18,6 @@
         <source>Abilities registry</source>
         <target>Abilities-Registry</target>
       </trans-unit>
-      <trans-unit id="button.reload">
-        <source>Reload</source>
-        <target>Neu laden</target>
-      </trans-unit>
 
       <trans-unit id="tab.registry">
         <source>Registry</source>
@@ -38,6 +34,42 @@
       <trans-unit id="tab.tokens">
         <source>Tokens</source>
         <target>Tokens</target>
+      </trans-unit>
+      <trans-unit id="tab.catalog">
+        <source>Catalogue</source>
+        <target>Katalog</target>
+      </trans-unit>
+      <trans-unit id="catalog.intro">
+        <source>Everything this installation can do, from every source: the abilities of this registry, the native tools of the MCP server, agent skills, REST and webhook endpoints and console commands. Each entry tells an agent how to invoke it from each surface. The same catalogue is served by abilities:catalog, GET /abilities/v1/catalog and the MCP tool ability_abilities_catalog.</source>
+        <target>Alles, was diese Installation kann, aus jeder Quelle: die Abilities dieser Registry, die nativen Tools des MCP-Servers, Agent-Skills, REST- und Webhook-Endpunkte sowie Konsolenbefehle. Jeder Eintrag sagt einem Agenten, wie er ihn von jeder Oberfläche aus aufruft. Denselben Katalog liefern abilities:catalog, GET /abilities/v1/catalog und das MCP-Tool ability_abilities_catalog.</target>
+      </trans-unit>
+      <trans-unit id="catalog.caption">
+        <source>Capabilities of the installation with source, surfaces, annotations and invocations</source>
+        <target>Fähigkeiten der Installation mit Quelle, Oberflächen, Annotationen und Aufrufen</target>
+      </trans-unit>
+      <trans-unit id="catalog.filters">
+        <source>Filter the catalogue</source>
+        <target>Katalog filtern</target>
+      </trans-unit>
+      <trans-unit id="catalog.schema.help">
+        <source>An input schema is known for this entry</source>
+        <target>Für diesen Eintrag ist ein Eingabeschema bekannt</target>
+      </trans-unit>
+      <trans-unit id="filter.source">
+        <source>Source</source>
+        <target>Quelle</target>
+      </trans-unit>
+      <trans-unit id="column.id">
+        <source>Capability</source>
+        <target>Fähigkeit</target>
+      </trans-unit>
+      <trans-unit id="column.source">
+        <source>Source · surfaces</source>
+        <target>Quelle · Oberflächen</target>
+      </trans-unit>
+      <trans-unit id="column.invocations">
+        <source>How to invoke</source>
+        <target>Aufruf</target>
       </trans-unit>
 
       <trans-unit id="registry.intro">

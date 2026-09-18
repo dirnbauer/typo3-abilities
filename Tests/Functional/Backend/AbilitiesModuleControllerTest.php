@@ -14,16 +14,16 @@ use Webconsulting\Abilities\Backend\Controller\AbilitiesModuleController;
 
 /**
  * The module actually renders: this is the guard against a Fluid template
- * that only breaks when a human opens the module. It asserts the four tab
- * panels, the registry rows with their filter data attributes, and that the
- * AJAX URLs the JavaScript reads are present.
+ * that only breaks when a human opens the module. It asserts the five tab
+ * panels, the registry and catalogue rows with their filter data attributes
+ * and that every label resolves.
  */
 final class AbilitiesModuleControllerTest extends FunctionalTestCase
 {
     protected array $testExtensionsToLoad = ['webconsulting/typo3-abilities'];
 
     #[Test]
-    public function rendersFourTabsWithTheRegistry(): void
+    public function rendersFiveTabsWithTheRegistryAndTheCatalogue(): void
     {
         $this->importCSVDataSet(__DIR__ . '/../Fixtures/be_users.csv');
         $this->importCSVDataSet(__DIR__ . '/../Fixtures/be_groups.csv');
@@ -49,7 +49,7 @@ final class AbilitiesModuleControllerTest extends FunctionalTestCase
         self::assertSame(200, $response->getStatusCode());
         $html = (string)$response->getBody();
 
-        foreach (['registry', 'run', 'traces', 'tokens'] as $tab) {
+        foreach (['registry', 'catalog', 'run', 'traces', 'tokens'] as $tab) {
             self::assertStringContainsString('id="abilities-tab-' . $tab . '"', $html, $tab);
             self::assertStringContainsString('data-typo3-tab="#abilities-tab-' . $tab . '"', $html, $tab);
         }
@@ -61,11 +61,12 @@ final class AbilitiesModuleControllerTest extends FunctionalTestCase
         self::assertStringContainsString('data-surfaces="mcp cli rest"', $html);
         self::assertStringContainsString('ability_content_search', $html);
 
-        // The JavaScript reads its endpoints from this JSON island.
-        self::assertStringContainsString('id="abilities-ajax-urls"', $html);
-        foreach (['abilities/run', 'abilities/traces', 'abilities/tokens/create', 'abilities/tokens/revoke'] as $route) {
-            self::assertStringContainsString($route, $html, $route);
-        }
+        // Catalogue rows: every source the container knows, with invocations.
+        self::assertStringContainsString('data-source="cli"', $html);
+        self::assertStringContainsString('data-source="rest"', $html);
+        self::assertStringContainsString('vendor/bin/typo3 abilities:catalog', $html);
+        self::assertStringContainsString('GET /abilities/v1/catalog', $html);
+        self::assertStringContainsString('data-filter-rows="#abilities-catalog-table .abilities-row"', $html);
 
         self::assertStringNotContainsString('LLL:EXT:abilities', $html, 'every label is resolved');
     }

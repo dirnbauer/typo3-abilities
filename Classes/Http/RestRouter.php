@@ -6,13 +6,14 @@ namespace Webconsulting\Abilities\Http;
 
 /**
  * Maps request paths below the configured base path onto the REST
- * projection's endpoints (WordPress Abilities REST API layout):
+ * projection's endpoints:
  *
- *   GET    {base}/abilities                       list
- *   GET    {base}/abilities/{ns}/{name}           describe
- *   *      {base}/abilities/{ns}/{name}/run       run (method by annotation)
- *   GET    {base}/categories                      categories
- *   GET    {base}/categories/{slug}               category
+ *   GET    {base}/abilities                       Listing
+ *   GET    {base}/abilities/{ns}/{name}           Describe
+ *   *      {base}/abilities/{ns}/{name}/run       Run (method by annotation)
+ *   GET    {base}/categories                      Categories
+ *   GET    {base}/categories/{slug}               Category
+ *   GET    {base}/catalog                         Catalog
  */
 final class RestRouter
 {
@@ -35,18 +36,21 @@ final class RestRouter
         $relative = trim(substr(rtrim($path, '/'), strlen(rtrim($basePath, '/'))), '/');
 
         if ($relative === 'abilities') {
-            return new RestRoute(RestRoute::LIST);
+            return new RestRoute(RestEndpoint::Listing);
         }
         if ($relative === 'categories') {
-            return new RestRoute(RestRoute::CATEGORIES);
+            return new RestRoute(RestEndpoint::Categories);
+        }
+        if ($relative === 'catalog') {
+            return new RestRoute(RestEndpoint::Catalog);
         }
         if (preg_match('#^categories/(' . self::SEGMENT . ')$#', $relative, $matches) === 1) {
-            return new RestRoute(RestRoute::CATEGORY, ['slug' => $matches[1]]);
+            return new RestRoute(RestEndpoint::Category, ['slug' => $matches[1]]);
         }
         if (preg_match('#^abilities/(' . self::SEGMENT . ')/(' . self::SEGMENT . ')(/run)?$#', $relative, $matches) === 1) {
             $params = ['namespace' => $matches[1], 'name' => $matches[2], 'ability' => $matches[1] . '/' . $matches[2]];
 
-            return new RestRoute(($matches[3] ?? '') === '/run' ? RestRoute::RUN : RestRoute::DESCRIBE, $params);
+            return new RestRoute(($matches[3] ?? '') === '/run' ? RestEndpoint::Run : RestEndpoint::Describe, $params);
         }
 
         return null;

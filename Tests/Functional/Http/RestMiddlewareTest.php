@@ -117,13 +117,13 @@ final class RestMiddlewareTest extends FunctionalTestCase
         $response = $this->api('GET', '/abilities/v1/abilities');
 
         self::assertSame(200, $response->getStatusCode(), (string)$response->getBody());
-        self::assertSame('7', $response->getHeaderLine('X-Total'));
+        self::assertSame('8', $response->getHeaderLine('X-Total'));
         self::assertSame('1', $response->getHeaderLine('X-Total-Pages'));
         self::assertSame('https://app.example', $response->getHeaderLine('Access-Control-Allow-Origin') ?: 'https://app.example', 'CORS header only with Origin');
         $data = self::asArray($this->body($response)['data']);
         $names = array_map(static fn(mixed $ability): mixed => self::asArray($ability)['name'], self::asArray($data['abilities']));
         self::assertSame(
-            ['abilities/describe', 'abilities/list', 'content/create-page-draft', 'content/delete-page', 'content/search', 'system/site-info', 'workspace/publish'],
+            ['abilities/catalog', 'abilities/describe', 'abilities/list', 'content/create-page-draft', 'content/delete-page', 'content/search', 'system/site-info', 'workspace/publish'],
             $names,
         );
 
@@ -192,7 +192,7 @@ final class RestMiddlewareTest extends FunctionalTestCase
 
         $allowed = $this->api('GET', '/abilities/v1/abilities/abilities/list/run?category=registry', self::ADMIN_LIMITED_TOKEN);
         self::assertSame(200, $allowed->getStatusCode(), (string)$allowed->getBody());
-        self::assertSame(2, self::asArray($this->body($allowed)['data'])['total']);
+        self::assertSame(3, self::asArray($this->body($allowed)['data'])['total']);
     }
 
     #[Test]
@@ -208,7 +208,7 @@ final class RestMiddlewareTest extends FunctionalTestCase
         self::assertContains('registry', $slugs);
 
         $registry = $this->api('GET', '/abilities/v1/categories/registry');
-        self::assertSame(['abilities/describe', 'abilities/list'], self::asArray($this->body($registry)['data'])['abilities']);
+        self::assertSame(['abilities/catalog', 'abilities/describe', 'abilities/list'], self::asArray($this->body($registry)['data'])['abilities']);
 
         $preflight = $this->api('OPTIONS', '/abilities/v1/abilities', null, null, ['Origin' => 'https://app.example']);
         self::assertSame(204, $preflight->getStatusCode());
@@ -219,6 +219,22 @@ final class RestMiddlewareTest extends FunctionalTestCase
         self::assertFalse($foreign->hasHeader('Access-Control-Allow-Origin'));
 
         self::assertSame(404, $this->api('GET', '/abilities/v1/nothing')->getStatusCode());
+    }
+
+    #[Test]
+    public function servesTheCapabilityCatalogue(): void
+    {
+        $response = $this->api('GET', '/abilities/v1/catalog?source=cli&search=abilities:catalog');
+
+        self::assertSame(200, $response->getStatusCode(), (string)$response->getBody());
+        $data = self::asArray($this->body($response)['data']);
+        self::assertSame(1, $data['total']);
+        $entry = self::asArray(self::asArray($data['entries'])[0]);
+        self::assertSame('cli/abilities:catalog', $entry['id']);
+        self::assertSame('vendor/bin/typo3 abilities:catalog', self::asArray($entry['invocations'])['cli']);
+        self::assertGreaterThan(8, self::asArray($data['sources'])['cli'] + self::asArray($this->body($this->api('GET', '/abilities/v1/catalog'))['data'])['total']);
+
+        self::assertSame(401, $this->api('GET', '/abilities/v1/catalog', null)->getStatusCode(), 'the catalogue is authenticated like everything else');
     }
 
     #[Test]

@@ -150,6 +150,24 @@ export async function getAbility(name) {
   return status === 200 ? data : null;
 }
 
+/**
+ * The capability catalogue of the whole installation: abilities, native MCP
+ * tools, agent skills, REST/webhook endpoints and console commands, each
+ * with its input schema, annotations and per-surface invocations.
+ * Filters: source, surface, search. Returns { entries, total, sources }.
+ */
+export async function getCatalog({ source = "", surface = "", search = "" } = {}) {
+  const query = {};
+  if (source) query.source = source;
+  if (surface) query.surface = surface;
+  if (search) query.search = search;
+  const { status, data } = await request("abilities_catalog", { query });
+  if (status !== 200 || !data) {
+    throw new Error(`Could not load the capability catalogue (HTTP ${status}).`);
+  }
+  return data;
+}
+
 export async function getCategories() {
   const { status, data } = await request("abilities_categories");
   if (status !== 200 || !data) {
@@ -243,6 +261,7 @@ export async function executeAbility(name, input = {}, { approveReview = false }
 export default {
   getAbilities,
   getAbility,
+  getCatalog,
   getCategories,
   getTokens,
   createToken,

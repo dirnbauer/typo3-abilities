@@ -7,13 +7,17 @@ namespace Webconsulting\Abilities\Tests\Unit\Projection;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
-use Webconsulting\Abilities\Command\TokenListCommand;
-use Webconsulting\Abilities\Command\TokenRevokeCommand;
+use Webconsulting\Abilities\Catalog\CapabilityCatalog;
+use Webconsulting\Abilities\Catalog\Source\AbilitiesSource;
 use Webconsulting\Abilities\Execution\AbilityExecutor;
+use Webconsulting\Abilities\Http\RestConfiguration;
 use Webconsulting\Abilities\Policy\PolicyProvider;
+use Webconsulting\Abilities\Projection\Cli\CatalogCommand;
 use Webconsulting\Abilities\Projection\Cli\DescribeAbilityCommand;
 use Webconsulting\Abilities\Projection\Cli\ListAbilitiesCommand;
 use Webconsulting\Abilities\Projection\Cli\RunAbilityCommand;
+use Webconsulting\Abilities\Projection\Cli\TokenListCommand;
+use Webconsulting\Abilities\Projection\Cli\TokenRevokeCommand;
 use Webconsulting\Abilities\Registry\AbilitiesRegistry;
 use Webconsulting\Abilities\Security\TokenService;
 use Webconsulting\Abilities\Tests\Fixtures\EchoAbility;
@@ -29,6 +33,8 @@ final class CliProjectionTest extends TestCase
 
     private AbilityExecutor $executor;
 
+    private CapabilityCatalog $catalog;
+
     protected function setUp(): void
     {
         $this->registry = new AbilitiesRegistry([new EchoAbility()]);
@@ -36,12 +42,13 @@ final class CliProjectionTest extends TestCase
             new SchemaValidator(),
             new PolicyProvider('/nonexistent/policy.yaml'),
         );
+        $this->catalog = new CapabilityCatalog([new AbilitiesSource($this->registry, new RestConfiguration())]);
     }
 
     #[Test]
     public function listCommandRendersRegistryAsJson(): void
     {
-        $tester = new CommandTester(new ListAbilitiesCommand($this->registry));
+        $tester = new CommandTester(new ListAbilitiesCommand($this->registry, $this->catalog));
 
         self::assertSame(0, $tester->execute(['--json' => true]));
         $decoded = self::decodeJson($tester->getDisplay());
@@ -49,6 +56,41 @@ final class CliProjectionTest extends TestCase
         $first = self::asArray($decoded[0]);
         self::assertSame('test/echo', $first['name']);
         self::assertSame('ability_test_echo', $first['mcpToolName']);
+    }
+
+    #[Test]
+    public function listCommandListsOneCatalogueSource(): void
+    {
+        $tester = new CommandTester(new ListAbilitiesCommand($this->registry, $this->catalog));
+
+        self::assertSame(0, $tester->execute(['--source' => 'abilities']));
+        self::assertStringContainsString('test/echo', $tester->getDisplay());
+        self::assertStringContainsString('ability_test_echo', $tester->getDisplay());
+
+        self::assertSame(2, $tester->execute(['--source' => 'nope']));
+        self::assertStringContainsString('Unknown source', $tester->getDisplay());
+    }
+
+    #[Test]
+    public function catalogCommandRendersTableAndJson(): void
+    {
+        $tester = new CommandTester(new CatalogCommand($this->catalog));
+
+        self::assertSame(0, $tester->execute([]));
+        self::assertStringContainsString('1 capabilities (abilities: 1)', $tester->getDisplay());
+        self::assertStringContainsString("abilities:run test/echo --input '{\"message\":\"…\"}'", $tester->getDisplay());
+
+        self::assertSame(0, $tester->execute(['--format' => 'json', '--search' => 'echo']));
+        $decoded = self::decodeJson($tester->getDisplay());
+        self::assertSame(1, $decoded['total']);
+        $entry = self::asArray(self::asArray($decoded['entries'])[0]);
+        self::assertSame('test/echo', $entry['id']);
+        self::assertSame(['readonly' => true, 'destructive' => false, 'idempotent' => true], $entry['annotations']);
+        self::assertSame('object', self::asArray($entry['inputSchema'])['type']);
+
+        self::assertSame(0, $tester->execute(['--source' => 'mcp']));
+        self::assertStringContainsString('No capabilities match', $tester->getDisplay());
+        self::assertSame(2, $tester->execute(['--format' => 'xml']));
     }
 
     #[Test]

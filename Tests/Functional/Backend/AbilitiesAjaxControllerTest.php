@@ -15,7 +15,7 @@ use Webconsulting\Abilities\Security\TokenService;
 use Webconsulting\Abilities\Tests\Support\TypeNarrowing;
 
 /**
- * The endpoints behind the backend module's four tabs: the registry with the
+ * The endpoints behind the backend module's tabs: the registry with the
  * policy decision the Run tab needs for its review checkbox, governed runs
  * reporting their trace uid, the trace listing with its filters, and the
  * token lifecycle (create → list → revoke).
@@ -78,7 +78,7 @@ final class AbilitiesAjaxControllerTest extends FunctionalTestCase
     public function listAndDescribeCarryThePolicyDecisionTheRunTabNeeds(): void
     {
         $list = $this->json($this->ajaxGet('list'));
-        self::assertSame(7, $list['total']);
+        self::assertSame(8, $list['total']);
 
         $byName = [];
         foreach (self::asArray($list['abilities']) as $ability) {
@@ -106,6 +106,24 @@ final class AbilitiesAjaxControllerTest extends FunctionalTestCase
         self::assertSame('object', self::asArray($described['outputSchema'])['type']);
 
         self::assertSame(404, $this->ajaxGet('describe', ['name' => 'nope/nope'])->getStatusCode());
+    }
+
+    #[Test]
+    public function catalogueIsServedForTheModuleAndTheJsClient(): void
+    {
+        $all = $this->json($this->ajaxGet('catalog'));
+        self::assertGreaterThan(8, $all['total']);
+        self::assertSame(['abilities', 'cli', 'mcp', 'rest', 'skills'], array_keys(self::asArray($all['sources'])));
+
+        $abilities = $this->json($this->ajaxGet('catalog', ['source' => 'abilities']));
+        self::assertSame(8, $abilities['total']);
+
+        $search = $this->json($this->ajaxGet('catalog', ['search' => 'delete-page', 'surface' => 'rest']));
+        self::assertSame(['content/delete-page'], array_map(
+            static fn(mixed $entry): mixed => self::asArray($entry)['id'],
+            self::asArray($search['entries']),
+        ));
+        self::assertSame(0, $this->json($this->ajaxGet('catalog', ['search' => 'delete-page', 'surface' => 'scheduler']))['total']);
     }
 
     #[Test]

@@ -14,9 +14,6 @@
       <trans-unit id="headline">
         <source>Abilities registry</source>
       </trans-unit>
-      <trans-unit id="button.reload">
-        <source>Reload</source>
-      </trans-unit>
 
       <trans-unit id="tab.registry">
         <source>Registry</source>
@@ -29,6 +26,33 @@
       </trans-unit>
       <trans-unit id="tab.tokens">
         <source>Tokens</source>
+      </trans-unit>
+      <trans-unit id="tab.catalog">
+        <source>Catalogue</source>
+      </trans-unit>
+      <trans-unit id="catalog.intro">
+        <source>Everything this installation can do, from every source: the abilities of this registry, the native tools of the MCP server, agent skills, REST and webhook endpoints and console commands. Each entry tells an agent how to invoke it from each surface. The same catalogue is served by abilities:catalog, GET /abilities/v1/catalog and the MCP tool ability_abilities_catalog.</source>
+      </trans-unit>
+      <trans-unit id="catalog.caption">
+        <source>Capabilities of the installation with source, surfaces, annotations and invocations</source>
+      </trans-unit>
+      <trans-unit id="catalog.filters">
+        <source>Filter the catalogue</source>
+      </trans-unit>
+      <trans-unit id="catalog.schema.help">
+        <source>An input schema is known for this entry</source>
+      </trans-unit>
+      <trans-unit id="filter.source">
+        <source>Source</source>
+      </trans-unit>
+      <trans-unit id="column.id">
+        <source>Capability</source>
+      </trans-unit>
+      <trans-unit id="column.source">
+        <source>Source · surfaces</source>
+      </trans-unit>
+      <trans-unit id="column.invocations">
+        <source>How to invoke</source>
       </trans-unit>
 
       <trans-unit id="registry.intro">

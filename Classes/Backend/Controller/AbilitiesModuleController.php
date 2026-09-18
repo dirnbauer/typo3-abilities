@@ -6,27 +6,27 @@ namespace Webconsulting\Abilities\Backend\Controller;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Backend\Template\ModuleTemplateFactory;
 use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Page\PageRenderer;
+use Webconsulting\Abilities\Catalog\CapabilityCatalog;
+use Webconsulting\Abilities\Catalog\CapabilityEntry;
 use Webconsulting\Abilities\Category\CategoryRegistry;
-use Webconsulting\Abilities\Domain\AbilityCategory;
 use Webconsulting\Abilities\Domain\AbilityDefinition;
 use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Domain\RiskTier;
 use Webconsulting\Abilities\Registry\AbilitiesRegistry;
 
 /**
- * Backend module: the abilities registry, rendered natively in the TYPO3
- * backend. This is the backend projection — no separate login, no API
- * token: the module lists the registry server-side from AbilitiesRegistry
- * and runs abilities through the same governed executor via backend AJAX
- * routes (see AbilitiesAjaxController).
+ * Backend module: the abilities registry and the capability catalogue,
+ * rendered natively in the TYPO3 backend. No separate login, no API token:
+ * the module lists server-side and runs abilities through the same governed
+ * executor via backend AJAX routes (see AbilitiesAjaxController).
  *
- * Four tabs: Registry (browse and filter), Run (schema-driven form),
- * Traces (what ran, from which surface, with which outcome) and Tokens
- * (REST bearer tokens of the acting user).
+ * Five tabs: Registry (browse and filter the abilities), Catalogue
+ * (everything the installation can do, from every source), Run
+ * (schema-driven form), Traces (what ran, from which surface, with which
+ * outcome) and Tokens (REST bearer tokens of the acting user).
  */
 final class AbilitiesModuleController
 {
@@ -34,10 +34,10 @@ final class AbilitiesModuleController
 
     public function __construct(
         private readonly ModuleTemplateFactory $moduleTemplateFactory,
-        private readonly UriBuilder $uriBuilder,
         private readonly PageRenderer $pageRenderer,
         private readonly AbilitiesRegistry $registry,
         private readonly CategoryRegistry $categories,
+        private readonly CapabilityCatalog $catalog,
     ) {}
 
     public function handleRequest(ServerRequestInterface $request): ResponseInterface
@@ -50,56 +50,32 @@ final class AbilitiesModuleController
         $moduleTemplate->setTitle($this->translate('mlang_tabs_tab'));
 
         // No breadcrumb: the registry is installation-wide, not bound to a page.
-        // v14 adds the reload button on its own; the shortcut is declared,
-        // not built (ButtonBar::makeShortcutButton() is deprecated).
+        // v14 adds the reload button on its own; the shortcut is declared, not built.
         $moduleTemplate->getDocHeaderComponent()->setShortcutContext(
             'system_abilities',
             $this->translate('mlang_tabs_tab'),
         );
 
-        // The backend module is an admin-only inspector: it deliberately lists
-        // the whole registry regardless of each ability's `expose` surfaces (an
-        // admin managing the site should see every capability). Execution stays
-        // governed — admin access, site policy and each ability's
-        // checkPermission() still gate every run.
+        // The module is an admin-only inspector: it deliberately lists the
+        // whole registry regardless of each ability's `expose` surfaces.
+        // Execution stays governed — policy, scopes and checkPermission()
+        // gate every run.
         $definitions = $this->registry->getDefinitions();
+        $catalog = $this->catalog->entries();
 
         $moduleTemplate->assignMultiple([
             'abilities' => array_values(array_map($this->present(...), $definitions)),
             'total' => count($definitions),
             'categories' => $this->categoriesInUse(),
-            'surfaces' => [
-                ExecutionContext::SURFACE_MCP,
-                ExecutionContext::SURFACE_CLI,
-                ExecutionContext::SURFACE_REST,
-            ],
+            'surfaces' => ExecutionContext::PROJECTION_SURFACES,
             'riskTiers' => array_map(static fn(RiskTier $tier): string => $tier->value, RiskTier::cases()),
-            'ajaxUrls' => (string)json_encode($this->ajaxUrls(), JSON_UNESCAPED_SLASHES),
+            'catalog' => array_map(self::presentEntry(...), $catalog),
+            'catalogTotal' => count($catalog),
+            'catalogSources' => $this->catalog->toArray()['sources'],
+            'catalogSurfaces' => self::surfacesOf($catalog),
         ]);
 
         return $moduleTemplate->renderResponse('AbilitiesModule/Index');
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private function ajaxUrls(): array
-    {
-        $routes = [
-            'list' => 'ajax_abilities_list',
-            'describe' => 'ajax_abilities_describe',
-            'run' => 'ajax_abilities_run',
-            'categories' => 'ajax_abilities_categories',
-            'tokens' => 'ajax_abilities_tokens',
-            'tokenCreate' => 'ajax_abilities_token_create',
-            'tokenRevoke' => 'ajax_abilities_token_revoke',
-            'traces' => 'ajax_abilities_traces',
-        ];
-
-        return array_map(
-            fn(string $route): string => (string)$this->uriBuilder->buildUriFromRoute($route),
-            $routes,
-        );
     }
 
     /**
@@ -123,27 +99,49 @@ final class AbilitiesModuleController
      */
     private function present(AbilityDefinition $definition): array
     {
-        $category = $this->categories->has($definition->category)
-            ? $this->categories->get($definition->category)
-            : new AbilityCategory($definition->category, $definition->category);
-
         return [
-            'name' => $definition->name,
-            'title' => $definition->title,
-            'description' => $definition->description,
-            'instructions' => $definition->instructions,
-            'category' => $definition->category,
-            'categoryLabel' => $category->label,
-            'riskTier' => $definition->riskTier->value,
-            'scopes' => $definition->scopes,
-            'sideEffects' => $definition->sideEffects,
-            'readOnly' => $definition->isReadOnly(),
-            'destructive' => $definition->destructive,
-            'idempotent' => $definition->idempotent,
-            'surfaces' => $definition->expose,
-            'mcpToolName' => $definition->mcpToolName(),
-            'restMethod' => $definition->restMethod(),
+            ...$definition->toArray(),
+            'categoryLabel' => $this->categories->has($definition->category)
+                ? $this->categories->get($definition->category)->label
+                : $definition->category,
         ];
+    }
+
+    /**
+     * The catalogue entry for Fluid: plain arrays (toArray() emits {} for
+     * empty structures, which Fluid cannot iterate).
+     *
+     * @return array<string, mixed>
+     */
+    private static function presentEntry(CapabilityEntry $entry): array
+    {
+        return [
+            'id' => $entry->id,
+            'title' => $entry->title,
+            'description' => $entry->description,
+            'source' => $entry->source,
+            'surfaces' => $entry->surfaces,
+            'flags' => array_keys(array_filter($entry->annotations)),
+            'invocations' => $entry->invocations,
+            'hasInputSchema' => $entry->inputSchema !== [],
+        ];
+    }
+
+    /**
+     * @param list<CapabilityEntry> $entries
+     * @return list<string>
+     */
+    private static function surfacesOf(array $entries): array
+    {
+        $surfaces = [];
+        foreach ($entries as $entry) {
+            foreach ($entry->surfaces as $surface) {
+                $surfaces[$surface] = true;
+            }
+        }
+        ksort($surfaces);
+
+        return array_keys($surfaces);
     }
 
     private function translate(string $key): string

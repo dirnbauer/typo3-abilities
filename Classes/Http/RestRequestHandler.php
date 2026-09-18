@@ -6,6 +6,7 @@ namespace Webconsulting\Abilities\Http;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Webconsulting\Abilities\Catalog\CapabilityCatalog;
 use Webconsulting\Abilities\Category\CategoryRegistry;
 use Webconsulting\Abilities\Domain\AbilityCategory;
 use Webconsulting\Abilities\Domain\AbilityDefinition;
@@ -30,28 +31,29 @@ final class RestRequestHandler
         private readonly AbilitiesRegistry $registry,
         private readonly AbilityExecutor $executor,
         private readonly CategoryRegistry $categories,
+        private readonly CapabilityCatalog $catalog,
         private readonly RestResponseFactory $responses,
         private readonly RestInputMapper $inputMapper,
     ) {}
 
-    public function handle(RestRoute $route, ServerRequestInterface $request, RestIdentity $identity): ResponseInterface
+    public function handle(RestRoute $route, ServerRequestInterface $request, ExecutionContext $context): ResponseInterface
     {
-        if ($route->name !== RestRoute::RUN && !in_array($request->getMethod(), ['GET', 'HEAD'], true)) {
+        if ($route->endpoint !== RestEndpoint::Run && !in_array($request->getMethod(), ['GET', 'HEAD'], true)) {
             return $this->responses->error(
                 RestResponseFactory::ERROR_INVALID_METHOD,
-                sprintf('%s does not accept %s.', $route->name, $request->getMethod()),
+                sprintf('%s does not accept %s.', $route->endpoint->name, $request->getMethod()),
                 405,
                 ['Allow' => 'GET'],
             );
         }
 
-        return match ($route->name) {
-            RestRoute::LIST => $this->list($request),
-            RestRoute::DESCRIBE => $this->describe($route),
-            RestRoute::RUN => $this->run($route, $request, $identity),
-            RestRoute::CATEGORIES => $this->categories(),
-            RestRoute::CATEGORY => $this->category($route),
-            default => $this->responses->error(RestResponseFactory::ERROR_NOT_FOUND, 'No such endpoint.', 404),
+        return match ($route->endpoint) {
+            RestEndpoint::Listing => $this->list($request),
+            RestEndpoint::Describe => $this->describe($route),
+            RestEndpoint::Run => $this->run($route, $request, $context),
+            RestEndpoint::Categories => $this->categories(),
+            RestEndpoint::Category => $this->category($route),
+            RestEndpoint::Catalog => $this->catalog($request),
         };
     }
 
@@ -87,16 +89,11 @@ final class RestRequestHandler
         if ($definition === null) {
             return $this->abilityNotFound($route->param('ability'));
         }
-        $ability = $this->registry->get($definition->name);
 
-        return $this->responses->success([
-            ...$definition->toArray(),
-            'inputSchema' => $ability->getInputSchema() ?: new \stdClass(),
-            'outputSchema' => $ability->getOutputSchema() ?: new \stdClass(),
-        ]);
+        return $this->responses->success($this->registry->describe($definition->name));
     }
 
-    private function run(RestRoute $route, ServerRequestInterface $request, RestIdentity $identity): ResponseInterface
+    private function run(RestRoute $route, ServerRequestInterface $request, ExecutionContext $context): ResponseInterface
     {
         $definition = $this->exposedDefinition($route->param('ability'));
         if ($definition === null) {
@@ -126,9 +123,7 @@ final class RestRequestHandler
             return $this->responses->error(AbilityErrorCode::InvalidInput->value, $exception->getMessage(), 400);
         }
 
-        $result = $this->executor->execute($ability, $input, $identity->executionContext(), $definition);
-
-        return $this->responses->fromResult($result);
+        return $this->responses->fromResult($this->executor->execute($ability, $input, $context, $definition));
     }
 
     private function categories(): ResponseInterface
@@ -153,12 +148,20 @@ final class RestRequestHandler
             );
         }
 
-        $abilities = array_keys($this->registry->getDefinitions($slug, ExecutionContext::SURFACE_REST));
-
         return $this->responses->success([
             ...$this->categories->get($slug)->toArray(),
-            'abilities' => $abilities,
+            'abilities' => array_keys($this->registry->getDefinitions($slug, ExecutionContext::SURFACE_REST)),
         ]);
+    }
+
+    private function catalog(ServerRequestInterface $request): ResponseInterface
+    {
+        $query = $request->getQueryParams();
+        $filter = static fn(string $key): ?string => is_string($query[$key] ?? null) && $query[$key] !== '' ? $query[$key] : null;
+
+        return $this->responses->success(
+            $this->catalog->toArray($filter('source'), $filter('surface'), $filter('search') ?? ''),
+        );
     }
 
     private function exposedDefinition(string $name): ?AbilityDefinition

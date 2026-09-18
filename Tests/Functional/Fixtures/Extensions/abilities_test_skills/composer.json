@@ -1,0 +1,11 @@
+{
+    "name": "webconsulting/abilities-test-skills",
+    "type": "typo3-cms-extension",
+    "description": "Test fixture: the skill tables of nr-llm and skillflow, so the catalogue's skill source can be tested without either extension.",
+    "license": "GPL-2.0-or-later",
+    "extra": {
+        "typo3/cms": {
+            "extension-key": "abilities_test_skills"
+        }
+    }
+}

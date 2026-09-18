@@ -35,6 +35,12 @@ return [
         'methods' => ['GET'],
         'inheritAccessFromModule' => 'system_abilities',
     ],
+    'abilities_catalog' => [
+        'path' => '/abilities/catalog',
+        'target' => AbilitiesAjaxController::class . '::catalog',
+        'methods' => ['GET'],
+        'inheritAccessFromModule' => 'system_abilities',
+    ],
     'abilities_tokens' => [
         'path' => '/abilities/tokens',
         'target' => AbilitiesAjaxController::class . '::tokens',

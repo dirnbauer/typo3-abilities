@@ -9,10 +9,13 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Http\Stream;
+use Webconsulting\Abilities\Catalog\CapabilityCatalog;
+use Webconsulting\Abilities\Catalog\Source\AbilitiesSource;
 use Webconsulting\Abilities\Category\CategoryRegistry;
 use Webconsulting\Abilities\Domain\AbilityCategory;
+use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Execution\AbilityExecutor;
-use Webconsulting\Abilities\Http\RestIdentity;
+use Webconsulting\Abilities\Http\RestConfiguration;
 use Webconsulting\Abilities\Http\RestInputMapper;
 use Webconsulting\Abilities\Http\RestRequestHandler;
 use Webconsulting\Abilities\Http\RestResponseFactory;
@@ -49,15 +52,17 @@ final class RestRequestHandlerTest extends TestCase
 
         $categories = new CategoryRegistry();
         $categories->register(new AbilityCategory('testing', 'Testing'));
+        $registry = new AbilitiesRegistry([
+            new EchoAbility(),
+            new HiddenAbility(),
+            new WriteAbility(),
+            new CallbackAbility(static fn(): mixed => 'destroyed'),
+        ]);
         $this->handler = new RestRequestHandler(
-            new AbilitiesRegistry([
-                new EchoAbility(),
-                new HiddenAbility(),
-                new WriteAbility(),
-                new CallbackAbility(static fn(): mixed => 'destroyed'),
-            ]),
+            $registry,
             new AbilityExecutor(new SchemaValidator(), new PolicyProvider($this->policyFile)),
             $categories,
+            new CapabilityCatalog([new AbilitiesSource($registry, new RestConfiguration())]),
             new RestResponseFactory(),
             new RestInputMapper(),
         );
@@ -86,7 +91,7 @@ final class RestRequestHandlerTest extends TestCase
         $route = $this->router->match((string)parse_url($uri, PHP_URL_PATH), '/abilities/v1');
         self::assertInstanceOf(RestRoute::class, $route, 'route must match: ' . $uri);
 
-        return $this->handler->handle($route, $request, new RestIdentity(3, 'api', $scopes, RestIdentity::VIA_TOKEN, 1));
+        return $this->handler->handle($route, $request, ExecutionContext::rest($scopes, 3));
     }
 
     #[Test]
@@ -190,6 +195,27 @@ final class RestRequestHandlerTest extends TestCase
     }
 
     #[Test]
+    public function catalogEndpointListsEverySourceAndFilters(): void
+    {
+        $all = $this->call('GET', 'http://localhost/abilities/v1/catalog');
+        self::assertSame(200, $all->getStatusCode());
+        $data = self::asArray(self::decodeJson((string)$all->getBody())['data']);
+        self::assertSame(4, $data['total'], 'the hidden ability is catalogued too — the catalogue is the whole registry');
+        self::assertSame(['abilities' => 4], $data['sources']);
+        $first = self::asArray(self::asArray($data['entries'])[0]);
+        self::assertSame('test/callback', $first['id']);
+        self::assertSame('abilities', $first['source']);
+        self::assertSame(['readonly' => false, 'destructive' => true, 'idempotent' => false], $first['annotations']);
+        self::assertSame('DELETE /abilities/v1/abilities/test/callback/run', self::asArray($first['invocations'])['rest']);
+
+        $filtered = $this->call('GET', 'http://localhost/abilities/v1/catalog?surface=mcp&search=echo');
+        $entries = self::asArray(self::asArray(self::decodeJson((string)$filtered->getBody())['data'])['entries']);
+        self::assertSame(['test/echo'], array_map(static fn(mixed $entry): mixed => self::asArray($entry)['id'], $entries));
+
+        self::assertSame(405, $this->call('POST', 'http://localhost/abilities/v1/catalog', '{}')->getStatusCode());
+    }
+
+    #[Test]
     public function categoriesEndpoints(): void
     {
         $all = $this->call('GET', 'http://localhost/abilities/v1/categories');
@@ -206,6 +232,6 @@ final class RestRequestHandlerTest extends TestCase
 
         $missing = $this->call('GET', 'http://localhost/abilities/v1/categories/nope');
         self::assertSame(404, $missing->getStatusCode());
-        self::assertSame('rest_category_not_found', self::decodeJson((string)$missing->getBody())['code']);
+        self::assertSame('rest_ability_category_not_found', self::decodeJson((string)$missing->getBody())['code']);
     }
 }

@@ -41,6 +41,22 @@
     white-space: nowrap;
 }
 
+.abilities-module .abilities-description {
+    max-width: 48rem;
+}
+
+.abilities-module .abilities-invocation + .abilities-invocation {
+    margin-top: 0.25rem;
+}
+
+.abilities-module .abilities-invocation code {
+    word-break: break-all;
+}
+
+.abilities-module .abilities-filters .abilities-filter-status {
+    margin-top: 0;
+}
+
 .abilities-module .col-control {
     width: 1%;
     white-space: nowrap;

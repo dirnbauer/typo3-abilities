@@ -11,11 +11,12 @@ import {
 } from "@webconsulting/abilities/client.js";
 
 /**
- * Backend module of the abilities registry: four tabs over the same governed
+ * Backend module of the abilities registry: five tabs over the same governed
  * pipeline every other surface uses. Registry browses and filters what is
- * registered, Run generates a form from the ability's inputSchema, Traces
- * shows what actually ran, Tokens manages the REST bearer tokens of the
- * acting backend user.
+ * registered, Catalogue shows everything the installation can do from every
+ * source, Run generates a form from the ability's inputSchema, Traces shows
+ * what actually ran, Tokens manages the REST bearer tokens of the acting
+ * backend user.
  *
  * Nothing here talks to the database or the executor directly — every call
  * goes through the session-guarded backend AJAX routes (see client.js), so
@@ -26,6 +27,7 @@ import {
 const root = document.querySelector(".abilities-module");
 
 if (root) {
+  initFilterGroups();
   initRegistryTab();
   initRunTab();
   initTracesTab();
@@ -66,41 +68,64 @@ function emptyRow(table, message, columns) {
   table.tBodies[0].replaceChildren(row);
 }
 
+/* ─────────────────────────── Filterable tables ─────────────────────────── */
+
+/**
+ * One filter group drives one table: the group's data-filter-rows selects
+ * the rows, every control with data-filter="<key>" matches against the
+ * row's data-<key>. The "haystack" key is a substring search, every other
+ * key an exact match — "surfaces" against a space-separated list.
+ * Used by the Registry and the Catalogue tab.
+ */
+function initFilterGroups() {
+  for (const group of document.querySelectorAll("[data-filter-rows]")) {
+    const rows = Array.from(document.querySelectorAll(group.dataset.filterRows));
+    const controls = Array.from(group.querySelectorAll("[data-filter]"));
+    const status = group.querySelector("[data-filter-status]");
+    if (rows.length === 0 || controls.length === 0) {
+      continue;
+    }
+
+    const matches = (row, control) => {
+      const key = control.dataset.filter;
+      const value = control.value.trim();
+      if (value === "") {
+        return true;
+      }
+      const candidate = row.dataset[key] ?? "";
+      if (key === "haystack") {
+        return candidate.toLowerCase().includes(value.toLowerCase());
+      }
+      if (key === "surfaces") {
+        return candidate.split(" ").includes(value);
+      }
+      return candidate === value;
+    };
+
+    const apply = () => {
+      let visible = 0;
+      for (const row of rows) {
+        const shown = controls.every((control) => matches(row, control));
+        row.hidden = !shown;
+        if (shown) {
+          visible++;
+        }
+      }
+      if (status) {
+        status.textContent = `${visible} of ${rows.length} shown`;
+      }
+    };
+
+    for (const control of controls) {
+      control.addEventListener("input", apply);
+    }
+    apply();
+  }
+}
+
 /* ─────────────────────────── Registry tab ─────────────────────────── */
 
 function initRegistryTab() {
-  const rows = Array.from(document.querySelectorAll(".abilities-row"));
-  if (rows.length === 0) {
-    return;
-  }
-  const search = document.getElementById("abilities-filter-search");
-  const category = document.getElementById("abilities-filter-category");
-  const surface = document.getElementById("abilities-filter-surface");
-  const risk = document.getElementById("abilities-filter-risk");
-  const status = document.querySelector(".abilities-filter-status");
-
-  const apply = () => {
-    const term = search.value.trim().toLowerCase();
-    let visible = 0;
-    for (const row of rows) {
-      const matches =
-        (term === "" || row.dataset.haystack.toLowerCase().includes(term)) &&
-        (category.value === "" || row.dataset.category === category.value) &&
-        (risk.value === "" || row.dataset.risk === risk.value) &&
-        (surface.value === "" || row.dataset.surfaces.split(" ").includes(surface.value));
-      row.hidden = !matches;
-      if (matches) {
-        visible++;
-      }
-    }
-    status.textContent = `${visible} of ${rows.length} abilities shown`;
-  };
-
-  for (const control of [search, category, surface, risk]) {
-    control.addEventListener("input", apply);
-  }
-  apply();
-
   for (const button of document.querySelectorAll(".abilities-open-run")) {
     button.addEventListener("click", () => {
       const select = document.getElementById("abilities-run-select");
