@@ -24,6 +24,6 @@ enum RestEndpoint
     /** GET {base}/categories/{slug} */
     case Category;
 
-    /** GET {base}/catalog — the capability catalogue of the whole installation */
+    /** GET {base}/catalog — the ability catalogue of the whole installation */
     case Catalog;
 }

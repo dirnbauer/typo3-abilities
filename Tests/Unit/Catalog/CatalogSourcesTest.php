@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
-use Webconsulting\Abilities\Catalog\CapabilityEntry;
+use Webconsulting\Abilities\Catalog\CatalogEntry;
 use Webconsulting\Abilities\Catalog\Source\AbilitiesSource;
 use Webconsulting\Abilities\Catalog\Source\CliCommandSource;
 use Webconsulting\Abilities\Catalog\Source\McpToolSource;
@@ -29,21 +29,21 @@ use Webconsulting\Abilities\Validation\SchemaValidator;
 /**
  * The pure mapping of each catalogue source: a registry entry, an MCP tool
  * schema, a console InputDefinition, a skill row and an sg-apicore endpoint
- * become CapabilityEntry objects. The container-backed collection is
+ * become CatalogEntry objects. The container-backed collection is
  * covered by the functional RegistryContainerTest.
  */
-final class CapabilitySourcesTest extends TestCase
+final class CatalogSourcesTest extends TestCase
 {
     #[Test]
     public function abilitiesSourceDerivesOneInvocationPerExposedSurface(): void
     {
         $registry = new AbilitiesRegistry([new EchoAbility(), new HiddenAbility(), new CallbackAbility(static fn(): mixed => null)]);
-        $entries = [...(new AbilitiesSource($registry, new RestConfiguration(basePath: '/api/abilities')))->getCapabilities()];
+        $entries = [...(new AbilitiesSource($registry, new RestConfiguration(basePath: '/api/abilities')))->getEntries()];
 
-        self::assertSame(['test/callback', 'test/echo', 'test/hidden'], array_map(static fn(CapabilityEntry $e): string => $e->id, $entries));
+        self::assertSame(['test/callback', 'test/echo', 'test/hidden'], array_map(static fn(CatalogEntry $e): string => $e->id, $entries));
 
         $echo = $entries[1];
-        self::assertSame(CapabilityEntry::SOURCE_ABILITIES, $echo->source);
+        self::assertSame(CatalogEntry::SOURCE_ABILITIES, $echo->source);
         self::assertSame(['cli', 'mcp', 'rest', 'webhook', 'php', 'frontend'], $echo->surfaces);
         self::assertSame("vendor/bin/typo3 abilities:run test/echo --input '{\"message\":\"…\"}'", $echo->invocations['cli']);
         self::assertSame('ability_test_echo', $echo->invocations['mcp']);
@@ -79,7 +79,7 @@ final class CapabilitySourcesTest extends TestCase
         $entry = CliCommandSource::entry('abilities:run', 'Run an ability', true, $definition);
 
         self::assertSame('cli/abilities:run', $entry->id);
-        self::assertSame(CapabilityEntry::SOURCE_CLI, $entry->source);
+        self::assertSame(CatalogEntry::SOURCE_CLI, $entry->source);
         self::assertSame(['cli', 'scheduler'], $entry->surfaces);
         self::assertSame('vendor/bin/typo3 abilities:run', $entry->invocations['cli']);
         self::assertStringContainsString('Execute console command', $entry->invocations['scheduler']);
@@ -110,7 +110,7 @@ final class CapabilitySourcesTest extends TestCase
 
         self::assertSame('mcp/GetPage', $entry->id);
         self::assertSame('Get page', $entry->title);
-        self::assertSame(CapabilityEntry::SOURCE_MCP, $entry->source);
+        self::assertSame(CatalogEntry::SOURCE_MCP, $entry->source);
         self::assertSame(['mcp'], $entry->surfaces);
         self::assertSame(['mcp' => 'GetPage'], $entry->invocations);
         self::assertSame(['readonly' => true, 'destructive' => false, 'idempotent' => true], $entry->annotations);
@@ -123,8 +123,8 @@ final class CapabilitySourcesTest extends TestCase
 
         $registry = new AbilitiesRegistry([new EchoAbility()]);
         $projection = new McpProjection($registry, new AbilityExecutor(new SchemaValidator(), new PolicyProvider('/nonexistent/policy.yaml')));
-        self::assertSame([], [...(new McpToolSource($projection))->getCapabilities()], 'hn/typo3-mcp-server is not installed here');
-        self::assertSame(CapabilityEntry::SOURCE_MCP, (new McpToolSource($projection))->getSource());
+        self::assertSame([], [...(new McpToolSource($projection))->getEntries()], 'hn/typo3-mcp-server is not installed here');
+        self::assertSame(CatalogEntry::SOURCE_MCP, (new McpToolSource($projection))->getSource());
     }
 
     #[Test]
@@ -140,7 +140,7 @@ final class CapabilitySourcesTest extends TestCase
         self::assertNotNull($nrLlm);
         self::assertSame('skill/publish-editorial-drafts', $nrLlm->id);
         self::assertSame('Reviews drafts with a human.', $nrLlm->description, 'front matter wins over the column');
-        self::assertSame(CapabilityEntry::SOURCE_SKILLS, $nrLlm->source);
+        self::assertSame(CatalogEntry::SOURCE_SKILLS, $nrLlm->source);
         self::assertSame(['skills'], $nrLlm->surfaces);
         self::assertStringContainsString('workspace/publish, content/search', $nrLlm->invocations['skills']);
         self::assertSame(

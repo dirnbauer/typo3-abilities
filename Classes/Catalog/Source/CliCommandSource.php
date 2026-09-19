@@ -6,15 +6,15 @@ namespace Webconsulting\Abilities\Catalog\Source;
 
 use Symfony\Component\Console\Input\InputDefinition;
 use TYPO3\CMS\Core\Console\CommandRegistry;
-use Webconsulting\Abilities\Catalog\CapabilityEntry;
-use Webconsulting\Abilities\Catalog\CapabilitySourceInterface;
+use Webconsulting\Abilities\Catalog\CatalogEntry;
+use Webconsulting\Abilities\Catalog\CatalogSourceInterface;
 
 /**
  * Every non-hidden console command of the installation, with a JSON Schema
  * derived from its InputDefinition (arguments and options) and, for
  * schedulable commands, the scheduler surface.
  */
-final class CliCommandSource implements CapabilitySourceInterface
+final class CliCommandSource implements CatalogSourceInterface
 {
     public const SURFACE_SCHEDULER = 'scheduler';
 
@@ -24,10 +24,10 @@ final class CliCommandSource implements CapabilitySourceInterface
 
     public function getSource(): string
     {
-        return CapabilityEntry::SOURCE_CLI;
+        return CatalogEntry::SOURCE_CLI;
     }
 
-    public function getCapabilities(): iterable
+    public function getEntries(): iterable
     {
         foreach ($this->commandRegistry->filter() as $name => $configuration) {
             $name = (string)$name;
@@ -47,21 +47,21 @@ final class CliCommandSource implements CapabilitySourceInterface
         }
     }
 
-    public static function entry(string $name, string $description, bool $schedulable, ?InputDefinition $definition): CapabilityEntry
+    public static function entry(string $name, string $description, bool $schedulable, ?InputDefinition $definition): CatalogEntry
     {
-        $invocations = [CapabilityEntry::SOURCE_CLI => 'vendor/bin/typo3 ' . $name];
+        $invocations = [CatalogEntry::SOURCE_CLI => 'vendor/bin/typo3 ' . $name];
         if ($schedulable) {
             $invocations[self::SURFACE_SCHEDULER] = sprintf('Scheduler task "Execute console command" → %s', $name);
         }
 
-        return new CapabilityEntry(
+        return new CatalogEntry(
             id: 'cli/' . $name,
             title: $name,
             description: $description,
-            source: CapabilityEntry::SOURCE_CLI,
+            source: CatalogEntry::SOURCE_CLI,
             surfaces: array_keys($invocations),
             inputSchema: $definition === null ? [] : self::schema($definition),
-            annotations: CapabilityEntry::annotations(),
+            annotations: CatalogEntry::annotations(),
             invocations: $invocations,
             meta: ['schedulable' => $schedulable],
         );

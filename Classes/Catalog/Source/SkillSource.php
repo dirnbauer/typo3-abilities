@@ -6,8 +6,8 @@ namespace Webconsulting\Abilities\Catalog\Source;
 
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
-use Webconsulting\Abilities\Catalog\CapabilityEntry;
-use Webconsulting\Abilities\Catalog\CapabilitySourceInterface;
+use Webconsulting\Abilities\Catalog\CatalogEntry;
+use Webconsulting\Abilities\Catalog\CatalogSourceInterface;
 
 /**
  * Agent skills (SKILL.md records) stored by netresearch/nr-llm
@@ -16,7 +16,7 @@ use Webconsulting\Abilities\Catalog\CapabilitySourceInterface;
  * skill is allowed to use. Both extensions are optional — a table that does
  * not exist yields nothing.
  */
-final class SkillSource implements CapabilitySourceInterface
+final class SkillSource implements CatalogSourceInterface
 {
     public const SURFACE_SKILLS = 'skills';
 
@@ -36,10 +36,10 @@ final class SkillSource implements CapabilitySourceInterface
 
     public function getSource(): string
     {
-        return CapabilityEntry::SOURCE_SKILLS;
+        return CatalogEntry::SOURCE_SKILLS;
     }
 
-    public function getCapabilities(): iterable
+    public function getEntries(): iterable
     {
         foreach (self::TABLES as $table => [$identifierColumn, $titleColumn, $frontMatterColumn, $conditions]) {
             $connection = $this->connectionPool->getConnectionForTable($table);
@@ -69,7 +69,7 @@ final class SkillSource implements CapabilitySourceInterface
     /**
      * @param array<string, mixed> $row
      */
-    public static function entry(string $table, array $row): ?CapabilityEntry
+    public static function entry(string $table, array $row): ?CatalogEntry
     {
         [$identifierColumn, $titleColumn, $frontMatterColumn] = self::TABLES[$table] ?? ['identifier', 'title', 'metadata'];
         $identifier = is_string($row[$identifierColumn] ?? null) ? trim($row[$identifierColumn]) : '';
@@ -88,14 +88,14 @@ final class SkillSource implements CapabilitySourceInterface
             $invocation .= sprintf('; it uses the abilities %s', implode(', ', $abilities));
         }
 
-        return new CapabilityEntry(
+        return new CatalogEntry(
             id: 'skill/' . $identifier,
             title: is_string($row[$titleColumn] ?? null) && $row[$titleColumn] !== '' ? $row[$titleColumn] : $identifier,
             description: $description,
-            source: CapabilityEntry::SOURCE_SKILLS,
+            source: CatalogEntry::SOURCE_SKILLS,
             surfaces: [self::SURFACE_SKILLS],
             inputSchema: [],
-            annotations: CapabilityEntry::annotations(),
+            annotations: CatalogEntry::annotations(),
             invocations: [self::SURFACE_SKILLS => $invocation],
             meta: array_filter([
                 'table' => $table,

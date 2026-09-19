@@ -13,8 +13,8 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Reactions\Model\ReactionInstruction;
 use TYPO3\CMS\Reactions\ReactionRegistry;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
-use Webconsulting\Abilities\Catalog\CapabilityCatalog;
-use Webconsulting\Abilities\Catalog\CapabilityEntry;
+use Webconsulting\Abilities\Catalog\AbilityCatalog;
+use Webconsulting\Abilities\Catalog\CatalogEntry;
 use Webconsulting\Abilities\Reaction\RunAbilityReaction;
 use Webconsulting\Abilities\Tests\Support\TypeNarrowing;
 
@@ -83,10 +83,10 @@ final class RunAbilityReactionTest extends FunctionalTestCase
         $types = array_column($GLOBALS['TCA']['sys_reaction']['columns']['reaction_type']['config']['items'], 'value');
         self::assertContains(RunAbilityReaction::TYPE, $types);
 
-        $catalog = $this->get(CapabilityCatalog::class);
-        self::assertInstanceOf(CapabilityCatalog::class, $catalog);
-        $webhooks = $catalog->entries(CapabilityEntry::SOURCE_REST, 'webhook');
-        self::assertSame(['webhook/search-hook'], array_map(static fn(CapabilityEntry $entry): string => $entry->id, $webhooks), 'the disabled reaction is not catalogued');
+        $catalog = $this->get(AbilityCatalog::class);
+        self::assertInstanceOf(AbilityCatalog::class, $catalog);
+        $webhooks = $catalog->entries(CatalogEntry::SOURCE_REST, 'webhook');
+        self::assertSame(['webhook/search-hook'], array_map(static fn(CatalogEntry $entry): string => $entry->id, $webhooks), 'the disabled reaction is not catalogued');
         $hook = $webhooks[0];
         self::assertSame('Search webhook', $hook->title);
         self::assertStringContainsString('POST /typo3/reaction/search-hook', $hook->invocations['webhook']);

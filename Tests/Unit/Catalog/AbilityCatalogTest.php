@@ -6,40 +6,40 @@ namespace Webconsulting\Abilities\Tests\Unit\Catalog;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Webconsulting\Abilities\Catalog\CapabilityCatalog;
-use Webconsulting\Abilities\Catalog\CapabilityEntry;
-use Webconsulting\Abilities\Tests\Fixtures\StaticCapabilitySource;
+use Webconsulting\Abilities\Catalog\AbilityCatalog;
+use Webconsulting\Abilities\Catalog\CatalogEntry;
+use Webconsulting\Abilities\Tests\Fixtures\StaticCatalogSource;
 
-final class CapabilityCatalogTest extends TestCase
+final class AbilityCatalogTest extends TestCase
 {
     /**
      * @param list<string> $surfaces
      */
-    private function entry(string $id, string $source, array $surfaces = ['cli'], string $description = ''): CapabilityEntry
+    private function entry(string $id, string $source, array $surfaces = ['cli'], string $description = ''): CatalogEntry
     {
-        return new CapabilityEntry(
+        return new CatalogEntry(
             id: $id,
             title: strtoupper($id),
             description: $description,
             source: $source,
             surfaces: $surfaces,
             inputSchema: [],
-            annotations: CapabilityEntry::annotations(),
+            annotations: CatalogEntry::annotations(),
             invocations: array_fill_keys($surfaces, 'run ' . $id),
         );
     }
 
-    private function catalog(): CapabilityCatalog
+    private function catalog(): AbilityCatalog
     {
-        return new CapabilityCatalog([
-            new StaticCapabilitySource('cli', [
+        return new AbilityCatalog([
+            new StaticCatalogSource('cli', [
                 $this->entry('cli/cache:flush', 'cli', ['cli', 'scheduler'], 'Flushes caches.'),
                 $this->entry('cli/abilities:run', 'cli'),
             ]),
-            new StaticCapabilitySource('abilities', [
+            new StaticCatalogSource('abilities', [
                 $this->entry('content/search', 'abilities', ['mcp', 'rest', 'cli'], 'Searches pages.'),
             ]),
-            new StaticCapabilitySource('mcp', []),
+            new StaticCatalogSource('mcp', []),
         ]);
     }
 
@@ -51,7 +51,7 @@ final class CapabilityCatalogTest extends TestCase
         self::assertSame(['abilities', 'cli', 'mcp'], $catalog->sources());
         self::assertSame(
             ['cli/abilities:run', 'cli/cache:flush', 'content/search'],
-            array_map(static fn(CapabilityEntry $entry): string => $entry->id, $catalog->entries()),
+            array_map(static fn(CatalogEntry $entry): string => $entry->id, $catalog->entries()),
         );
 
         $array = $catalog->toArray();
@@ -66,9 +66,9 @@ final class CapabilityCatalogTest extends TestCase
     {
         $catalog = $this->catalog();
 
-        self::assertSame(['cli/abilities:run', 'cli/cache:flush'], array_map(static fn(CapabilityEntry $e): string => $e->id, $catalog->entries('cli')));
-        self::assertSame(['cli/cache:flush'], array_map(static fn(CapabilityEntry $e): string => $e->id, $catalog->entries(null, 'scheduler')));
-        self::assertSame(['content/search'], array_map(static fn(CapabilityEntry $e): string => $e->id, $catalog->entries(null, null, 'PAGES')), 'search is case-insensitive over id, title and description');
+        self::assertSame(['cli/abilities:run', 'cli/cache:flush'], array_map(static fn(CatalogEntry $e): string => $e->id, $catalog->entries('cli')));
+        self::assertSame(['cli/cache:flush'], array_map(static fn(CatalogEntry $e): string => $e->id, $catalog->entries(null, 'scheduler')));
+        self::assertSame(['content/search'], array_map(static fn(CatalogEntry $e): string => $e->id, $catalog->entries(null, null, 'PAGES')), 'search is case-insensitive over id, title and description');
         self::assertSame([], $catalog->entries('mcp'));
         self::assertSame(['cli' => 1], array_filter($catalog->toArray('cli', 'scheduler')['sources']));
     }
@@ -76,9 +76,9 @@ final class CapabilityCatalogTest extends TestCase
     #[Test]
     public function laterSourcesWinOnDuplicateIds(): void
     {
-        $catalog = new CapabilityCatalog([
-            new StaticCapabilitySource('a', [$this->entry('x/y', 'a')]),
-            new StaticCapabilitySource('b', [$this->entry('x/y', 'b')]),
+        $catalog = new AbilityCatalog([
+            new StaticCatalogSource('a', [$this->entry('x/y', 'a')]),
+            new StaticCatalogSource('b', [$this->entry('x/y', 'b')]),
         ]);
 
         self::assertCount(1, $catalog->entries());
@@ -88,14 +88,14 @@ final class CapabilityCatalogTest extends TestCase
     #[Test]
     public function entryToArrayIsTheDocumentedShape(): void
     {
-        $entry = new CapabilityEntry(
+        $entry = new CatalogEntry(
             id: 'mcp/GetPage',
             title: 'Get page',
             description: 'Reads a page.',
-            source: CapabilityEntry::SOURCE_MCP,
+            source: CatalogEntry::SOURCE_MCP,
             surfaces: ['mcp'],
             inputSchema: ['type' => 'object'],
-            annotations: CapabilityEntry::annotations(readonly: true, idempotent: true),
+            annotations: CatalogEntry::annotations(readonly: true, idempotent: true),
             invocations: ['mcp' => 'GetPage'],
             meta: ['openWorld' => false],
         );

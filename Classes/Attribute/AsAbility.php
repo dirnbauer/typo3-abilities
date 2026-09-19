@@ -32,7 +32,7 @@ final class AsAbility
      * @param string $category Category slug, e.g. "content", "system", "site" (see CategoryRegistry)
      * @param list<string> $scopes Required token scopes, "resource:operation" convention (e.g. "news:write")
      * @param RiskTier $riskTier Governance risk tier; policies can cap the maximum allowed tier
-     * @param list<string> $sideEffects Capability-manifest subsystem vocabulary (e.g. "database:write", "network:outbound"); empty = read-only
+     * @param list<string> $sideEffects Subsystems touched, in the vocabulary of the MCP capability manifest (e.g. "database:write", "network:outbound"); empty = read-only
      * @param bool $idempotent Safe to execute repeatedly with the same input
      * @param bool $destructive Deletes or irreversibly alters data
      * @param list<string> $expose Projection surfaces this ability may appear on ("mcp", "cli", "rest")

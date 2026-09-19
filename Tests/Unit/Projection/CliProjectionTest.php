@@ -7,7 +7,7 @@ namespace Webconsulting\Abilities\Tests\Unit\Projection;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
-use Webconsulting\Abilities\Catalog\CapabilityCatalog;
+use Webconsulting\Abilities\Catalog\AbilityCatalog;
 use Webconsulting\Abilities\Catalog\Source\AbilitiesSource;
 use Webconsulting\Abilities\Execution\AbilityExecutor;
 use Webconsulting\Abilities\Http\RestConfiguration;
@@ -33,7 +33,7 @@ final class CliProjectionTest extends TestCase
 
     private AbilityExecutor $executor;
 
-    private CapabilityCatalog $catalog;
+    private AbilityCatalog $catalog;
 
     protected function setUp(): void
     {
@@ -42,7 +42,7 @@ final class CliProjectionTest extends TestCase
             new SchemaValidator(),
             new PolicyProvider('/nonexistent/policy.yaml'),
         );
-        $this->catalog = new CapabilityCatalog([new AbilitiesSource($this->registry, new RestConfiguration())]);
+        $this->catalog = new AbilityCatalog([new AbilitiesSource($this->registry, new RestConfiguration())]);
     }
 
     #[Test]
@@ -77,7 +77,7 @@ final class CliProjectionTest extends TestCase
         $tester = new CommandTester(new CatalogCommand($this->catalog));
 
         self::assertSame(0, $tester->execute([]));
-        self::assertStringContainsString('1 capabilities (abilities: 1)', $tester->getDisplay());
+        self::assertStringContainsString('1 catalogue entries (abilities: 1)', $tester->getDisplay());
         self::assertStringContainsString("abilities:run test/echo --input '{\"message\":\"…\"}'", $tester->getDisplay());
 
         self::assertSame(0, $tester->execute(['--format' => 'json', '--search' => 'echo']));
@@ -89,7 +89,7 @@ final class CliProjectionTest extends TestCase
         self::assertSame('object', self::asArray($entry['inputSchema'])['type']);
 
         self::assertSame(0, $tester->execute(['--source' => 'mcp']));
-        self::assertStringContainsString('No capabilities match', $tester->getDisplay());
+        self::assertStringContainsString('No catalogue entries match', $tester->getDisplay());
         self::assertSame(2, $tester->execute(['--format' => 'xml']));
     }
 

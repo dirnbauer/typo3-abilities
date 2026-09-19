@@ -10,22 +10,22 @@ use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Webconsulting\Abilities\Catalog\CapabilityCatalog;
-use Webconsulting\Abilities\Catalog\CapabilityEntry;
+use Webconsulting\Abilities\Catalog\AbilityCatalog;
+use Webconsulting\Abilities\Catalog\CatalogEntry;
 
 /**
- * CLI projection of the capability catalogue: everything the installation
+ * CLI projection of the ability catalogue: everything the installation
  * can do, from every source, as a table or as JSON that can be handed to an
  * LLM as tool context.
  */
 #[AsCommand(
     name: 'abilities:catalog',
-    description: 'List every capability of this installation (abilities, MCP tools, skills, REST/webhook endpoints, console commands)',
+    description: 'List every ability of this installation (abilities, MCP tools, skills, REST/webhook endpoints, console commands)',
 )]
 final class CatalogCommand extends Command
 {
     public function __construct(
-        private readonly CapabilityCatalog $catalog,
+        private readonly AbilityCatalog $catalog,
     ) {
         parent::__construct();
     }
@@ -68,7 +68,7 @@ final class CatalogCommand extends Command
         self::renderTable($output, $entries);
         $counts = $this->catalog->toArray($source, $surface, $search)['sources'];
         $output->writeln(sprintf(
-            '%d capabilities (%s). Use --format=json for the machine-readable catalogue, abilities:describe <ability> for a full ability contract.',
+            '%d catalogue entries (%s). Use --format=json for the machine-readable catalogue, abilities:describe <ability> for a full ability contract.',
             count($entries),
             implode(', ', array_map(static fn(string $slug, int $count): string => $slug . ': ' . $count, array_keys($counts), $counts)),
         ));
@@ -77,12 +77,12 @@ final class CatalogCommand extends Command
     }
 
     /**
-     * @param list<CapabilityEntry> $entries
+     * @param list<CatalogEntry> $entries
      */
     public static function renderTable(OutputInterface $output, array $entries): void
     {
         if ($entries === []) {
-            $output->writeln('No capabilities match.');
+            $output->writeln('No catalogue entries match.');
 
             return;
         }

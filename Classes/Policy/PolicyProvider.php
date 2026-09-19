@@ -8,7 +8,7 @@ use TYPO3\CMS\Core\Core\Environment;
 
 /**
  * Loads the site-wide abilities policy from config/abilities-policy.yaml
- * (project root, next to capability-policy.yaml). No file means allow-all —
+ * (project root). No file means allow-all —
  * the policy layer is opt-in; scope and permission checks always run.
  */
 final class PolicyProvider

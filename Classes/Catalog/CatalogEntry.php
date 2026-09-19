@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Webconsulting\Abilities\Catalog;
 
 /**
- * One entry of the capability catalogue: something this installation can do,
- * described uniformly whatever its origin — an ability, an MCP tool, an agent
- * skill, a REST or webhook endpoint, a console command. The catalogue is what
- * an AI agent reads first: every entry says what it is, how risky it is and
- * how to invoke it from each surface.
+ * One entry of the ability catalogue: one unit of functionality this
+ * installation can perform, described uniformly whatever its origin — a
+ * registered ability, an MCP tool, an agent skill, a REST or webhook endpoint,
+ * a console command. The catalogue is what an AI agent reads first: every
+ * entry says what it is, how risky it is and how to invoke it from each
+ * surface.
  */
-final readonly class CapabilityEntry
+final readonly class CatalogEntry
 {
     public const SOURCE_ABILITIES = 'abilities';
     public const SOURCE_MCP = 'mcp';

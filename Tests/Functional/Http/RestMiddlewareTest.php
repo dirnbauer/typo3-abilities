@@ -222,7 +222,7 @@ final class RestMiddlewareTest extends FunctionalTestCase
     }
 
     #[Test]
-    public function servesTheCapabilityCatalogue(): void
+    public function servesTheAbilityCatalogue(): void
     {
         $response = $this->api('GET', '/abilities/v1/catalog?source=cli&search=abilities:catalog');
 

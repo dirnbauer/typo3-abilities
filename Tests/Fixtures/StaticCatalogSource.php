@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Webconsulting\Abilities\Tests\Fixtures;
 
-use Webconsulting\Abilities\Catalog\CapabilityEntry;
-use Webconsulting\Abilities\Catalog\CapabilitySourceInterface;
+use Webconsulting\Abilities\Catalog\CatalogEntry;
+use Webconsulting\Abilities\Catalog\CatalogSourceInterface;
 
 /** A catalogue source with a fixed list of entries. */
-final class StaticCapabilitySource implements CapabilitySourceInterface
+final class StaticCatalogSource implements CatalogSourceInterface
 {
     /**
-     * @param list<CapabilityEntry> $entries
+     * @param list<CatalogEntry> $entries
      */
     public function __construct(
         private readonly string $source,
@@ -23,7 +23,7 @@ final class StaticCapabilitySource implements CapabilitySourceInterface
         return $this->source;
     }
 
-    public function getCapabilities(): iterable
+    public function getEntries(): iterable
     {
         return $this->entries;
     }

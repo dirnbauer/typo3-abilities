@@ -9,8 +9,8 @@ use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Backend\Template\ModuleTemplateFactory;
 use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Page\PageRenderer;
-use Webconsulting\Abilities\Catalog\CapabilityCatalog;
-use Webconsulting\Abilities\Catalog\CapabilityEntry;
+use Webconsulting\Abilities\Catalog\AbilityCatalog;
+use Webconsulting\Abilities\Catalog\CatalogEntry;
 use Webconsulting\Abilities\Category\CategoryRegistry;
 use Webconsulting\Abilities\Domain\AbilityDefinition;
 use Webconsulting\Abilities\Domain\ExecutionContext;
@@ -18,7 +18,7 @@ use Webconsulting\Abilities\Domain\RiskTier;
 use Webconsulting\Abilities\Registry\AbilitiesRegistry;
 
 /**
- * Backend module: the abilities registry and the capability catalogue,
+ * Backend module: the abilities registry and the ability catalogue,
  * rendered natively in the TYPO3 backend. No separate login, no API token:
  * the module lists server-side and runs abilities through the same governed
  * executor via backend AJAX routes (see AbilitiesAjaxController).
@@ -37,7 +37,7 @@ final class AbilitiesModuleController
         private readonly PageRenderer $pageRenderer,
         private readonly AbilitiesRegistry $registry,
         private readonly CategoryRegistry $categories,
-        private readonly CapabilityCatalog $catalog,
+        private readonly AbilityCatalog $catalog,
     ) {}
 
     public function handleRequest(ServerRequestInterface $request): ResponseInterface
@@ -113,7 +113,7 @@ final class AbilitiesModuleController
      *
      * @return array<string, mixed>
      */
-    private static function presentEntry(CapabilityEntry $entry): array
+    private static function presentEntry(CatalogEntry $entry): array
     {
         return [
             'id' => $entry->id,
@@ -128,7 +128,7 @@ final class AbilitiesModuleController
     }
 
     /**
-     * @param list<CapabilityEntry> $entries
+     * @param list<CatalogEntry> $entries
      * @return list<string>
      */
     private static function surfacesOf(array $entries): array

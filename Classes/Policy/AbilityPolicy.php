@@ -11,7 +11,7 @@ use Webconsulting\Abilities\Domain\RiskTier;
 
 /**
  * Site-wide execution policy for abilities, mirroring the semantics of
- * typo3-capability-manifest's PolicyChecker: deny rules block outright,
+ * the MCP capability manifest's PolicyChecker: deny rules block outright,
  * review_required rules block unless the execution context carries an
  * explicit human approval, and max_risk_tier caps the tier.
  *

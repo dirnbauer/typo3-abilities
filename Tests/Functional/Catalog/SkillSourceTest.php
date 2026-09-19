@@ -6,8 +6,8 @@ namespace Webconsulting\Abilities\Tests\Functional\Catalog;
 
 use PHPUnit\Framework\Attributes\Test;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
-use Webconsulting\Abilities\Catalog\CapabilityCatalog;
-use Webconsulting\Abilities\Catalog\CapabilityEntry;
+use Webconsulting\Abilities\Catalog\AbilityCatalog;
+use Webconsulting\Abilities\Catalog\CatalogEntry;
 
 /**
  * The skills source against real tables: the fixture extension ships the
@@ -25,13 +25,13 @@ final class SkillSourceTest extends FunctionalTestCase
     public function cataloguesEnabledSkillsOfBothStores(): void
     {
         $this->importCSVDataSet(__DIR__ . '/../Fixtures/skills.csv');
-        $catalog = $this->get(CapabilityCatalog::class);
-        self::assertInstanceOf(CapabilityCatalog::class, $catalog);
+        $catalog = $this->get(AbilityCatalog::class);
+        self::assertInstanceOf(AbilityCatalog::class, $catalog);
 
-        $skills = $catalog->entries(CapabilityEntry::SOURCE_SKILLS);
+        $skills = $catalog->entries(CatalogEntry::SOURCE_SKILLS);
         self::assertSame(
             ['skill/abilities-demo', 'skill/publish-editorial-drafts'],
-            array_map(static fn(CapabilityEntry $entry): string => $entry->id, $skills),
+            array_map(static fn(CatalogEntry $entry): string => $entry->id, $skills),
         );
 
         $demo = $skills[0];
@@ -45,6 +45,6 @@ final class SkillSourceTest extends FunctionalTestCase
         self::assertSame(['skills'], $publish->surfaces);
         self::assertStringContainsString('workspace/publish, content/search', $publish->invocations['skills']);
 
-        self::assertSame(2, $catalog->toArray(CapabilityEntry::SOURCE_SKILLS)['sources']['skills']);
+        self::assertSame(2, $catalog->toArray(CatalogEntry::SOURCE_SKILLS)['sources']['skills']);
     }
 }

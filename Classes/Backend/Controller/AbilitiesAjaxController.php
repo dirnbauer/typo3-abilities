@@ -8,7 +8,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use Webconsulting\Abilities\Catalog\CapabilityCatalog;
+use Webconsulting\Abilities\Catalog\AbilityCatalog;
 use Webconsulting\Abilities\Category\CategoryRegistry;
 use Webconsulting\Abilities\Domain\AbilityCategory;
 use Webconsulting\Abilities\Domain\AbilityDefinition;
@@ -38,7 +38,7 @@ final class AbilitiesAjaxController
         private readonly AbilitiesRegistry $registry,
         private readonly AbilityExecutor $executor,
         private readonly CategoryRegistry $categories,
-        private readonly CapabilityCatalog $catalog,
+        private readonly AbilityCatalog $catalog,
         private readonly BackendUserScopeResolver $scopeResolver,
         private readonly TokenService $tokenService,
         private readonly PolicyProvider $policyProvider,

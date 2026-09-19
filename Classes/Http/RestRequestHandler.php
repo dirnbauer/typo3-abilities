@@ -6,7 +6,7 @@ namespace Webconsulting\Abilities\Http;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Webconsulting\Abilities\Catalog\CapabilityCatalog;
+use Webconsulting\Abilities\Catalog\AbilityCatalog;
 use Webconsulting\Abilities\Category\CategoryRegistry;
 use Webconsulting\Abilities\Domain\AbilityCategory;
 use Webconsulting\Abilities\Domain\AbilityDefinition;
@@ -31,7 +31,7 @@ final class RestRequestHandler
         private readonly AbilitiesRegistry $registry,
         private readonly AbilityExecutor $executor,
         private readonly CategoryRegistry $categories,
-        private readonly CapabilityCatalog $catalog,
+        private readonly AbilityCatalog $catalog,
         private readonly RestResponseFactory $responses,
         private readonly RestInputMapper $inputMapper,
     ) {}

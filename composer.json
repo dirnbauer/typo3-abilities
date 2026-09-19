@@ -6,7 +6,7 @@
     "keywords": [
         "typo3",
         "abilities",
-        "capability",
+        "catalog",
         "registry",
         "mcp",
         "rest",
@@ -48,6 +48,9 @@
         "webconsulting/skillflow": "Skills contract: skills declare the abilities they need"
     },
     "autoload": {
+        "files": [
+            "Classes/Compatibility/ClassAliases.php"
+        ],
         "psr-4": {
             "Webconsulting\\Abilities\\": "Classes/"
         }

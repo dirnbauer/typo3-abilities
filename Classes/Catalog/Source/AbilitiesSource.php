@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Webconsulting\Abilities\Catalog\Source;
 
-use Webconsulting\Abilities\Catalog\CapabilityEntry;
-use Webconsulting\Abilities\Catalog\CapabilitySourceInterface;
+use Webconsulting\Abilities\Catalog\CatalogEntry;
+use Webconsulting\Abilities\Catalog\CatalogSourceInterface;
 use Webconsulting\Abilities\Domain\AbilityDefinition;
 use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Http\RestConfiguration;
@@ -15,7 +15,7 @@ use Webconsulting\Abilities\Registry\AbilitiesRegistry;
  * The registry's own abilities as catalogue entries, with one invocation per
  * surface the ability is exposed to plus the PHP call.
  */
-final class AbilitiesSource implements CapabilitySourceInterface
+final class AbilitiesSource implements CatalogSourceInterface
 {
     public function __construct(
         private readonly AbilitiesRegistry $registry,
@@ -24,10 +24,10 @@ final class AbilitiesSource implements CapabilitySourceInterface
 
     public function getSource(): string
     {
-        return CapabilityEntry::SOURCE_ABILITIES;
+        return CatalogEntry::SOURCE_ABILITIES;
     }
 
-    public function getCapabilities(): iterable
+    public function getEntries(): iterable
     {
         foreach ($this->registry->getDefinitions() as $definition) {
             yield self::entry($definition, $this->registry->get($definition->name)->getInputSchema(), $this->rest);
@@ -37,7 +37,7 @@ final class AbilitiesSource implements CapabilitySourceInterface
     /**
      * @param array<string, mixed> $inputSchema
      */
-    public static function entry(AbilityDefinition $definition, array $inputSchema, RestConfiguration $rest): CapabilityEntry
+    public static function entry(AbilityDefinition $definition, array $inputSchema, RestConfiguration $rest): CatalogEntry
     {
         $invocations = [];
         if ($definition->isExposedTo(ExecutionContext::SURFACE_CLI)) {
@@ -73,16 +73,16 @@ final class AbilitiesSource implements CapabilitySourceInterface
             );
         }
 
-        return new CapabilityEntry(
+        return new CatalogEntry(
             id: $definition->name,
             title: $definition->title,
             description: $definition->instructions === ''
                 ? $definition->description
                 : $definition->description . ' ' . $definition->instructions,
-            source: CapabilityEntry::SOURCE_ABILITIES,
+            source: CatalogEntry::SOURCE_ABILITIES,
             surfaces: array_keys($invocations),
             inputSchema: $inputSchema,
-            annotations: CapabilityEntry::annotations($definition->isReadOnly(), $definition->destructive, $definition->idempotent),
+            annotations: CatalogEntry::annotations($definition->isReadOnly(), $definition->destructive, $definition->idempotent),
             invocations: $invocations,
             meta: [
                 'category' => $definition->category,

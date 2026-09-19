@@ -6,3 +6,11 @@ services:
 
   Webconsulting\AbilitiesTestListener\:
     resource: '../Classes/*'
+    exclude:
+      - '../Classes/LegacyTaggedSource.php'
+
+  # A 1.1-style catalogue source: the removed tag name, no autoconfiguration.
+  Webconsulting\AbilitiesTestListener\LegacyTaggedSource:
+    autoconfigure: false
+    tags:
+      - 'abilities.capability_source'

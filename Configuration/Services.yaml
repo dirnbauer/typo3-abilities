@@ -8,7 +8,8 @@ services:
     resource: '../Classes/*'
     exclude:
       - '../Classes/Attribute/*'
-      - '../Classes/Catalog/CapabilityEntry.php'
+      - '../Classes/Catalog/CatalogEntry.php'
+      - '../Classes/Compatibility/*'
       - '../Classes/Category/AsAbilityCategory.php'
       - '../Classes/Domain/*'
       - '../Classes/Event/*'
@@ -39,7 +40,7 @@ services:
   Webconsulting\Abilities\Execution\AbilityExecutor:
     public: true
 
-  Webconsulting\Abilities\Catalog\CapabilityCatalog:
+  Webconsulting\Abilities\Catalog\AbilityCatalog:
     public: true
 
   Webconsulting\Abilities\Projection\Mcp\McpProjection:

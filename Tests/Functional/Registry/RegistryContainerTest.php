@@ -7,8 +7,8 @@ namespace Webconsulting\Abilities\Tests\Functional\Registry;
 use PHPUnit\Framework\Attributes\Test;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 use Webconsulting\Abilities\Backend\Tca\RegistryItemsProcFunc;
-use Webconsulting\Abilities\Catalog\CapabilityCatalog;
-use Webconsulting\Abilities\Catalog\CapabilityEntry;
+use Webconsulting\Abilities\Catalog\AbilityCatalog;
+use Webconsulting\Abilities\Catalog\CatalogEntry;
 use Webconsulting\Abilities\Category\CategoryRegistry;
 use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Execution\AbilityExecutor;
@@ -122,8 +122,8 @@ final class RegistryContainerTest extends FunctionalTestCase
     #[Test]
     public function catalogueUnitesEverySourceTheContainerKnows(): void
     {
-        $catalog = $this->get(CapabilityCatalog::class);
-        self::assertInstanceOf(CapabilityCatalog::class, $catalog);
+        $catalog = $this->get(AbilityCatalog::class);
+        self::assertInstanceOf(AbilityCatalog::class, $catalog);
 
         self::assertSame(['abilities', 'cli', 'mcp', 'rest', 'skills'], $catalog->sources());
         $byId = [];
@@ -133,7 +133,7 @@ final class RegistryContainerTest extends FunctionalTestCase
 
         // The registry's abilities, with one invocation per exposed surface.
         self::assertArrayHasKey('abilities/catalog', $byId);
-        self::assertSame(CapabilityEntry::SOURCE_ABILITIES, $byId['content/search']->source);
+        self::assertSame(CatalogEntry::SOURCE_ABILITIES, $byId['content/search']->source);
         self::assertSame('ability_content_search', $byId['content/search']->invocations['mcp']);
         self::assertSame('GET /abilities/v1/abilities/content/search/run', $byId['content/search']->invocations['rest']);
         self::assertArrayHasKey('frontend', $byId['content/search']->invocations, 'read-only abilities render in Fluid');
@@ -152,8 +152,8 @@ final class RegistryContainerTest extends FunctionalTestCase
         self::assertSame('GET|POST|DELETE /abilities/v1/abilities/{namespace}/{name}/run', $byId['rest/abilities-run']->invocations['rest']);
 
         // Optional sources yield nothing when their extension is absent.
-        self::assertSame([], $catalog->entries(CapabilityEntry::SOURCE_MCP));
-        self::assertSame([], $catalog->entries(CapabilityEntry::SOURCE_SKILLS));
+        self::assertSame([], $catalog->entries(CatalogEntry::SOURCE_MCP));
+        self::assertSame([], $catalog->entries(CatalogEntry::SOURCE_SKILLS));
 
         $result = $this->get(AbilityExecutor::class)?->execute(
             $this->get(AbilitiesRegistry::class)?->get('abilities/catalog') ?? throw new \LogicException('registry'),

@@ -7,24 +7,24 @@ namespace Webconsulting\Abilities\Catalog;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 /**
- * The unified, discoverable catalogue of what this installation can do:
- * the union of every CapabilitySourceInterface, sorted by id, filterable by
- * source, surface and free text. Projected onto CLI (abilities:catalog),
+ * The unified, discoverable catalogue of every ability this installation can
+ * perform: the union of every CatalogSourceInterface, sorted by id, filterable
+ * by source, surface and free text. Projected onto CLI (abilities:catalog),
  * REST ({base}/catalog), MCP (ability_abilities_catalog) and the backend
  * module so an agent can discover, then use.
  *
  * Entries are collected once per request; sources may query the database.
  */
-final class CapabilityCatalog
+final class AbilityCatalog
 {
-    /** @var list<CapabilityEntry>|null */
+    /** @var list<CatalogEntry>|null */
     private ?array $entries = null;
 
     /**
-     * @param iterable<CapabilitySourceInterface> $sources
+     * @param iterable<CatalogSourceInterface> $sources
      */
     public function __construct(
-        #[AutowireIterator('abilities.capability_source')]
+        #[AutowireIterator('abilities.catalog_source')]
         private readonly iterable $sources,
     ) {}
 
@@ -43,13 +43,13 @@ final class CapabilityCatalog
     }
 
     /**
-     * @return list<CapabilityEntry> sorted by id
+     * @return list<CatalogEntry> sorted by id
      */
     public function entries(?string $source = null, ?string $surface = null, string $search = ''): array
     {
         return array_values(array_filter(
             $this->all(),
-            static fn(CapabilityEntry $entry): bool
+            static fn(CatalogEntry $entry): bool
                 => ($source === null || $entry->source === $source)
                 && ($surface === null || in_array($surface, $entry->surfaces, true))
                 && $entry->matches($search),
@@ -70,14 +70,14 @@ final class CapabilityCatalog
         }
 
         return [
-            'entries' => array_map(static fn(CapabilityEntry $entry): array => $entry->toArray(), $entries),
+            'entries' => array_map(static fn(CatalogEntry $entry): array => $entry->toArray(), $entries),
             'total' => count($entries),
             'sources' => $counts,
         ];
     }
 
     /**
-     * @return list<CapabilityEntry>
+     * @return list<CatalogEntry>
      */
     private function all(): array
     {
@@ -87,7 +87,7 @@ final class CapabilityCatalog
 
         $entries = [];
         foreach ($this->sources as $source) {
-            foreach ($source->getCapabilities() as $entry) {
+            foreach ($source->getEntries() as $entry) {
                 $entries[$entry->id] = $entry;
             }
         }

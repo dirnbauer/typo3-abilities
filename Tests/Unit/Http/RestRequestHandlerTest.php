@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Http\Stream;
-use Webconsulting\Abilities\Catalog\CapabilityCatalog;
+use Webconsulting\Abilities\Catalog\AbilityCatalog;
 use Webconsulting\Abilities\Catalog\Source\AbilitiesSource;
 use Webconsulting\Abilities\Category\CategoryRegistry;
 use Webconsulting\Abilities\Domain\AbilityCategory;
@@ -62,7 +62,7 @@ final class RestRequestHandlerTest extends TestCase
             $registry,
             new AbilityExecutor(new SchemaValidator(), new PolicyProvider($this->policyFile)),
             $categories,
-            new CapabilityCatalog([new AbilitiesSource($registry, new RestConfiguration())]),
+            new AbilityCatalog([new AbilitiesSource($registry, new RestConfiguration())]),
             new RestResponseFactory(),
             new RestInputMapper(),
         );

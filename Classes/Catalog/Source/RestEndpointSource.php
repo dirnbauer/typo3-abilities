@@ -9,8 +9,8 @@ use SGalinski\SgApicore\Service\EndpointDiscoveryService;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
-use Webconsulting\Abilities\Catalog\CapabilityEntry;
-use Webconsulting\Abilities\Catalog\CapabilitySourceInterface;
+use Webconsulting\Abilities\Catalog\CatalogEntry;
+use Webconsulting\Abilities\Catalog\CatalogSourceInterface;
 use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Http\RestConfiguration;
 use Webconsulting\Abilities\Reaction\RunAbilityReaction;
@@ -25,7 +25,7 @@ use Webconsulting\Abilities\Registry\AbilitiesRegistry;
  *    attributes.
  * EXT:reactions and sg-apicore are optional; absent ones yield nothing.
  */
-final class RestEndpointSource implements CapabilitySourceInterface
+final class RestEndpointSource implements CatalogSourceInterface
 {
     public function __construct(
         private readonly RestConfiguration $rest,
@@ -37,10 +37,10 @@ final class RestEndpointSource implements CapabilitySourceInterface
 
     public function getSource(): string
     {
-        return CapabilityEntry::SOURCE_REST;
+        return CatalogEntry::SOURCE_REST;
     }
 
-    public function getCapabilities(): iterable
+    public function getEntries(): iterable
     {
         yield from $this->abilitiesApi();
         yield from $this->reactions();
@@ -48,7 +48,7 @@ final class RestEndpointSource implements CapabilitySourceInterface
     }
 
     /**
-     * @return iterable<CapabilityEntry>
+     * @return iterable<CatalogEntry>
      */
     private function abilitiesApi(): iterable
     {
@@ -62,17 +62,17 @@ final class RestEndpointSource implements CapabilitySourceInterface
             ['abilities-run', 'GET|POST|DELETE', '/abilities/{namespace}/{name}/run', 'Run ability', 'Runs an ability through the governed pipeline; the method follows the annotations (read-only GET, destructive DELETE, otherwise POST). Input as query parameters, ?input=<json> or a JSON body {"input": {...}}.'],
             ['categories', 'GET', '/categories', 'List categories', 'Every ability category, flagged whether an ability uses it.'],
             ['categories-describe', 'GET', '/categories/{slug}', 'Describe category', 'One category with the names of its abilities.'],
-            ['catalog', 'GET', '/catalog', 'Capability catalogue', 'Everything the installation can do — abilities, MCP tools, skills, endpoints, commands — filterable with ?source=, ?surface= and ?search=.'],
+            ['catalog', 'GET', '/catalog', 'Ability catalogue', 'Everything the installation can do — abilities, MCP tools, skills, endpoints, commands — filterable with ?source=, ?surface= and ?search=.'],
         ];
         foreach ($routes as [$slug, $methods, $path, $title, $description]) {
-            yield new CapabilityEntry(
+            yield new CatalogEntry(
                 id: 'rest/' . $slug,
                 title: $title,
                 description: $description . ' Authenticate with "Authorization: Bearer <token>" (abilities:token:create) or a same-origin backend session.',
-                source: CapabilityEntry::SOURCE_REST,
+                source: CatalogEntry::SOURCE_REST,
                 surfaces: [ExecutionContext::SURFACE_REST],
                 inputSchema: [],
-                annotations: CapabilityEntry::annotations(readonly: $slug !== 'abilities-run'),
+                annotations: CatalogEntry::annotations(readonly: $slug !== 'abilities-run'),
                 invocations: [ExecutionContext::SURFACE_REST => $methods . ' ' . $base . $path],
                 meta: ['auth' => 'bearer token or backend session'],
             );
@@ -80,7 +80,7 @@ final class RestEndpointSource implements CapabilitySourceInterface
     }
 
     /**
-     * @return iterable<CapabilityEntry>
+     * @return iterable<CatalogEntry>
      */
     private function reactions(): iterable
     {
@@ -111,7 +111,7 @@ final class RestEndpointSource implements CapabilitySourceInterface
     /**
      * @param array<string, mixed> $row a sys_reaction row
      */
-    public function reactionEntry(array $row): ?CapabilityEntry
+    public function reactionEntry(array $row): ?CatalogEntry
     {
         $identifier = is_string($row['identifier'] ?? null) ? $row['identifier'] : '';
         if ($identifier === '') {
@@ -127,16 +127,16 @@ final class RestEndpointSource implements CapabilitySourceInterface
             $description = trim($description . ' Runs the ability ' . $definition->name . ': ' . $definition->description);
         }
 
-        return new CapabilityEntry(
+        return new CatalogEntry(
             id: 'webhook/' . $identifier,
             title: is_string($row['name'] ?? null) && $row['name'] !== '' ? $row['name'] : $identifier,
             description: $description === '' ? sprintf('EXT:reactions webhook of type "%s".', $type) : $description,
-            source: CapabilityEntry::SOURCE_REST,
+            source: CatalogEntry::SOURCE_REST,
             surfaces: [ExecutionContext::SURFACE_WEBHOOK],
             inputSchema: $ability === null ? [] : $this->registry->get($ability)->getInputSchema(),
             annotations: $definition === null
-                ? CapabilityEntry::annotations()
-                : CapabilityEntry::annotations($definition->isReadOnly(), $definition->destructive, $definition->idempotent),
+                ? CatalogEntry::annotations()
+                : CatalogEntry::annotations($definition->isReadOnly(), $definition->destructive, $definition->idempotent),
             invocations: [
                 ExecutionContext::SURFACE_WEBHOOK => sprintf('POST /typo3/reaction/%s with header "x-api-key: <secret>" and a JSON body', $identifier),
             ],
@@ -149,7 +149,7 @@ final class RestEndpointSource implements CapabilitySourceInterface
     }
 
     /**
-     * @return iterable<CapabilityEntry>
+     * @return iterable<CatalogEntry>
      */
     private function apiCore(): iterable
     {
@@ -169,7 +169,7 @@ final class RestEndpointSource implements CapabilitySourceInterface
     /**
      * @param array<string, mixed> $endpoint one EndpointDiscoveryService::getAllEndpoints() row
      */
-    public static function apiCoreEntry(array $endpoint, string $prefix = '/api/'): CapabilityEntry
+    public static function apiCoreEntry(array $endpoint, string $prefix = '/api/'): CatalogEntry
     {
         $path = is_string($endpoint['path'] ?? null) ? $endpoint['path'] : '/';
         $apiIds = is_array($endpoint['apiId'] ?? null) ? $endpoint['apiId'] : [$endpoint['apiId'] ?? null];
@@ -186,14 +186,14 @@ final class RestEndpointSource implements CapabilitySourceInterface
         $readonly = $methods === [] || array_diff(array_map(strtoupper(...), $methods), ['GET', 'HEAD', 'OPTIONS']) === [];
         $destructive = in_array('DELETE', array_map(strtoupper(...), $methods), true);
 
-        return new CapabilityEntry(
+        return new CatalogEntry(
             id: 'api/' . ($slug === '' ? 'root' : $slug),
             title: $summary !== '' ? $summary : $methodList . ' ' . $path,
             description: $description !== '' ? $description : ($summary !== '' ? $summary : sprintf('sg-apicore endpoint %s %s.', $methodList, $path)),
-            source: CapabilityEntry::SOURCE_REST,
+            source: CatalogEntry::SOURCE_REST,
             surfaces: [ExecutionContext::SURFACE_REST],
             inputSchema: self::apiCoreSchema($endpoint),
-            annotations: CapabilityEntry::annotations($readonly, $destructive, $readonly),
+            annotations: CatalogEntry::annotations($readonly, $destructive, $readonly),
             invocations: [ExecutionContext::SURFACE_REST => $methodList . ' ' . $url],
             meta: array_filter([
                 'apiId' => $apiId,

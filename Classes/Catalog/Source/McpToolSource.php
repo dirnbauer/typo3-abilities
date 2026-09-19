@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Webconsulting\Abilities\Catalog\Source;
 
 use Hn\McpServer\MCP\ToolRegistry;
-use Webconsulting\Abilities\Catalog\CapabilityEntry;
-use Webconsulting\Abilities\Catalog\CapabilitySourceInterface;
+use Webconsulting\Abilities\Catalog\CatalogEntry;
+use Webconsulting\Abilities\Catalog\CatalogSourceInterface;
 use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Projection\Mcp\McpProjection;
 
@@ -16,7 +16,7 @@ use Webconsulting\Abilities\Projection\Mcp\McpProjection;
  * tools (ability_*) are skipped — they are catalogued as abilities. The
  * server extension is optional: without it this source yields nothing.
  */
-final class McpToolSource implements CapabilitySourceInterface
+final class McpToolSource implements CatalogSourceInterface
 {
     public function __construct(
         private readonly McpProjection $projection,
@@ -25,10 +25,10 @@ final class McpToolSource implements CapabilitySourceInterface
 
     public function getSource(): string
     {
-        return CapabilityEntry::SOURCE_MCP;
+        return CatalogEntry::SOURCE_MCP;
     }
 
-    public function getCapabilities(): iterable
+    public function getEntries(): iterable
     {
         if ($this->toolRegistry === null || !class_exists(ToolRegistry::class)) {
             return;
@@ -45,20 +45,20 @@ final class McpToolSource implements CapabilitySourceInterface
     /**
      * @param array<string, mixed> $schema the tool's getSchema(): description, inputSchema, annotations
      */
-    public static function entry(string $name, array $schema): CapabilityEntry
+    public static function entry(string $name, array $schema): CatalogEntry
     {
         $annotations = is_array($schema['annotations'] ?? null) ? $schema['annotations'] : [];
         $title = is_string($annotations['title'] ?? null) && $annotations['title'] !== '' ? $annotations['title'] : $name;
         $inputSchema = is_array($schema['inputSchema'] ?? null) ? $schema['inputSchema'] : [];
 
-        return new CapabilityEntry(
+        return new CatalogEntry(
             id: 'mcp/' . $name,
             title: $title,
             description: is_string($schema['description'] ?? null) ? $schema['description'] : '',
-            source: CapabilityEntry::SOURCE_MCP,
+            source: CatalogEntry::SOURCE_MCP,
             surfaces: [ExecutionContext::SURFACE_MCP],
             inputSchema: array_filter($inputSchema, static fn(mixed $key): bool => is_string($key), ARRAY_FILTER_USE_KEY),
-            annotations: CapabilityEntry::annotations(
+            annotations: CatalogEntry::annotations(
                 ($annotations['readOnlyHint'] ?? false) === true,
                 ($annotations['destructiveHint'] ?? false) === true,
                 ($annotations['idempotentHint'] ?? false) === true,

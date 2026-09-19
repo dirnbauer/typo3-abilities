@@ -6,14 +6,14 @@ namespace Webconsulting\Abilities\Ability;
 
 use Symfony\Component\DependencyInjection\Attribute\AutowireServiceClosure;
 use Webconsulting\Abilities\Attribute\AsAbility;
-use Webconsulting\Abilities\Catalog\CapabilityCatalog;
-use Webconsulting\Abilities\Catalog\CapabilityEntry;
+use Webconsulting\Abilities\Catalog\AbilityCatalog;
+use Webconsulting\Abilities\Catalog\CatalogEntry;
 use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Domain\RiskTier;
 use Webconsulting\Abilities\Registry\AbstractAbility;
 
 /**
- * The capability catalogue as an ability, so an agent discovers everything
+ * The ability catalogue as an ability, so an agent discovers everything
  * the installation can do through the same door it uses for everything else
  * (MCP tool ability_abilities_catalog, REST GET .../abilities/catalog/run,
  * CLI abilities:run abilities/catalog).
@@ -24,7 +24,7 @@ use Webconsulting\Abilities\Registry\AbstractAbility;
  */
 #[AsAbility(
     name: 'abilities/catalog',
-    title: 'Capability catalogue',
+    title: 'Ability catalogue',
     description: 'Lists everything this TYPO3 installation can do — abilities, native MCP tools, agent skills, REST and webhook endpoints and console commands — as one uniform catalogue: id, title, description, source, surfaces, input schema, annotations and how to invoke each entry from each surface.',
     category: 'registry',
     scopes: ['abilities:read'],
@@ -37,10 +37,10 @@ use Webconsulting\Abilities\Registry\AbstractAbility;
 final class CatalogAbility extends AbstractAbility
 {
     /**
-     * @param \Closure(): CapabilityCatalog $catalog
+     * @param \Closure(): AbilityCatalog $catalog
      */
     public function __construct(
-        #[AutowireServiceClosure(CapabilityCatalog::class)]
+        #[AutowireServiceClosure(AbilityCatalog::class)]
         private readonly \Closure $catalog,
     ) {}
 
@@ -53,11 +53,11 @@ final class CatalogAbility extends AbstractAbility
                 'source' => [
                     'type' => 'string',
                     'enum' => [
-                        CapabilityEntry::SOURCE_ABILITIES,
-                        CapabilityEntry::SOURCE_MCP,
-                        CapabilityEntry::SOURCE_SKILLS,
-                        CapabilityEntry::SOURCE_REST,
-                        CapabilityEntry::SOURCE_CLI,
+                        CatalogEntry::SOURCE_ABILITIES,
+                        CatalogEntry::SOURCE_MCP,
+                        CatalogEntry::SOURCE_SKILLS,
+                        CatalogEntry::SOURCE_REST,
+                        CatalogEntry::SOURCE_CLI,
                     ],
                     'description' => 'Only entries of this source',
                 ],

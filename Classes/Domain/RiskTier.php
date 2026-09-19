@@ -7,9 +7,9 @@ namespace Webconsulting\Abilities\Domain;
 /**
  * Governance risk tier of an ability.
  *
- * The vocabulary and scores mirror typo3-capability-manifest risk levels
- * (low=0, medium=5, high=10, critical=15) so ability policies and
- * extension capability policies speak the same language.
+ * The vocabulary and scores mirror the risk levels of the MCP capability
+ * manifest (low=0, medium=5, high=10, critical=15), so an abilities policy
+ * and a capability manifest score the same action the same way.
  */
 enum RiskTier: string
 {

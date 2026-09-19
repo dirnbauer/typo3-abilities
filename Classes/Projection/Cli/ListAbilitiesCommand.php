@@ -10,8 +10,8 @@ use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Webconsulting\Abilities\Catalog\CapabilityCatalog;
-use Webconsulting\Abilities\Catalog\CapabilityEntry;
+use Webconsulting\Abilities\Catalog\AbilityCatalog;
+use Webconsulting\Abilities\Catalog\CatalogEntry;
 use Webconsulting\Abilities\Domain\AbilityDefinition;
 use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Registry\AbilitiesRegistry;
@@ -19,7 +19,7 @@ use Webconsulting\Abilities\Registry\AbilitiesRegistry;
 /**
  * CLI projection of the abilities registry: list every registered ability
  * with its governance metadata. With --source the same command lists one
- * source of the wider capability catalogue instead (see abilities:catalog).
+ * source of the wider ability catalogue instead (see abilities:catalog).
  */
 #[AsCommand(
     name: 'abilities:list',
@@ -29,7 +29,7 @@ final class ListAbilitiesCommand extends Command
 {
     public function __construct(
         private readonly AbilitiesRegistry $registry,
-        private readonly CapabilityCatalog $catalog,
+        private readonly AbilityCatalog $catalog,
     ) {
         parent::__construct();
     }
@@ -110,7 +110,7 @@ final class ListAbilitiesCommand extends Command
 
         if ($json) {
             $output->writeln((string)json_encode(
-                array_map(static fn(CapabilityEntry $entry): array => $entry->toArray(), $this->catalog->entries($source)),
+                array_map(static fn(CatalogEntry $entry): array => $entry->toArray(), $this->catalog->entries($source)),
                 JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
             ));
 
