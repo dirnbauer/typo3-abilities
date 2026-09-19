@@ -6,6 +6,42 @@
 Developer
 =========
 
+..  _developer-vocabulary:
+
+Vocabulary
+==========
+
+Two words are easy to confuse, so this extension fixes their meaning:
+
+**ability**
+    A unit of functionality this installation can perform. Either one
+    registered here with :php:`#[AsAbility]`, or one discovered by a
+    catalogue source from an MCP tool, an agent skill, a console command or a
+    REST/webhook endpoint. The catalogue lists abilities; classes, tags,
+    commands and endpoints that deal with discovery are named after
+    *ability* or *catalogue*.
+
+**capability**
+    A *permission*, never a unit of functionality. The word is reserved for
+    the MCP capability manifest — :php:`Hn\McpServer\Service\CapabilityManifestService`
+    in `hn/typo3-mcp-server` — which decides what a tool is allowed to do.
+    :php:`Domain\RiskTier` and :php:`Policy\AbilityPolicy` deliberately
+    speak its vocabulary; nothing in this extension uses "capability" for
+    discovery.
+
+This follows the WordPress Abilities API, where an ability is a unit of
+functionality and a capability is what :php:`current_user_can()` checks.
+
+..  versionchanged:: 1.2.0
+    The catalogue classes were renamed accordingly:
+    :php:`CapabilityCatalog` → :php:`Catalog\AbilityCatalog`,
+    :php:`CapabilityEntry` → :php:`Catalog\CatalogEntry`,
+    :php:`CapabilitySourceInterface` → :php:`Catalog\CatalogSourceInterface`
+    (its :php:`getCapabilities()` is now :php:`getEntries()`), and the DI tag
+    `abilities.capability_source` → `abilities.catalog_source`. The old class
+    names and the old tag still work and are removed in 2.0.0. No CLI
+    command, REST path, MCP tool name or JavaScript export changed.
+
 ..  _developer-register:
 
 Registering an ability
@@ -245,9 +281,9 @@ PSR-14 events
 Catalogue sources
 =================
 
-The capability catalogue (:php:`Catalog\CapabilityCatalog`) is the union of
-every :php:`Catalog\CapabilitySourceInterface` service (tagged
-`abilities.capability_source`). Shipped sources: `AbilitiesSource`,
+The ability catalogue (:php:`Catalog\AbilityCatalog`) is the union of
+every :php:`Catalog\CatalogSourceInterface` service (tagged
+`abilities.catalog_source`). Shipped sources: `AbilitiesSource`,
 `McpToolSource` (hn/typo3-mcp-server), `SkillSource` (nr-llm, skillflow),
 `RestEndpointSource` (the REST projection, EXT:reactions, sg-apicore) and
 `CliCommandSource`. Optional dependencies are nullable constructor arguments
@@ -256,31 +292,31 @@ of failing.
 
 ..  code-block:: php
 
-    final class FormsSource implements CapabilitySourceInterface
+    final class FormsSource implements CatalogSourceInterface
     {
         public function getSource(): string
         {
             return 'forms';
         }
 
-        public function getCapabilities(): iterable
+        public function getEntries(): iterable
         {
             foreach ($this->formPersistence->listForms() as $form) {
-                yield new CapabilityEntry(
+                yield new CatalogEntry(
                     id: 'form/' . $form['identifier'],
                     title: $form['name'],
                     description: 'Submits the form "' . $form['name'] . '".',
                     source: 'forms',
                     surfaces: ['rest'],
                     inputSchema: $this->schemaOf($form),
-                    annotations: CapabilityEntry::annotations(idempotent: false),
+                    annotations: CatalogEntry::annotations(idempotent: false),
                     invocations: ['rest' => 'POST /forms/' . $form['identifier']],
                 );
             }
         }
     }
 
-Every entry is one :php:`CapabilityEntry`: `id` (`namespace/name`), `title`,
+Every entry is one :php:`CatalogEntry`: `id` (`namespace/name`), `title`,
 `description`, `source`, `surfaces`, `inputSchema` (`[]` = unknown),
 `annotations` (`readonly`, `destructive`, `idempotent`), `invocations`
 (surface → how) and `meta`.
@@ -307,7 +343,7 @@ PHP API
             registry's definition so :php:`ModifyAbilityDefinitionEvent`
             overrides apply.
 
-    *   -   :php:`Catalog\CapabilityCatalog`
+    *   -   :php:`Catalog\AbilityCatalog`
         -   :php:`sources()`, :php:`entries($source, $surface, $search)`,
             :php:`toArray()`.
 

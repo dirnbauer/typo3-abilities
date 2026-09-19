@@ -85,7 +85,7 @@ CLI
     +---------------------------+-----------------------+-----------+--------+-------------------+----------------+----------------+
     | Ability                   | Title                 | Category  | Risk   | Scopes            | Side effects   | Surfaces       |
     +---------------------------+-----------------------+-----------+--------+-------------------+----------------+----------------+
-    | abilities/catalog         | Capability catalogue  | registry  | low    | abilities:read    | read-only      | mcp, cli, rest |
+    | abilities/catalog         | Ability catalogue     | registry  | low    | abilities:read    | read-only      | mcp, cli, rest |
     | abilities/describe        | Describe ability      | registry  | low    | abilities:read    | read-only      | mcp, cli, rest |
     | abilities/list            | List abilities        | registry  | low    | abilities:read    | read-only      | mcp, cli, rest |
     | content/create-page-draft | Create page draft     | content   | medium | pages:write       | database:write | mcp, cli, rest |
@@ -140,9 +140,9 @@ The catalogue on the CLI:
     |                |                |           |                                         |                       | $executor->execute($registry->get('content/search'), …)              |
     |                |                |           |                                         |                       | dataProcessing.10 = …\AbilityProcessor; 10.ability = content/search   |
     +----------------+----------------+-----------+-----------------------------------------+-----------------------+-----------------------------------------------------------------------+
-    1 capabilities (abilities: 1, cli: 0, mcp: 0, rest: 0, skills: 0). Use --format=json for the machine-readable catalogue …
+    1 catalogue entries (abilities: 1, cli: 0, mcp: 0, rest: 0, skills: 0). Use --format=json for the machine-readable catalogue …
 
-    $ vendor/bin/typo3 abilities:catalog --format=json > capabilities.json   # hand this to an LLM as tool context
+    $ vendor/bin/typo3 abilities:catalog --format=json > catalog.json        # hand this to an LLM as tool context
     $ vendor/bin/typo3 abilities:list --source=cli                           # one source at a time
     $ vendor/bin/typo3 abilities:catalog --surface=mcp                       # only what an MCP client can call
 
@@ -214,7 +214,7 @@ REST
 
     *   -   GET
         -   :code:`/catalog`
-        -   The capability catalogue; `source`, `surface`, `search`.
+        -   The ability catalogue; `source`, `surface`, `search`.
 
 Responses are :code:`{"ok": true, "data": …}` or
 :code:`{"ok": false, "code": "…", "message": "…"}`, always
@@ -310,7 +310,7 @@ the identity and runs execute with that user's group scopes (admins: `*`).
 
 *   **Registry** — the whole registry with filters (text, category, surface,
     risk) and a :guilabel:`Run` button per row.
-*   **Catalogue** — every capability from every source, filterable by text,
+*   **Catalogue** — every ability from every source, filterable by text,
     source and surface, each with its invocations.
 *   **Run** — a form generated from the ability's input schema (enum →
     select, boolean → checkbox, number → number input, objects → JSON), the

@@ -23,7 +23,7 @@ a webhook reaction, a Fluid data processor, the backend module and the
 skills contract all look an ability up and call the same executor. Adding a
 class makes it appear everywhere at once.
 
-A **capability catalogue**: the union of that registry with everything else
+An **ability catalogue**: the union of that registry with everything else
 an AI agent could use on this installation — the native tools of the MCP
 server, the agent skills stored by nr-llm or skillflow, the REST and webhook
 endpoints and the console commands. Every entry has the same shape (id,
@@ -46,11 +46,11 @@ answer to the parts of the installation the registry did not create:
 
 ..  code-block:: bash
 
-    vendor/bin/typo3 abilities:catalog --format=json > capabilities.json
+    vendor/bin/typo3 abilities:catalog --format=json > catalog.json
 
 The file carries every entry's schema, annotations and invocations. Handed to
-an LLM as tool context, it lets a generic agent build a correct call for a
-capability that did not exist when the agent was written.
+an LLM as tool context, it lets a generic agent build a correct call for an
+ability that did not exist when the agent was written.
 
 ..  _introduction-wordpress:
 
@@ -72,6 +72,15 @@ and its PHP, REST, hooks and JavaScript references.
         -   WordPress Abilities API
         -   This extension
         -   Verdict
+
+    *   -   Vocabulary
+        -   An **ability** is a unit of functionality; a **capability** is a
+            user permission, the thing :php:`current_user_can()` checks.
+        -   Identical. An ability is a unit of functionality — registered
+            here or discovered from an MCP tool, a skill, a command or an
+            endpoint — and "capability" is reserved for the MCP capability
+            manifest's permission gating, never used for discovery.
+        -   Matches.
 
     *   -   Registration
         -   :php:`wp_register_ability( 'ns/name', $args )` on the
@@ -212,7 +221,7 @@ and its PHP, REST, hooks and JavaScript references.
 
     *   -   Discovery beyond abilities
         -   —
-        -   The capability catalogue: MCP tools, skills, REST and webhook
+        -   The ability catalogue: MCP tools, skills, REST and webhook
             endpoints and console commands in the ability shape, on every
             surface.
         -   TYPO3 extra.

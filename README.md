@@ -5,7 +5,7 @@
 [![PHP 8.4](https://img.shields.io/badge/PHP-8.4-blue.svg)](https://www.php.net/)
 [![License GPL-2.0-or-later](https://img.shields.io/badge/license-GPL--2.0--or--later-green.svg)](LICENSE)
 
-One typed, permissioned registry of what a TYPO3 installation can do, plus a capability catalogue of everything else an AI agent could use — MCP tools, skills, REST and webhook endpoints, console commands — served on every surface so an agent can discover, then use.
+One typed, permissioned registry of what a TYPO3 installation can do, plus an ability catalogue of everything else an AI agent could use — MCP tools, skills, REST and webhook endpoints, console commands — served on every surface so an agent can discover, then use.
 
 ## What it is
 
@@ -15,7 +15,7 @@ An **ability** is a PHP class with one `#[AsAbility]` attribute (name, scopes, r
 Before event → policy gate → input validation → scope check → permission check → execute → output validation → After event
 ```
 
-The **capability catalogue** puts the registry next to the native tools of `hn/typo3-mcp-server`, the skills of nr-llm/skillflow, EXT:reactions webhooks, sg-apicore endpoints and every console command, in one shape: id, title, description, source, surfaces, input schema, annotations and how to invoke it from each surface. It follows the WordPress Abilities API (core 6.9) vocabulary and REST layout; the manual carries the parity checklist.
+The **ability catalogue** puts the registry next to the native tools of `hn/typo3-mcp-server`, the skills of nr-llm/skillflow, EXT:reactions webhooks, sg-apicore endpoints and every console command, in one shape: id, title, description, source, surfaces, input schema, annotations and how to invoke it from each surface. It follows the WordPress Abilities API (core 6.9) vocabulary and REST layout; the manual carries the parity checklist.
 
 ## Requirements
 

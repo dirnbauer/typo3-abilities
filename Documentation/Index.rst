@@ -32,7 +32,7 @@ TYPO3 Abilities Registry
 ----
 
 One typed, permissioned registry of what a TYPO3 installation can do, and one
-**capability catalogue** that lists everything else the installation offers
+**ability catalogue** that lists everything else the installation offers
 to an AI agent — native MCP tools, agent skills, REST and webhook endpoints,
 console commands — in the same shape.
 

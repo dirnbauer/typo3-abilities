@@ -4,18 +4,48 @@ All notable changes to `webconsulting/typo3-abilities` are documented here.
 This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/).
 
+## 1.2.0 — 2026-09-19
+
+Terminology fix inside the catalogue layer. "Ability" is a unit of
+functionality this installation can perform; "capability" is reserved for the
+permission gating of the MCP capability manifest, exactly as in the WordPress
+Abilities API this extension mirrors. **No public surface changed**: the CLI
+commands, the REST paths, the MCP tool names, the AJAX routes and the
+`client.js` exports are the same as in 1.1.0.
+
+### Changed
+
+- `Catalog\CapabilityCatalog` → `Catalog\AbilityCatalog`.
+- `Catalog\CapabilityEntry` → `Catalog\CatalogEntry`.
+- `Catalog\CapabilitySourceInterface` → `Catalog\CatalogSourceInterface`,
+  and its `getCapabilities()` → `getEntries()`.
+- DI tag `abilities.capability_source` → `abilities.catalog_source`.
+- Wording in the backend module, the CLI summaries (`N catalogue entries …`,
+  `No catalogue entries match.`), the REST catalogue endpoint title and the
+  manual now says "ability catalogue".
+- The manual states the vocabulary explicitly (Developer → Vocabulary, plus a
+  row in the WordPress parity checklist).
+
+### Deprecated
+
+- The three 1.1 class names are kept as aliases
+  (`Classes/Compatibility/ClassAliases.php`) and the tag
+  `abilities.capability_source` is still collected. Both are removed in
+  2.0.0. A custom catalogue source must rename its `getCapabilities()` method
+  to `getEntries()`; the interface alias cannot do that for it.
+
 ## 1.1.0 — 2026-09-18
 
-The registry becomes the capability catalogue of the whole installation and
+The registry becomes the ability catalogue of the whole installation and
 gains two surfaces. Backwards compatible for consumers of the public API
 (`AbilityDefinition::mcpToolName()`, the registry, the executor, the MCP
 projection); the deprecated `AbilityExecutedEvent` is removed as announced.
 
 ### Added
 
-- **Capability catalogue** (`Catalog\CapabilityCatalog`): the union of
-  every `CapabilitySourceInterface` (tag `abilities.capability_source`),
-  each entry a `CapabilityEntry` with id (`namespace/name`), title,
+- **Ability catalogue** (`Catalog\AbilityCatalog`): the union of
+  every `CatalogSourceInterface` (tag `abilities.catalog_source`),
+  each entry a `CatalogEntry` with id (`namespace/name`), title,
   description, source, surfaces, input schema, `readonly`/`destructive`/
   `idempotent` annotations and per-surface invocations. Shipped sources:
   `AbilitiesSource`, `McpToolSource` (native tools of hn/typo3-mcp-server,

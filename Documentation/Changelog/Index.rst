@@ -10,12 +10,27 @@ The complete changelog lives in :file:`CHANGELOG.md` in the repository root
 (`Keep a Changelog <https://keepachangelog.com/en/1.1.0/>`__ format):
 `CHANGELOG.md on GitHub <https://github.com/dirnbauer/typo3-abilities/blob/main/CHANGELOG.md>`__.
 
+..  _changelog-1-2-0:
+
+1.2.0
+=====
+
+Terminology fix inside the catalogue layer, no public surface change:
+:php:`CapabilityCatalog` → :php:`Catalog\AbilityCatalog`,
+:php:`CapabilityEntry` → :php:`Catalog\CatalogEntry`,
+:php:`CapabilitySourceInterface` → :php:`Catalog\CatalogSourceInterface`
+(:php:`getCapabilities()` → :php:`getEntries()`), DI tag
+`abilities.capability_source` → `abilities.catalog_source`. The old names and
+the old tag still work and are removed in 2.0.0. "Capability" is now reserved
+for the MCP capability manifest's permission gating — see
+:ref:`developer-vocabulary`.
+
 ..  _changelog-1-1-0:
 
 1.1.0
 =====
 
-The capability catalogue (abilities, MCP tools, skills, REST/webhook
+The ability catalogue (abilities, MCP tools, skills, REST/webhook
 endpoints, console commands) on every surface — :bash:`abilities:catalog`,
 :code:`GET /abilities/v1/catalog`, `ability_abilities_catalog`, the module's
 Catalogue tab; two new surfaces (EXT:reactions "Run ability" webhook, the
