@@ -57,11 +57,9 @@
                 <div role="tabpanel" class="tab-pane active" id="abilities-tab-registry"
                      aria-labelledby="abilities-tab-registry-tab">
                     <div class="form-section">
-                        <div class="callout callout-info">
-                            <div class="callout-body">
-                                <f:translate key="{ll}registry.intro" />
-                            </div>
-                        </div>
+                        <f:be.infobox state="{f:constant(name: 'TYPO3\CMS\Core\Type\ContextualFeedbackSeverity::INFO')}">
+                            <p><f:translate key="{ll}registry.intro" /></p>
+                        </f:be.infobox>
 
                         <div class="row row-cols-auto g-3 abilities-filters" role="group" data-filter-rows="#abilities-registry-table .abilities-row"
                              aria-label="{f:translate(key: '{ll}registry.filters')}">
@@ -105,15 +103,15 @@
                                     </f:for>
                                 </select>
                             </div>
-                            <p class="abilities-filter-status text-body-secondary w-100" role="status" aria-live="polite" data-filter-status></p>
+                            <p class="abilities-filter-status text-muted w-100" role="status" aria-live="polite" data-filter-status></p>
                         </div>
                     </div>
 
                     <f:if condition="{total} == 0">
                         <f:then>
-                            <div class="callout callout-warning">
-                                <div class="callout-body"><f:translate key="{ll}registry.empty" /></div>
-                            </div>
+                            <f:be.infobox state="{f:constant(name: 'TYPO3\CMS\Core\Type\ContextualFeedbackSeverity::WARNING')}" title="{f:translate(key: '{ll}registry.empty.title')}">
+                                <p><f:translate key="{ll}registry.empty" /></p>
+                            </f:be.infobox>
                         </f:then>
                         <f:else>
                             <div class="table-fit">
@@ -145,30 +143,30 @@
                                                 <td>{ability.categoryLabel}</td>
                                                 <td>
                                                     <f:switch expression="{ability.riskTier}">
-                                                        <f:case value="low"><span class="badge badge-success">risk: low</span></f:case>
-                                                        <f:case value="medium"><span class="badge badge-warning">risk: medium</span></f:case>
-                                                        <f:defaultCase><span class="badge badge-danger">risk: {ability.riskTier}</span></f:defaultCase>
+                                                        <f:case value="low"><span class="badge badge-success"><f:translate key="{ll}risk.low" /></span></f:case>
+                                                        <f:case value="medium"><span class="badge badge-warning"><f:translate key="{ll}risk.medium" /></span></f:case>
+                                                        <f:defaultCase><span class="badge badge-danger"><f:translate key="{ll}risk.{ability.riskTier}" /></span></f:defaultCase>
                                                     </f:switch>
                                                     <f:if condition="{ability.readOnly}">
-                                                        <span class="badge badge-info" title="{f:translate(key: '{ll}annotation.readOnly.help')}">read-only</span>
+                                                        <span class="badge badge-info" title="{f:translate(key: '{ll}annotation.readOnly.help')}"><f:translate key="{ll}annotation.readonly" /></span>
                                                     </f:if>
                                                     <f:if condition="{ability.destructive}">
-                                                        <span class="badge badge-danger" title="{f:translate(key: '{ll}annotation.destructive.help')}">destructive</span>
+                                                        <span class="badge badge-danger" title="{f:translate(key: '{ll}annotation.destructive.help')}"><f:translate key="{ll}annotation.destructive" /></span>
                                                     </f:if>
                                                     <f:if condition="{ability.idempotent}">
-                                                        <span class="badge badge-secondary" title="{f:translate(key: '{ll}annotation.idempotent.help')}">idempotent</span>
+                                                        <span class="badge badge-default" title="{f:translate(key: '{ll}annotation.idempotent.help')}"><f:translate key="{ll}annotation.idempotent" /></span>
                                                     </f:if>
                                                 </td>
                                                 <td>
                                                     <f:if condition="{ability.scopes}">
                                                         <f:then><code>{ability.scopes -> f:join(separator: ', ')}</code></f:then>
-                                                        <f:else><span class="text-body-secondary">&mdash;</span></f:else>
+                                                        <f:else><span class="text-muted">&mdash;</span></f:else>
                                                     </f:if>
                                                 </td>
                                                 <td>
                                                     <f:if condition="{ability.sideEffects}">
                                                         <f:then><code>{ability.sideEffects -> f:join(separator: ', ')}</code></f:then>
-                                                        <f:else><span class="text-body-secondary"><f:translate key="{ll}sideEffects.none" /></span></f:else>
+                                                        <f:else><span class="text-muted"><f:translate key="{ll}sideEffects.none" /></span></f:else>
                                                     </f:if>
                                                 </td>
                                                 <td>
@@ -193,9 +191,9 @@
                 <!-- ─────────────── Catalogue ─────────────── -->
                 <div role="tabpanel" class="tab-pane" id="abilities-tab-catalog" aria-labelledby="abilities-tab-catalog-tab">
                     <div class="form-section">
-                        <div class="callout callout-info">
-                            <div class="callout-body"><f:translate key="{ll}catalog.intro" /></div>
-                        </div>
+                        <f:be.infobox state="{f:constant(name: 'TYPO3\CMS\Core\Type\ContextualFeedbackSeverity::INFO')}">
+                            <p><f:translate key="{ll}catalog.intro" /></p>
+                        </f:be.infobox>
 
                         <div class="row row-cols-auto g-3 abilities-filters" role="group" data-filter-rows="#abilities-catalog-table .abilities-row"
                              aria-label="{f:translate(key: '{ll}catalog.filters')}">
@@ -222,16 +220,17 @@
                                     </f:for>
                                 </select>
                             </div>
-                            <p class="abilities-filter-status text-body-secondary w-100" role="status" aria-live="polite" data-filter-status></p>
+                            <p class="abilities-filter-status text-muted w-100" role="status" aria-live="polite" data-filter-status></p>
                         </div>
                     </div>
 
                     <div class="table-fit">
-                        <table class="table table-striped table-hover" id="abilities-catalog-table">
+                        <table class="table table-striped table-hover table-vertical-top" id="abilities-catalog-table">
                             <caption class="visually-hidden"><f:translate key="{ll}catalog.caption" /></caption>
                             <thead>
                                 <tr>
                                     <th scope="col"><f:translate key="{ll}column.id" /></th>
+                                    <th scope="col"><f:translate key="{ll}column.description" /></th>
                                     <th scope="col"><f:translate key="{ll}column.source" /></th>
                                     <th scope="col"><f:translate key="{ll}column.annotations" /></th>
                                     <th scope="col"><f:translate key="{ll}column.invocations" /></th>
@@ -246,24 +245,31 @@
                                         <th scope="row">
                                             <code class="abilities-name">{entry.id}</code>
                                             <div class="abilities-subtitle">{entry.title}</div>
-                                            <div class="abilities-subtitle abilities-description">{entry.description}</div>
                                         </th>
+                                        <td class="col-white-space-normal abilities-description">{entry.description}</td>
                                         <td>
-                                            <span class="badge badge-secondary">{entry.source}</span>
+                                            <span class="badge badge-default">{entry.source}</span>
                                             <div class="abilities-subtitle">{entry.surfaces -> f:join(separator: ', ')}</div>
                                         </td>
                                         <td>
                                             <f:for each="{entry.flags}" as="flag">
-                                                <span class="badge badge-info">{flag}</span>
+                                                <span class="badge badge-info"><f:translate key="{ll}annotation.{flag}" /></span>
                                             </f:for>
                                             <f:if condition="{entry.hasInputSchema}">
-                                                <span class="badge badge-secondary" title="{f:translate(key: '{ll}catalog.schema.help')}">schema</span>
+                                                <span class="badge badge-default" title="{f:translate(key: '{ll}catalog.schema.help')}"><f:translate key="{ll}catalog.schema" /></span>
                                             </f:if>
                                         </td>
-                                        <td>
-                                            <f:for each="{entry.invocations}" key="surface" as="invocation">
-                                                <div class="abilities-invocation"><span class="abilities-surfaces">{surface}</span> <code>{invocation}</code></div>
-                                            </f:for>
+                                        <td class="col-white-space-normal">
+                                            <f:variable name="invocationCount" value="{entry.invocations -> f:count()}" />
+                                            <details class="abilities-invocations">
+                                                <summary><f:translate key="{ll}catalog.invocations" arguments="{count: invocationCount}" /></summary>
+                                                <dl>
+                                                    <f:for each="{entry.invocations}" key="surface" as="invocation">
+                                                        <dt>{surface}</dt>
+                                                        <dd><code>{invocation}</code></dd>
+                                                    </f:for>
+                                                </dl>
+                                            </details>
                                         </td>
                                     </tr>
                                 </f:for>
@@ -294,7 +300,7 @@
                         <div class="form-section">
                             <h2 class="abilities-run-title"></h2>
                             <p class="abilities-run-description"></p>
-                            <p class="abilities-run-instructions text-body-secondary"></p>
+                            <p class="abilities-run-instructions text-muted"></p>
                             <p class="abilities-run-meta"></p>
                         </div>
 
@@ -329,8 +335,8 @@
                             <div class="col-md-6">
                                 <div class="form-section">
                                     <label class="form-label" for="abilities-result"><f:translate key="{ll}run.result" /></label>
-                                    <pre class="abilities-result" id="abilities-result" tabindex="0" role="status" aria-live="polite"><span class="text-body-secondary"><f:translate key="{ll}run.result.empty" /></span></pre>
-                                    <p class="abilities-run-status text-body-secondary"></p>
+                                    <pre class="abilities-result" id="abilities-result" tabindex="0" role="status" aria-live="polite"><span class="text-muted"><f:translate key="{ll}run.result.empty" /></span></pre>
+                                    <p class="abilities-run-status text-muted"></p>
                                 </div>
                             </div>
                         </div>
@@ -340,9 +346,9 @@
                 <!-- ─────────────── Traces ─────────────── -->
                 <div role="tabpanel" class="tab-pane" id="abilities-tab-traces" aria-labelledby="abilities-tab-traces-tab">
                     <div class="form-section">
-                        <div class="callout callout-info">
-                            <div class="callout-body"><f:translate key="{ll}traces.intro" /></div>
-                        </div>
+                        <f:be.infobox state="{f:constant(name: 'TYPO3\CMS\Core\Type\ContextualFeedbackSeverity::INFO')}">
+                            <p><f:translate key="{ll}traces.intro" /></p>
+                        </f:be.infobox>
 
                         <div class="row row-cols-auto g-3 abilities-filters" role="group"
                              aria-label="{f:translate(key: '{ll}traces.filters')}">
@@ -396,34 +402,34 @@
                             <tbody></tbody>
                         </table>
                     </div>
-                    <p class="abilities-trace-status text-body-secondary" role="status" aria-live="polite"></p>
+                    <p class="abilities-trace-status text-muted" role="status" aria-live="polite"></p>
                 </div>
 
                 <!-- ─────────────── Tokens ─────────────── -->
                 <div role="tabpanel" class="tab-pane" id="abilities-tab-tokens" aria-labelledby="abilities-tab-tokens-tab">
                     <div class="form-section">
-                        <div class="callout callout-info">
-                            <div class="callout-body"><f:translate key="{ll}tokens.intro" /></div>
-                        </div>
+                        <f:be.infobox state="{f:constant(name: 'TYPO3\CMS\Core\Type\ContextualFeedbackSeverity::INFO')}">
+                            <p><f:translate key="{ll}tokens.intro" /></p>
+                        </f:be.infobox>
 
-                        <form id="abilities-token-form" class="row row-cols-auto g-3 align-items-end">
-                            <div class="col">
-                                <label class="form-label" for="abilities-token-name"><f:translate key="{ll}tokens.name" /></label>
-                                <input type="text" class="form-control" id="abilities-token-name" required
-                                       placeholder="{f:translate(key: '{ll}tokens.name.placeholder')}">
-                            </div>
-                            <div class="col">
-                                <label class="form-label" for="abilities-token-scopes"><f:translate key="{ll}tokens.scopes" /></label>
-                                <select class="form-select" id="abilities-token-scopes" multiple size="5"
-                                        aria-describedby="abilities-token-scopes-help"></select>
-                                <p class="form-text" id="abilities-token-scopes-help"><f:translate key="{ll}tokens.scopes.help" /></p>
-                            </div>
-                            <div class="col">
-                                <label class="form-label" for="abilities-token-expires"><f:translate key="{ll}tokens.expires" /></label>
-                                <input type="number" class="form-control" id="abilities-token-expires" min="1" step="1"
-                                       placeholder="{f:translate(key: '{ll}tokens.expires.never')}">
-                            </div>
-                            <div class="col">
+                        <form id="abilities-token-form" class="row">
+                            <div class="col-md-8 col-lg-6">
+                                <div class="form-group">
+                                    <label class="form-label" for="abilities-token-name"><f:translate key="{ll}tokens.name" /></label>
+                                    <input type="text" class="form-control" id="abilities-token-name" required
+                                           placeholder="{f:translate(key: '{ll}tokens.name.placeholder')}">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="abilities-token-scopes"><f:translate key="{ll}tokens.scopes" /></label>
+                                    <select class="form-select" id="abilities-token-scopes" multiple size="6"
+                                            aria-describedby="abilities-token-scopes-help"></select>
+                                    <p class="form-text" id="abilities-token-scopes-help"><f:translate key="{ll}tokens.scopes.help" /></p>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="abilities-token-expires"><f:translate key="{ll}tokens.expires" /></label>
+                                    <input type="number" class="form-control" id="abilities-token-expires" min="1" step="1"
+                                           placeholder="{f:translate(key: '{ll}tokens.expires.never')}">
+                                </div>
                                 <button type="submit" class="btn btn-primary">
                                     <core:icon identifier="actions-plus" size="small" />
                                     <f:translate key="{ll}tokens.create" />
@@ -431,11 +437,18 @@
                             </div>
                         </form>
 
-                        <div class="callout callout-warning abilities-token-plaintext" id="abilities-token-plaintext" hidden>
-                            <div class="callout-body">
-                                <p><strong><f:translate key="{ll}tokens.plaintext.warning" /></strong></p>
+                        <div class="abilities-token-plaintext" id="abilities-token-plaintext" hidden>
+                            <f:be.infobox
+                                state="{f:constant(name: 'TYPO3\CMS\Core\Type\ContextualFeedbackSeverity::WARNING')}"
+                                title="{f:translate(key: '{ll}tokens.plaintext.title')}"
+                            >
+                                <p><f:translate key="{ll}tokens.plaintext.warning" /></p>
                                 <pre class="abilities-token-value" tabindex="0" role="status" aria-live="assertive"></pre>
-                            </div>
+                                <typo3-copy-to-clipboard class="btn btn-default" id="abilities-token-copy">
+                                    <core:icon identifier="actions-clipboard" size="small" />
+                                    <f:translate key="{ll}tokens.copy" />
+                                </typo3-copy-to-clipboard>
+                            </f:be.infobox>
                         </div>
                     </div>
 
@@ -456,7 +469,7 @@
                             <tbody></tbody>
                         </table>
                     </div>
-                    <p class="abilities-token-status text-body-secondary" role="status" aria-live="polite"></p>
+                    <p class="abilities-token-status text-muted" role="status" aria-live="polite"></p>
                 </div>
             </div>
         </div>

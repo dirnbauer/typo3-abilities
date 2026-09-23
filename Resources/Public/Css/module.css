@@ -1,29 +1,26 @@
 /*
- * Abilities backend module. Layout only — every colour comes from a TYPO3
- * backend custom property so the module follows the light/dark scheme.
+ * Abilities backend module. Layout only: colours, borders and focus come
+ * from TYPO3 backend custom properties, so light and dark mode follow the
+ * backend scheme.
  */
 
-.abilities-module h1 {
-    margin-bottom: 1rem;
-}
-
-.abilities-module .tab-content > .tab-pane {
-    padding-top: 1rem;
-}
-
 .abilities-module .abilities-filters {
-    margin-bottom: 0.5rem;
+    margin-bottom: calc(var(--typo3-spacing) / 2);
 }
 
 .abilities-module .abilities-filters .form-label {
-    margin-bottom: 0.25rem;
+    margin-bottom: calc(var(--typo3-spacing) / 4);
 }
 
 .abilities-module .abilities-filter-status,
 .abilities-module .abilities-trace-status,
 .abilities-module .abilities-token-status {
-    margin: 0.5rem 0 0;
-    font-size: 0.85rem;
+    margin: calc(var(--typo3-spacing) / 2) 0 0;
+    font-size: var(--typo3-font-size-small);
+}
+
+.abilities-module .abilities-filters .abilities-filter-status {
+    margin-top: 0;
 }
 
 .abilities-module .abilities-name {
@@ -31,10 +28,9 @@
 }
 
 .abilities-module .abilities-subtitle {
-    color: var(--typo3-text-color-variant, #6c757d);
-    font-size: 0.85rem;
+    color: var(--typo3-text-color-variant);
+    font-size: var(--typo3-font-size-small);
     font-weight: 400;
-    word-break: break-word;
 }
 
 .abilities-module .abilities-surfaces {
@@ -42,29 +38,21 @@
 }
 
 .abilities-module .abilities-description {
-    max-width: 48rem;
+    min-width: 20rem;
+    max-width: 40rem;
 }
 
-.abilities-module .abilities-invocation + .abilities-invocation {
-    margin-top: 0.25rem;
+.abilities-module .abilities-invocations dl {
+    margin: calc(var(--typo3-spacing) / 2) 0 0;
 }
 
-.abilities-module .abilities-invocation code {
+.abilities-module .abilities-invocations dd {
+    margin: 0 0 calc(var(--typo3-spacing) / 2);
     word-break: break-all;
 }
 
-.abilities-module .abilities-filters .abilities-filter-status {
-    margin-top: 0;
-}
-
-.abilities-module .col-control {
-    width: 1%;
-    white-space: nowrap;
-    text-align: end;
-}
-
 .abilities-module .badge + .badge {
-    margin-inline-start: 0.25rem;
+    margin-inline-start: calc(var(--typo3-spacing) / 4);
 }
 
 .abilities-module .abilities-fieldset {
@@ -81,27 +69,29 @@
 }
 
 .abilities-module .abilities-field + .abilities-field {
-    margin-top: 0.75rem;
+    margin-top: calc(var(--typo3-spacing) * 0.75);
 }
 
-.abilities-module .abilities-json {
-    font-family: var(--typo3-font-family-code, monospace);
-    font-size: 0.8rem;
+.abilities-module .abilities-json,
+.abilities-module .abilities-result,
+.abilities-module .abilities-token-value {
+    font-family: var(--typo3-font-family-code);
+    font-size: var(--typo3-font-size-small);
 }
 
 .abilities-module .abilities-approve {
-    margin: 1rem 0;
-    padding: 0.75rem;
-    border-inline-start: 3px solid var(--typo3-state-warning-color, #b87b00);
-    background: var(--typo3-component-hover-bg, rgba(0, 0, 0, 0.02));
+    margin: var(--typo3-spacing) 0;
+    padding: calc(var(--typo3-spacing) * 0.75);
+    border-inline-start: 3px solid var(--typo3-state-warning-border-color);
+    background: var(--typo3-surface-container-low);
 }
 
 .abilities-module .abilities-actions {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: calc(var(--typo3-spacing) / 2);
     flex-wrap: wrap;
-    margin-top: 1rem;
+    margin-top: var(--typo3-spacing);
 }
 
 .abilities-module .abilities-result,
@@ -110,25 +100,25 @@
     max-height: 28rem;
     overflow: auto;
     margin: 0;
-    padding: 0.75rem;
-    border: 1px solid var(--typo3-component-border-color, #ced4da);
-    border-radius: var(--typo3-component-border-radius, 4px);
-    font-size: 0.8rem;
+    padding: calc(var(--typo3-spacing) * 0.75);
+    border: var(--typo3-component-border-width) solid var(--typo3-component-border-color);
+    border-radius: var(--typo3-component-border-radius);
 }
 
 .abilities-module .abilities-token-value {
     min-height: 0;
+    margin-bottom: calc(var(--typo3-spacing) / 2);
     user-select: all;
     word-break: break-all;
     white-space: pre-wrap;
 }
 
 .abilities-module .abilities-result--ok {
-    border-inline-start: 3px solid var(--typo3-state-success-color, #4c8447);
+    border-inline-start: 3px solid var(--typo3-state-success-border-color);
 }
 
 .abilities-module .abilities-result--fail {
-    border-inline-start: 3px solid var(--typo3-state-danger-color, #c83c3c);
+    border-inline-start: 3px solid var(--typo3-state-danger-border-color);
 }
 
 .abilities-module .abilities-trace-input {
@@ -138,10 +128,4 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     vertical-align: bottom;
-}
-
-/* Visible focus everywhere, including inside the scrollable result boxes. */
-.abilities-module :focus-visible {
-    outline: 2px solid var(--typo3-outline-color, #0078e6);
-    outline-offset: 1px;
 }

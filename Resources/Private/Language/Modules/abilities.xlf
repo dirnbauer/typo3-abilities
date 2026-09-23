@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en" datatype="plaintext" original="EXT:abilities/Resources/Private/Language/Modules/abilities.xlf" date="2026-09-23T00:00:00Z" product-name="abilities">
+    <body>
+      <trans-unit id="title">
+        <source>Abilities</source>
+      </trans-unit>
+      <trans-unit id="short_description">
+        <source>Abilities registry</source>
+      </trans-unit>
+      <trans-unit id="description">
+        <source>Browse and run the installation's abilities — the typed, permissioned ability registry — as your backend user, through the governed execution pipeline.</source>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

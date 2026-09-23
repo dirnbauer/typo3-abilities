@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en" target-language="de" datatype="plaintext" original="EXT:abilities/Resources/Private/Language/locallang_db.xlf" date="2026-09-12T00:00:00Z" product-name="abilities">
+    <body>
+      <trans-unit id="be_groups.tab">
+        <source>Abilities</source>
+        <target>Abilities</target>
+      </trans-unit>
+      <trans-unit id="be_groups.tx_abilities_scopes">
+        <source>Ability scopes</source>
+        <target>Ability-Scopes</target>
+      </trans-unit>
+      <trans-unit id="be_groups.tx_abilities_scopes.description">
+        <source>Scopes ("resource:operation") members of this group may use when running abilities from the backend module, the REST API (token scopes are additionally limited to these) or the CLI with --as-user. Administrators hold every scope.</source>
+        <target>Scopes („Ressource:Operation“), die Mitglieder dieser Gruppe beim Ausführen von Abilities im Backend-Modul, über die REST-API (Token-Scopes werden zusätzlich darauf beschränkt) oder über die CLI mit --as-user verwenden dürfen. Administratoren besitzen jeden Scope.</target>
+      </trans-unit>
+      <trans-unit id="be_groups.tx_abilities_scopes.all">
+        <source>All scopes (*)</source>
+        <target>Alle Scopes (*)</target>
+      </trans-unit>
+      <trans-unit id="tx_abilities_token">
+        <source>Abilities API token</source>
+        <target>Abilities-API-Token</target>
+      </trans-unit>
+      <trans-unit id="tx_abilities_token.name">
+        <source>Name</source>
+        <target>Name</target>
+      </trans-unit>
+      <trans-unit id="tx_abilities_token.be_user">
+        <source>Backend user</source>
+        <target>Backend-Benutzer</target>
+      </trans-unit>
+      <trans-unit id="tx_abilities_token.scopes">
+        <source>Scopes</source>
+        <target>Scopes</target>
+      </trans-unit>
+      <trans-unit id="tx_abilities_token.expires">
+        <source>Expires</source>
+        <target>Läuft ab</target>
+      </trans-unit>
+      <trans-unit id="tx_abilities_token.last_used">
+        <source>Last used</source>
+        <target>Zuletzt verwendet</target>
+      </trans-unit>
+      <trans-unit id="tx_abilities_token.token_hash">
+        <source>Token hash (SHA-256)</source>
+        <target>Token-Hash (SHA-256)</target>
+      </trans-unit>
+      <trans-unit id="tx_abilities_trace">
+        <source>Ability execution trace</source>
+        <target>Ausführungs-Trace einer Ability</target>
+      </trans-unit>
+      <trans-unit id="tx_abilities_trace.ability">
+        <source>Ability</source>
+        <target>Ability</target>
+      </trans-unit>
+      <trans-unit id="tx_abilities_trace.surface">
+        <source>Surface</source>
+        <target>Oberfläche</target>
+      </trans-unit>
+      <trans-unit id="tx_abilities_trace.ok">
+        <source>Success</source>
+        <target>Erfolgreich</target>
+      </trans-unit>
+      <trans-unit id="tx_abilities_trace.error_code">
+        <source>Error code</source>
+        <target>Fehlercode</target>
+      </trans-unit>
+      <trans-unit id="tx_abilities_trace.error">
+        <source>Error</source>
+        <target>Fehler</target>
+      </trans-unit>
+      <trans-unit id="tx_abilities_trace.input">
+        <source>Input (JSON)</source>
+        <target>Eingabe (JSON)</target>
+      </trans-unit>
+      <trans-unit id="tx_abilities_trace.duration_ms">
+        <source>Duration (ms)</source>
+        <target>Dauer (ms)</target>
+      </trans-unit>
+      <trans-unit id="tx_abilities_trace.be_user">
+        <source>Backend user</source>
+        <target>Backend-Benutzer</target>
+      </trans-unit>
+      <trans-unit id="sys_reaction.reaction_type.abilities_run">
+        <source>Run ability (abilities registry)</source>
+        <target>Ability ausführen (Abilities-Registry)</target>
+      </trans-unit>
+      <trans-unit id="sys_reaction.tx_abilities_ability">
+        <source>Ability</source>
+        <target>Ability</target>
+      </trans-unit>
+      <trans-unit id="sys_reaction.tx_abilities_ability.description">
+        <source>The ability this webhook runs through the governed pipeline as the impersonated backend user. The JSON payload of the request is the ability input ({"input": {...}} or a bare object); the response is the REST envelope. Only REST-exposed abilities are offered, review-gated abilities always answer 409.</source>
+        <target>Die Ability, die dieser Webhook über die kontrollierte Ausführungskette als der impersonierte Backend-Benutzer ausführt. Der JSON-Inhalt der Anfrage ist die Ability-Eingabe ({"input": {...}} oder ein einfaches Objekt); die Antwort ist die REST-Hülle. Angeboten werden nur REST-freigegebene Abilities; Abilities mit Prüfpflicht antworten immer mit 409.</target>
+      </trans-unit>
+      <trans-unit id="sys_reaction.tx_abilities_ability.select">
+        <source>— select an ability —</source>
+        <target>— Ability auswählen —</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

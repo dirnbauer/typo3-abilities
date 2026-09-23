@@ -19,7 +19,7 @@ return [
         'workspaces' => '*',
         'path' => '/module/system/abilities',
         'iconIdentifier' => 'abilities-module',
-        'labels' => 'LLL:EXT:abilities/Resources/Private/Language/locallang_mod.xlf',
+        'labels' => 'abilities.modules.abilities',
         'routes' => [
             '_default' => [
                 'target' => AbilitiesModuleController::class . '::handleRequest',

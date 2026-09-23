@@ -30,7 +30,7 @@ use Webconsulting\Abilities\Registry\AbilitiesRegistry;
  */
 final readonly class AbilitiesModuleController
 {
-    private const string LL = 'LLL:EXT:abilities/Resources/Private/Language/locallang_mod.xlf:';
+    private const string MODULE_TITLE = 'LLL:EXT:abilities/Resources/Private/Language/Modules/abilities.xlf:title';
 
     public function __construct(
         private ModuleTemplateFactory $moduleTemplateFactory,
@@ -44,16 +44,18 @@ final readonly class AbilitiesModuleController
     {
         $this->pageRenderer->addCssFile('EXT:abilities/Resources/Public/Css/module.css');
         $this->pageRenderer->loadJavaScriptModule('@typo3/backend/tab.js');
+        $this->pageRenderer->loadJavaScriptModule('@typo3/backend/copy-to-clipboard.js');
         $this->pageRenderer->loadJavaScriptModule('@webconsulting/abilities/registry.js');
 
         $moduleTemplate = $this->moduleTemplateFactory->create($request);
-        $moduleTemplate->setTitle($this->translate('mlang_tabs_tab'));
+        $title = $this->translate(self::MODULE_TITLE);
+        $moduleTemplate->setTitle($title);
 
         // No breadcrumb: the registry is installation-wide, not bound to a page.
         // v14 adds the reload button on its own; the shortcut is declared, not built.
         $moduleTemplate->getDocHeaderComponent()->setShortcutContext(
             'system_abilities',
-            $this->translate('mlang_tabs_tab'),
+            $title,
         );
 
         // The module is an admin-only inspector: it deliberately lists the
@@ -144,10 +146,10 @@ final readonly class AbilitiesModuleController
         return array_keys($surfaces);
     }
 
-    private function translate(string $key): string
+    private function translate(string $reference): string
     {
         $languageService = $GLOBALS['LANG'] ?? null;
 
-        return $languageService instanceof LanguageService ? $languageService->sL(self::LL . $key) : $key;
+        return $languageService instanceof LanguageService ? $languageService->sL($reference) : $reference;
     }
 }

@@ -1,6 +1,7 @@
 import Notification from "@typo3/backend/notification.js";
 import Modal from "@typo3/backend/modal.js";
 import Severity from "@typo3/backend/severity.js";
+import labels from "~labels/abilities.mod";
 import {
   executeAbility,
   getAbility,
@@ -36,11 +37,18 @@ if (root) {
 
 /* ─────────────────────────── helpers ─────────────────────────── */
 
+const locale = document.documentElement.lang || undefined;
+const notificationTitle = labels.get("js.notification.title");
+
 function formatTimestamp(seconds) {
   if (!seconds) {
     return "—";
   }
-  return new Date(seconds * 1000).toLocaleString();
+  return new Date(seconds * 1000).toLocaleString(locale);
+}
+
+function riskBadge(tier) {
+  return badge(labels.get(`risk.${tier}`), tier === "low" ? "success" : tier === "medium" ? "warning" : "danger");
 }
 
 function text(tag, content, className) {
@@ -62,7 +70,7 @@ function badge(label, variant) {
 
 function emptyRow(table, message, columns) {
   const row = document.createElement("tr");
-  const td = cell(message, "text-body-secondary");
+  const td = cell(message, "text-muted");
   td.colSpan = columns;
   row.append(td);
   table.tBodies[0].replaceChildren(row);
@@ -112,7 +120,7 @@ function initFilterGroups() {
         }
       }
       if (status) {
-        status.textContent = `${visible} of ${rows.length} shown`;
+        status.textContent = labels.get("js.filter.shown", { visible, total: rows.length });
       }
     };
 
@@ -160,8 +168,9 @@ function buildField(name, schema, required) {
   label.htmlFor = id;
   label.textContent = name;
   if (required) {
-    label.append(text("span", " *", "text-danger"));
-    label.title = "required";
+    const marker = text("span", " *", "text-danger");
+    marker.setAttribute("aria-hidden", "true");
+    label.append(marker);
   }
 
   let control;
@@ -217,6 +226,9 @@ function buildField(name, schema, required) {
 
   control.id = id;
   control.name = name;
+  if (required && type !== "boolean") {
+    control.setAttribute("aria-required", "true");
+  }
   control.dataset.kind = kind;
   control.dataset.nullable = nullable ? "1" : "";
   control.dataset.required = required ? "1" : "";
@@ -318,18 +330,18 @@ function initRunTab() {
     instructions.textContent = ability.instructions ?? "";
 
     meta.replaceChildren();
-    meta.append(badge(`risk: ${ability.riskTier}`, ability.riskTier === "low" ? "success" : ability.riskTier === "medium" ? "warning" : "danger"));
+    meta.append(riskBadge(ability.riskTier));
     if (ability.readOnly) {
-      meta.append(document.createTextNode(" "), badge("read-only", "info"));
+      meta.append(document.createTextNode(" "), badge(labels.get("annotation.readonly"), "info"));
     }
     if (ability.destructive) {
-      meta.append(document.createTextNode(" "), badge("destructive", "danger"));
+      meta.append(document.createTextNode(" "), badge(labels.get("annotation.destructive"), "danger"));
     }
     if (ability.idempotent) {
-      meta.append(document.createTextNode(" "), badge("idempotent", "secondary"));
+      meta.append(document.createTextNode(" "), badge(labels.get("annotation.idempotent"), "default"));
     }
     if (Array.isArray(ability.scopes) && ability.scopes.length > 0) {
-      meta.append(document.createTextNode(" "), badge(ability.scopes.join(", "), "secondary"));
+      meta.append(document.createTextNode(" "), badge(ability.scopes.join(", "), "default"));
     }
 
     const schema = ability.inputSchema ?? {};
@@ -338,7 +350,7 @@ function initRunTab() {
     fields.replaceChildren();
     const names = Object.keys(properties);
     if (names.length === 0) {
-      fields.append(text("p", "This ability takes no input.", "text-body-secondary"));
+      fields.append(text("p", labels.get("js.run.noInput"), "text-muted"));
     }
     for (const name of names) {
       fields.append(buildField(name, properties[name] ?? {}, required.includes(name)));
@@ -350,12 +362,12 @@ function initRunTab() {
     approveReason.textContent = policy.reviewRequired ? policy.reason ?? "" : "";
     execute.disabled = policy.allowed === false && !policy.reviewRequired;
     if (execute.disabled) {
-      status.textContent = policy.reason ?? "Denied by the site policy.";
+      status.textContent = policy.reason ?? labels.get("js.run.denied");
     } else {
       status.textContent = "";
     }
 
-    result.replaceChildren(text("span", "Not run yet.", "text-body-secondary"));
+    result.replaceChildren(text("span", labels.get("run.result.empty"), "text-muted"));
     result.classList.remove("abilities-result--ok", "abilities-result--fail");
     panel.hidden = false;
   };
@@ -372,7 +384,7 @@ function initRunTab() {
         render(ability);
       }
     } catch (error) {
-      Notification.error("Abilities", `Could not load the ability contract: ${error.message}`);
+      Notification.error(notificationTitle, labels.get("js.run.loadFailed", { message: error.message }));
     }
   });
 
@@ -392,7 +404,7 @@ function initRunTab() {
     try {
       input = collectInput(fields);
     } catch (error) {
-      Notification.error("Abilities", `A JSON field is not valid JSON: ${error.message}`);
+      Notification.error(notificationTitle, labels.get("js.run.invalidJson", { message: error.message }));
       return;
     }
 
@@ -406,16 +418,18 @@ function initRunTab() {
         result.textContent = JSON.stringify(envelope, null, 2);
         result.classList.toggle("abilities-result--ok", envelope.ok === true);
         result.classList.toggle("abilities-result--fail", envelope.ok !== true);
-        status.textContent = `HTTP ${httpStatus} · ${ms} ms · surface "backend"${traceUid ? ` · trace #${traceUid}` : ""}`;
+        status.textContent = traceUid
+          ? labels.get("js.run.statusWithTrace", { status: httpStatus, ms, trace: traceUid })
+          : labels.get("js.run.status", { status: httpStatus, ms });
         if (envelope.ok) {
-          Notification.success("Abilities", `${current.name} ran successfully.`);
+          Notification.success(notificationTitle, labels.get("js.run.success", { name: current.name }));
         } else {
-          Notification.warning("Abilities", `${current.name}: ${envelope.errorCode ?? "failed"}`);
+          Notification.warning(notificationTitle, labels.get("js.run.failed", { name: current.name, code: envelope.errorCode ?? "ability_cannot_execute" }));
         }
       } catch (error) {
         result.textContent = String(error?.message ?? error);
         result.classList.add("abilities-result--fail");
-        Notification.error("Abilities", "The request failed.");
+        Notification.error(notificationTitle, labels.get("js.requestFailed"));
       } finally {
         execute.disabled = false;
       }
@@ -425,13 +439,13 @@ function initRunTab() {
     // record anywhere else in the backend.
     if (current.destructive) {
       const modal = Modal.confirm(
-        `Run ${current.name}?`,
+        labels.get("js.run.confirm.title", { name: current.name }),
         current.instructions || current.description,
         Severity.warning,
         [
-          { text: "Cancel", active: true, btnClass: "btn-default", name: "cancel", trigger: () => modal.hideModal() },
+          { text: labels.get("js.cancel"), active: true, btnClass: "btn-default", name: "cancel", trigger: () => modal.hideModal() },
           {
-            text: "Run anyway",
+            text: labels.get("js.run.confirm.run"),
             btnClass: "btn-warning",
             name: "run",
             trigger: () => {
@@ -462,7 +476,7 @@ function initTracesTab() {
   let surfacesLoaded = false;
 
   const load = async () => {
-    status.textContent = "Loading…";
+    status.textContent = labels.get("js.loading");
     try {
       const { traces, totalStored, surfaces } = await getTraces({
         ability: ability.value,
@@ -478,8 +492,8 @@ function initTracesTab() {
       }
 
       if (traces.length === 0) {
-        emptyRow(table, "No traces match these filters.", 8);
-        status.textContent = `0 shown · ${totalStored} stored`;
+        emptyRow(table, labels.get("js.traces.empty"), 8);
+        status.textContent = labels.get("js.traces.status", { shown: 0, stored: totalStored });
         return;
       }
 
@@ -488,7 +502,7 @@ function initTracesTab() {
           const row = document.createElement("tr");
           const outcomeCell = document.createElement("td");
           outcomeCell.append(
-            trace.ok ? badge("ok", "success") : badge(trace.errorCode || "failed", "danger"),
+            trace.ok ? badge(labels.get("js.traces.ok"), "success") : badge(trace.errorCode || labels.get("js.traces.failed"), "danger"),
           );
           if (!trace.ok && trace.error) {
             outcomeCell.append(text("div", trace.error, "abilities-subtitle"));
@@ -508,10 +522,10 @@ function initTracesTab() {
           return row;
         }),
       );
-      status.textContent = `${traces.length} shown (newest first) · ${totalStored} stored`;
+      status.textContent = labels.get("js.traces.status", { shown: traces.length, stored: totalStored });
     } catch (error) {
       status.textContent = "";
-      Notification.error("Abilities", `Could not load traces: ${error.message}`);
+      Notification.error(notificationTitle, labels.get("js.traces.loadFailed", { message: error.message }));
     }
   };
 
@@ -539,6 +553,7 @@ function initTokensTab() {
   const expiresField = document.getElementById("abilities-token-expires");
   const plaintextBox = document.getElementById("abilities-token-plaintext");
   const plaintextValue = plaintextBox.querySelector(".abilities-token-value");
+  const plaintextCopy = plaintextBox.querySelector("#abilities-token-copy");
   const status = document.querySelector(".abilities-token-status");
   let scopesLoaded = false;
 
@@ -547,7 +562,7 @@ function initTokensTab() {
       const { tokens, scopes } = await getTokens();
 
       if (!scopesLoaded) {
-        scopesField.append(new Option("* (every scope the user holds)", "*"));
+        scopesField.append(new Option(labels.get("js.tokens.allScopes"), "*"));
         for (const scope of scopes) {
           scopesField.append(new Option(scope, scope));
         }
@@ -555,7 +570,7 @@ function initTokensTab() {
       }
 
       if (tokens.length === 0) {
-        emptyRow(table, "No active tokens.", 7);
+        emptyRow(table, labels.get("js.tokens.empty"), 7);
         status.textContent = "";
         return;
       }
@@ -568,10 +583,10 @@ function initTokensTab() {
           if (token.expires > 0) {
             expires.textContent = formatTimestamp(token.expires);
             if (token.expires <= now) {
-              expires.append(document.createTextNode(" "), badge("expired", "danger"));
+              expires.append(document.createTextNode(" "), badge(labels.get("js.tokens.expired"), "danger"));
             }
           } else {
-            expires.textContent = "never";
+            expires.textContent = labels.get("js.tokens.never");
           }
 
           const actions = document.createElement("td");
@@ -579,27 +594,27 @@ function initTokensTab() {
           const revoke = document.createElement("button");
           revoke.type = "button";
           revoke.className = "btn btn-default btn-sm";
-          revoke.textContent = "Revoke";
-          revoke.setAttribute("aria-label", `Revoke token ${token.name}`);
+          revoke.textContent = labels.get("js.tokens.revoke");
+          revoke.setAttribute("aria-label", labels.get("js.tokens.revokeNamed", { name: token.name }));
           revoke.addEventListener("click", () => {
             const modal = Modal.confirm(
-              "Revoke token?",
-              `"${token.name}" stops working immediately for every client using it. This cannot be undone.`,
+              labels.get("js.tokens.revoke.title"),
+              labels.get("js.tokens.revoke.message", { name: token.name }),
               Severity.warning,
               [
-                { text: "Cancel", active: true, btnClass: "btn-default", name: "cancel", trigger: () => modal.hideModal() },
+                { text: labels.get("js.cancel"), active: true, btnClass: "btn-default", name: "cancel", trigger: () => modal.hideModal() },
                 {
-                  text: "Revoke",
+                  text: labels.get("js.tokens.revoke"),
                   btnClass: "btn-danger",
                   name: "revoke",
                   trigger: async () => {
                     modal.hideModal();
                     try {
                       await revokeToken(token.uid);
-                      Notification.success("Abilities", `Token "${token.name}" revoked.`);
+                      Notification.success(notificationTitle, labels.get("js.tokens.revoked", { name: token.name }));
                       await load();
                     } catch (error) {
-                      Notification.error("Abilities", `Could not revoke the token: ${error.message}`);
+                      Notification.error(notificationTitle, labels.get("js.tokens.revokeFailed", { message: error.message }));
                     }
                   },
                 },
@@ -614,15 +629,15 @@ function initTokensTab() {
             cell(token.beUser > 0 ? `#${token.beUser}` : "—"),
             cell(token.scopes.length > 0 ? token.scopes.join(", ") : "—"),
             expires,
-            cell(token.lastUsed > 0 ? formatTimestamp(token.lastUsed) : "never"),
+            cell(token.lastUsed > 0 ? formatTimestamp(token.lastUsed) : labels.get("js.tokens.never")),
             actions,
           );
           return row;
         }),
       );
-      status.textContent = `${tokens.length} active token(s)`;
+      status.textContent = labels.get("js.tokens.count", { count: tokens.length });
     } catch (error) {
-      Notification.error("Abilities", `Could not load tokens: ${error.message}`);
+      Notification.error(notificationTitle, labels.get("js.tokens.loadFailed", { message: error.message }));
     }
   };
 
@@ -643,16 +658,19 @@ function initTokensTab() {
 
       // The plaintext exists exactly once: show it, never store it.
       plaintextValue.textContent = issued.token;
+      if (plaintextCopy) {
+        plaintextCopy.text = issued.token;
+      }
       plaintextBox.hidden = false;
       plaintextValue.focus();
       Notification.success(
-        "Abilities",
-        `Token "${issued.name}" created. Effective scopes: ${issued.effectiveScopes.join(", ") || "(none)"}.`,
+        notificationTitle,
+        labels.get("js.tokens.created", { name: issued.name, scopes: issued.effectiveScopes.join(", ") || labels.get("js.tokens.noScopes") }),
       );
       form.reset();
       await load();
     } catch (error) {
-      Notification.error("Abilities", `Could not create the token: ${error.message}`);
+      Notification.error(notificationTitle, labels.get("js.tokens.createFailed", { message: error.message }));
     }
   });
 
