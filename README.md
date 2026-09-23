@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/dirnbauer/typo3-abilities/actions/workflows/ci.yml/badge.svg)](https://github.com/dirnbauer/typo3-abilities/actions/workflows/ci.yml)
 [![TYPO3 14.3](https://img.shields.io/badge/TYPO3-14.3-orange.svg)](https://get.typo3.org/version/14)
-[![PHP 8.4](https://img.shields.io/badge/PHP-8.4-blue.svg)](https://www.php.net/)
+[![PHP 8.4 | 8.5](https://img.shields.io/badge/PHP-8.4%20%7C%208.5-blue.svg)](https://www.php.net/)
 [![License GPL-2.0-or-later](https://img.shields.io/badge/license-GPL--2.0--or--later-green.svg)](LICENSE)
 
 One typed, permissioned registry of what a TYPO3 installation can do, plus an ability catalogue of everything else an AI agent could use — MCP tools, skills, REST and webhook endpoints, console commands — served on every surface so an agent can discover, then use.
@@ -22,7 +22,7 @@ The **ability catalogue** puts the registry next to the native tools of `hn/typo
 | Requirement | Version |
 |---|---|
 | TYPO3 | 14.3 LTS |
-| PHP | 8.4+ |
+| PHP | 8.4+ (tested on 8.4 and 8.5) |
 | Optional | `hn/typo3-mcp-server` (MCP), `typo3/cms-reactions` (webhooks), `typo3/cms-workspaces` (`workspace/publish`), `typo3/cms-scheduler`, `webconsulting/skillflow` or `netresearch/nr-llm` (skills), `sgalinski/sg-apicore` |
 
 ## Install

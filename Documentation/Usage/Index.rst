@@ -311,14 +311,18 @@ the identity and runs execute with that user's group scopes (admins: `*`).
 *   **Registry** — the whole registry with filters (text, category, surface,
     risk) and a :guilabel:`Run` button per row.
 *   **Catalogue** — every ability from every source, filterable by text,
-    source and surface, each with its invocations.
+    source and surface; each row folds its invocations per surface.
 *   **Run** — a form generated from the ability's input schema (enum →
     select, boolean → checkbox, number → number input, objects → JSON), the
     review checkbox when the policy asks for one, a confirmation for
     destructive abilities, and the result with its trace uid.
 *   **Traces** — the newest :sql:`tx_abilities_trace` rows, filterable by
     ability, surface and outcome.
-*   **Tokens** — create (plaintext shown once), list, revoke.
+*   **Tokens** — create (plaintext shown once, with a copy button), list,
+    revoke.
+
+The module is translated into English and German; its JavaScript reads its
+labels from the `~labels/abilities.mod` module, so no string is hard-coded.
 
 ..  _usage-js:
 

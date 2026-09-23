@@ -10,6 +10,17 @@ The complete changelog lives in :file:`CHANGELOG.md` in the repository root
 (`Keep a Changelog <https://keepachangelog.com/en/1.1.0/>`__ format):
 `CHANGELOG.md on GitHub <https://github.com/dirnbauer/typo3-abilities/blob/main/CHANGELOG.md>`__.
 
+..  _changelog-1-3-0:
+
+1.3.0
+=====
+
+Maintenance release without a public API change: the backend module is fully
+translated (English and German, including the JavaScript through the v14
+`~labels/abilities.mod` module), the catalogue folds its invocations, the
+module stylesheet only uses v14 custom properties, PHP 8.4 idioms throughout,
+requirements aligned with TYPO3 14.3 and CI on PHP 8.4 and 8.5.
+
 ..  _changelog-1-2-0:
 
 1.2.0

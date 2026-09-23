@@ -4,6 +4,53 @@ All notable changes to `webconsulting/typo3-abilities` are documented here.
 This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/).
 
+## 1.3.0 — 2026-09-23
+
+A maintenance release: dependencies, PHP 8.4 idioms and a backend module that
+reads like the rest of TYPO3 v14, in English and German. **No public surface
+changed** — class names, constructor signatures, ability identifiers, CLI
+commands, AJAX routes, REST paths, MCP tool names, database tables and the
+`client.js` exports are the same as in 1.2.0.
+
+### Changed
+
+- Backend module: every string of `registry.js` comes from the v14
+  `~labels/abilities.mod` label module (notifications, statuses,
+  confirmations, empty rows, badges), and the risk-tier and annotation badges
+  of the template are XLIFF labels; German for all of them.
+- Catalogue tab: the description has its own wrapping column (it overflowed
+  the non-wrapping row header before) and the per-surface invocations fold
+  into a `<details>` element.
+- Intros and the empty registry use core infoboxes; the one-time REST token
+  sits in a warning infobox with a copy button; the token form stacks its
+  fields.
+- `module.css` only uses custom properties that exist in the v14 backend (no
+  hex fallbacks, no custom focus outline — core provides it);
+  `text-body-secondary`, which the backend CSS does not define, became
+  `text-muted`; required run fields carry `aria-required`; dates follow the
+  backend language.
+- The module registration uses the v14 label keys (`title`,
+  `short_description`, `description`) in
+  `Resources/Private/Language/Modules/abilities.xlf`.
+- PHP 8.4 idioms: typed class constants, `readonly` on the 25 final classes
+  whose state already was, `new Foo()->bar()`, `array_any()` and first-class
+  callables.
+- Requirements follow what TYPO3 14.3 installs: `psr/http-message` ^2.0,
+  `symfony/console` and `symfony/yaml` ^7.4; dev: `phpunit/phpunit` ^13.3,
+  `typo3/testing-framework` ^9.7, `phpstan/phpstan` ^2.2.
+- CI requires PHP 8.4 and 8.5 for unit and functional tests (8.5 was
+  experimental) and pins current action releases.
+
+### Added
+
+- German translation of `locallang_db.xlf` (token, trace, backend group and
+  reaction TCA).
+- Unit tests that every label the template and `registry.js` reference
+  exists in both languages and that every label file has a complete German
+  twin.
+- `.gitattributes`: development files stay out of the Composer dist archive;
+  `composer.json` gains `homepage` and `support` URLs.
+
 ## 1.2.0 — 2026-09-19
 
 Terminology fix inside the catalogue layer. "Ability" is a unit of
