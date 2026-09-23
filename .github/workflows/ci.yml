@@ -16,9 +16,9 @@ jobs:
     name: Lint + composer validate
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
           php-version: "8.4"
           extensions: ${{ env.PHP_EXTENSIONS }}
@@ -32,7 +32,7 @@ jobs:
 
       - name: Lint XLIFF files
         run: |
-          for file in Resources/Private/Language/*.xlf; do
+          for file in Resources/Private/Language/*.xlf Resources/Private/Language/Modules/*.xlf; do
             php -r 'libxml_use_internal_errors(true);
               $d = new DOMDocument();
               if (!$d->load($argv[1])) {
@@ -57,9 +57,9 @@ jobs:
     name: Coding guidelines (TYPO3 ruleset)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
           php-version: "8.4"
           extensions: ${{ env.PHP_EXTENSIONS }}
@@ -75,9 +75,9 @@ jobs:
     name: PHPStan (level 8)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
           php-version: "8.4"
           extensions: ${{ env.PHP_EXTENSIONS }}
@@ -92,21 +92,14 @@ jobs:
   unit:
     name: Unit tests (PHP ${{ matrix.php-version }})
     runs-on: ubuntu-24.04
-    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - php-version: "8.4"
-            experimental: false
-          # PHP 8.5 is not a supported target yet: it runs so regressions are
-          # visible early, but a failure must not block a pull request.
-          - php-version: "8.5"
-            experimental: true
+        php-version: ["8.4", "8.5"]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
           php-version: ${{ matrix.php-version }}
           extensions: ${{ env.PHP_EXTENSIONS }}
@@ -119,8 +112,12 @@ jobs:
         run: composer test:unit
 
   functional:
-    name: Functional tests (MariaDB 10.11)
+    name: Functional tests (PHP ${{ matrix.php-version }}, MariaDB 10.11)
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ["8.4", "8.5"]
     services:
       mariadb:
         image: mariadb:10.11
@@ -143,11 +140,11 @@ jobs:
       typo3DatabaseHost: 127.0.0.1
       typo3DatabasePort: 3306
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
-          php-version: "8.4"
+          php-version: ${{ matrix.php-version }}
           extensions: ${{ env.PHP_EXTENSIONS }}
           coverage: none
 
@@ -161,7 +158,7 @@ jobs:
     name: Render documentation
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Render with the official TYPO3 render-guides
         run: |
