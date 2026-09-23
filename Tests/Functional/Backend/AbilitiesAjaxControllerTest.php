@@ -53,7 +53,7 @@ final class AbilitiesAjaxControllerTest extends FunctionalTestCase
      */
     private function ajaxGet(string $method, array $query = []): ResponseInterface
     {
-        return $this->controller->{$method}((new ServerRequest('https://localhost/typo3/ajax'))->withQueryParams($query));
+        return $this->controller->{$method}(new ServerRequest('https://localhost/typo3/ajax')->withQueryParams($query));
     }
 
     /**
@@ -62,7 +62,7 @@ final class AbilitiesAjaxControllerTest extends FunctionalTestCase
     private function post(string $method, array $body): ResponseInterface
     {
         return $this->controller->{$method}(
-            (new ServerRequest('https://localhost/typo3/ajax', 'POST'))->withParsedBody($body),
+            new ServerRequest('https://localhost/typo3/ajax', 'POST')->withParsedBody($body),
         );
     }
 

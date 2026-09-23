@@ -38,11 +38,11 @@ use Webconsulting\Abilities\Registry\AbstractAbility;
 )]
 final class SearchContentAbility extends AbstractAbility
 {
-    public const TABLE_PAGES = 'pages';
-    public const TABLE_CONTENT = 'tt_content';
+    public const string TABLE_PAGES = 'pages';
+    public const string TABLE_CONTENT = 'tt_content';
 
-    private const DEFAULT_LIMIT = 20;
-    private const MAX_LIMIT = 100;
+    private const int DEFAULT_LIMIT = 20;
+    private const int MAX_LIMIT = 100;
 
     public function __construct(
         private readonly ConnectionPool $connectionPool,

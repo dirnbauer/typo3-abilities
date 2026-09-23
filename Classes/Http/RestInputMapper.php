@@ -18,10 +18,10 @@ use Webconsulting\Abilities\Validation\SchemaValidator;
  * Throws InvalidRestInputException for malformed input; the caller maps it
  * to 400 ability_invalid_input.
  */
-final class RestInputMapper
+final readonly class RestInputMapper
 {
     public function __construct(
-        private readonly SchemaValidator $validator = new SchemaValidator(),
+        private SchemaValidator $validator = new SchemaValidator(),
     ) {}
 
     /**

@@ -7,6 +7,7 @@ namespace Webconsulting\Abilities\Tests\Functional\Backend;
 use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Backend\Routing\Route;
 use TYPO3\CMS\Core\Core\SystemEnvironmentBuilder;
+use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Localization\LanguageServiceFactory;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
@@ -35,12 +36,12 @@ final class AbilitiesModuleControllerTest extends FunctionalTestCase
         $controller = $this->get(AbilitiesModuleController::class);
         self::assertInstanceOf(AbilitiesModuleController::class, $controller);
 
-        $request = (new ServerRequest('https://localhost/typo3/module/system/abilities'))
+        $request = new ServerRequest('https://localhost/typo3/module/system/abilities')
             ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_BE)
             // packageName is how BackendViewFactory finds this extension's
             // Resources/Private/Templates — the real backend route carries it.
             ->withAttribute('route', new Route('/module/system/abilities', ['packageName' => 'webconsulting/typo3-abilities']))
-            ->withAttribute('normalizedParams', \TYPO3\CMS\Core\Http\NormalizedParams::createFromServerParams([
+            ->withAttribute('normalizedParams', NormalizedParams::createFromServerParams([
                 'HTTP_HOST' => 'localhost',
                 'SCRIPT_NAME' => '/typo3/index.php',
             ]));

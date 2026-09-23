@@ -12,14 +12,14 @@ namespace Webconsulting\Abilities\Security;
  * and the stored hash is re-compared in constant time; expired and revoked
  * (soft-deleted) tokens never authenticate.
  */
-final class TokenService
+final readonly class TokenService
 {
-    public const TOKEN_PREFIX = 'abl_';
+    public const string TOKEN_PREFIX = 'abl_';
 
-    private const TOKEN_BYTES = 32;
+    private const int TOKEN_BYTES = 32;
 
     public function __construct(
-        private readonly TokenStorageInterface $storage,
+        private TokenStorageInterface $storage,
     ) {}
 
     private static function hash(string $plaintext): string

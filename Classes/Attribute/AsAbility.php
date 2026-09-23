@@ -21,9 +21,9 @@ use Webconsulting\Abilities\Domain\RiskTier;
  * annotations and the REST run method (GET / POST / DELETE).
  */
 #[\Attribute(\Attribute::TARGET_CLASS)]
-final class AsAbility
+final readonly class AsAbility
 {
-    private const NAME_PATTERN = '/^[a-z0-9][a-z0-9\-]*\/[a-z0-9][a-z0-9\-]*$/';
+    private const string NAME_PATTERN = '/^[a-z0-9][a-z0-9\-]*\/[a-z0-9][a-z0-9\-]*$/';
 
     /**
      * @param string $name Unique ability name, "namespace/ability-name" (lowercase kebab-case both sides)
@@ -41,19 +41,19 @@ final class AsAbility
      * @param string $instructions Usage guidance for agents (when and how to call this ability)
      */
     public function __construct(
-        public readonly string $name,
-        public readonly string $title,
-        public readonly string $description,
-        public readonly string $category = 'general',
-        public readonly array $scopes = [],
-        public readonly RiskTier $riskTier = RiskTier::Low,
-        public readonly array $sideEffects = [],
-        public readonly bool $idempotent = false,
-        public readonly bool $destructive = false,
-        public readonly array $expose = ExecutionContext::PROJECTION_SURFACES,
-        public readonly array $meta = [],
-        public readonly ?bool $readOnly = null,
-        public readonly string $instructions = '',
+        public string $name,
+        public string $title,
+        public string $description,
+        public string $category = 'general',
+        public array $scopes = [],
+        public RiskTier $riskTier = RiskTier::Low,
+        public array $sideEffects = [],
+        public bool $idempotent = false,
+        public bool $destructive = false,
+        public array $expose = ExecutionContext::PROJECTION_SURFACES,
+        public array $meta = [],
+        public ?bool $readOnly = null,
+        public string $instructions = '',
     ) {
         if (preg_match(self::NAME_PATTERN, $name) !== 1) {
             throw new \InvalidArgumentException(

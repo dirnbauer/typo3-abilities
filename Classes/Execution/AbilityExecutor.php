@@ -30,12 +30,12 @@ use Webconsulting\Abilities\Validation\SchemaValidator;
  * Mirrors the WordPress Abilities API execution order, with the policy gate
  * in front because governance outranks contracts.
  */
-final class AbilityExecutor
+final readonly class AbilityExecutor
 {
     public function __construct(
-        private readonly SchemaValidator $validator,
-        private readonly PolicyProvider $policyProvider,
-        private readonly ?EventDispatcherInterface $eventDispatcher = null,
+        private SchemaValidator $validator,
+        private PolicyProvider $policyProvider,
+        private ?EventDispatcherInterface $eventDispatcher = null,
     ) {}
 
     /**

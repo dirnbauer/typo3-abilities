@@ -22,18 +22,18 @@ use Webconsulting\Abilities\Registry\AbilitiesRegistry;
  * approvable over REST (a bearer token is not a human in the loop) and
  * answer 409 ability_review_required.
  */
-final class RestRequestHandler
+final readonly class RestRequestHandler
 {
-    public const DEFAULT_PER_PAGE = 50;
-    public const MAX_PER_PAGE = 100;
+    public const int DEFAULT_PER_PAGE = 50;
+    public const int MAX_PER_PAGE = 100;
 
     public function __construct(
-        private readonly AbilitiesRegistry $registry,
-        private readonly AbilityExecutor $executor,
-        private readonly CategoryRegistry $categories,
-        private readonly AbilityCatalog $catalog,
-        private readonly RestResponseFactory $responses,
-        private readonly RestInputMapper $inputMapper,
+        private AbilitiesRegistry $registry,
+        private AbilityExecutor $executor,
+        private CategoryRegistry $categories,
+        private AbilityCatalog $catalog,
+        private RestResponseFactory $responses,
+        private RestInputMapper $inputMapper,
     ) {}
 
     public function handle(RestRoute $route, ServerRequestInterface $request, ExecutionContext $context): ResponseInterface

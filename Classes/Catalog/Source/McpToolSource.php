@@ -16,11 +16,11 @@ use Webconsulting\Abilities\Projection\Mcp\McpProjection;
  * tools (ability_*) are skipped — they are catalogued as abilities. The
  * server extension is optional: without it this source yields nothing.
  */
-final class McpToolSource implements CatalogSourceInterface
+final readonly class McpToolSource implements CatalogSourceInterface
 {
     public function __construct(
-        private readonly McpProjection $projection,
-        private readonly ?ToolRegistry $toolRegistry = null,
+        private McpProjection $projection,
+        private ?ToolRegistry $toolRegistry = null,
     ) {}
 
     public function getSource(): string
@@ -57,7 +57,7 @@ final class McpToolSource implements CatalogSourceInterface
             description: is_string($schema['description'] ?? null) ? $schema['description'] : '',
             source: CatalogEntry::SOURCE_MCP,
             surfaces: [ExecutionContext::SURFACE_MCP],
-            inputSchema: array_filter($inputSchema, static fn(mixed $key): bool => is_string($key), ARRAY_FILTER_USE_KEY),
+            inputSchema: array_filter($inputSchema, is_string(...), ARRAY_FILTER_USE_KEY),
             annotations: CatalogEntry::annotations(
                 ($annotations['readOnlyHint'] ?? false) === true,
                 ($annotations['destructiveHint'] ?? false) === true,

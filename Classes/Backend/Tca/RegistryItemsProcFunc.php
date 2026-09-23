@@ -13,10 +13,10 @@ use Webconsulting\Abilities\Registry\AbilitiesRegistry;
  *  - be_groups.tx_abilities_scopes: every scope an ability declares
  *  - sys_reaction.tx_abilities_ability: every ability a webhook may run
  */
-final class RegistryItemsProcFunc
+final readonly class RegistryItemsProcFunc
 {
     public function __construct(
-        private readonly AbilitiesRegistry $registry,
+        private AbilitiesRegistry $registry,
     ) {}
 
     /**

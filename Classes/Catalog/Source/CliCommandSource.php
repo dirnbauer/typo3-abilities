@@ -14,12 +14,12 @@ use Webconsulting\Abilities\Catalog\CatalogSourceInterface;
  * derived from its InputDefinition (arguments and options) and, for
  * schedulable commands, the scheduler surface.
  */
-final class CliCommandSource implements CatalogSourceInterface
+final readonly class CliCommandSource implements CatalogSourceInterface
 {
-    public const SURFACE_SCHEDULER = 'scheduler';
+    public const string SURFACE_SCHEDULER = 'scheduler';
 
     public function __construct(
-        private readonly CommandRegistry $commandRegistry,
+        private CommandRegistry $commandRegistry,
     ) {}
 
     public function getSource(): string

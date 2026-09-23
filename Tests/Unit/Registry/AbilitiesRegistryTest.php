@@ -8,6 +8,8 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\AbstractLogger;
 use Webconsulting\Abilities\Category\CategoryRegistry;
+use Webconsulting\Abilities\Domain\AbilityCategory;
+use Webconsulting\Abilities\Domain\AbilityDefinition;
 use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Domain\RiskTier;
 use Webconsulting\Abilities\Event\ModifyAbilityDefinitionEvent;
@@ -86,11 +88,11 @@ final class AbilitiesRegistryTest extends TestCase
     #[Test]
     public function modifyEventRefusesToSwapTheAbility(): void
     {
-        $event = new ModifyAbilityDefinitionEvent(\Webconsulting\Abilities\Domain\AbilityDefinition::fromClassName(EchoAbility::class));
+        $event = new ModifyAbilityDefinitionEvent(AbilityDefinition::fromClassName(EchoAbility::class));
 
         $this->expectException(\LogicException::class);
         $this->expectExceptionCode(7480291012);
-        $event->setDefinition(\Webconsulting\Abilities\Domain\AbilityDefinition::fromClassName(HiddenAbility::class));
+        $event->setDefinition(AbilityDefinition::fromClassName(HiddenAbility::class));
     }
 
     #[Test]
@@ -117,7 +119,7 @@ final class AbilitiesRegistryTest extends TestCase
     public function knownCategoryDoesNotWarn(): void
     {
         $categories = new CategoryRegistry();
-        $categories->register(new \Webconsulting\Abilities\Domain\AbilityCategory('testing', 'Testing'));
+        $categories->register(new AbilityCategory('testing', 'Testing'));
         $logger = new class extends AbstractLogger {
             public int $calls = 0;
 

@@ -14,7 +14,7 @@ use Webconsulting\Abilities\Http\RestInputMapper;
 final class RestInputMapperTest extends TestCase
 {
     /** @var array<string, mixed> */
-    private const SCHEMA = [
+    private const array SCHEMA = [
         'type' => 'object',
         'properties' => [
             'id' => ['type' => 'integer'],
@@ -44,7 +44,7 @@ final class RestInputMapperTest extends TestCase
     #[Test]
     public function coercesPlainQueryParametersByDeclaredType(): void
     {
-        $input = (new RestInputMapper())->fromRequest(
+        $input = new RestInputMapper()->fromRequest(
             $this->request('GET', 'http://localhost/run?id=42&ratio=0.5&force=true&tags=a,b&meta={"k":1}&maybe=&title=7&unknown=x'),
             self::SCHEMA,
         );
@@ -58,7 +58,7 @@ final class RestInputMapperTest extends TestCase
     #[Test]
     public function leavesUncoercibleStringsForTheSchemaValidator(): void
     {
-        $input = (new RestInputMapper())->fromQuery(['id' => 'abc', 'force' => 'maybe'], self::SCHEMA);
+        $input = new RestInputMapper()->fromQuery(['id' => 'abc', 'force' => 'maybe'], self::SCHEMA);
 
         self::assertSame(['id' => 'abc', 'force' => 'maybe'], $input);
     }
@@ -66,7 +66,7 @@ final class RestInputMapperTest extends TestCase
     #[Test]
     public function inputQueryParameterWinsAsJson(): void
     {
-        $input = (new RestInputMapper())->fromRequest(
+        $input = new RestInputMapper()->fromRequest(
             $this->request('GET', 'http://localhost/run?input=' . rawurlencode('{"id": 1, "title": "x"}') . '&id=9'),
             self::SCHEMA,
         );

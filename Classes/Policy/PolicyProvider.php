@@ -13,7 +13,7 @@ use TYPO3\CMS\Core\Core\Environment;
  */
 final class PolicyProvider
 {
-    public const POLICY_FILE = 'config/abilities-policy.yaml';
+    public const string POLICY_FILE = 'config/abilities-policy.yaml';
 
     private ?AbilityPolicy $policy = null;
 

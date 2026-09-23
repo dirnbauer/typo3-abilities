@@ -46,7 +46,7 @@ final readonly class AbilityDefinition
      */
     public static function fromClassName(string $className): self
     {
-        $attributes = (new \ReflectionClass($className))->getAttributes(AsAbility::class);
+        $attributes = new \ReflectionClass($className)->getAttributes(AsAbility::class);
         if ($attributes === []) {
             throw new \LogicException(
                 sprintf('Ability class %s must carry the #[AsAbility] attribute.', $className),

@@ -17,7 +17,7 @@ namespace Webconsulting\Abilities\Http;
  */
 final class RestRouter
 {
-    private const SEGMENT = '[a-z0-9][a-z0-9\-]*';
+    private const string SEGMENT = '[a-z0-9][a-z0-9\-]*';
 
     public function isApiRequest(string $path, string $basePath): bool
     {

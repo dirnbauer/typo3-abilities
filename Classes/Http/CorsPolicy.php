@@ -14,9 +14,9 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final readonly class CorsPolicy
 {
-    private const ALLOWED_METHODS = 'GET, POST, DELETE, OPTIONS';
-    private const ALLOWED_HEADERS = 'Authorization, Content-Type, X-Requested-With, X-TYPO3-Workspace';
-    private const EXPOSED_HEADERS = 'X-Total, X-Total-Pages, Allow';
+    private const string ALLOWED_METHODS = 'GET, POST, DELETE, OPTIONS';
+    private const string ALLOWED_HEADERS = 'Authorization, Content-Type, X-Requested-With, X-TYPO3-Workspace';
+    private const string EXPOSED_HEADERS = 'X-Total, X-Total-Pages, Allow';
 
     /**
      * @param list<string> $allowedOrigins
@@ -49,13 +49,8 @@ final readonly class CorsPolicy
         if ($origin === '') {
             return false;
         }
-        foreach ($this->allowedOrigins as $allowed) {
-            if ($allowed === '*' || strcasecmp($allowed, $origin) === 0) {
-                return true;
-            }
-        }
 
-        return false;
+        return array_any($this->allowedOrigins, static fn(string $allowed): bool => $allowed === '*' || strcasecmp($allowed, $origin) === 0);
     }
 
     public function apply(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface

@@ -33,12 +33,12 @@ use Webconsulting\Abilities\Validation\SchemaValidator;
  * the TypoScript) — the site policy and the ability's own permission check
  * still apply, and every run is traced with surface "frontend".
  */
-final class AbilityProcessor implements DataProcessorInterface
+final readonly class AbilityProcessor implements DataProcessorInterface
 {
     public function __construct(
-        private readonly AbilitiesRegistry $registry,
-        private readonly AbilityExecutor $executor,
-        private readonly SchemaValidator $validator,
+        private AbilitiesRegistry $registry,
+        private AbilityExecutor $executor,
+        private SchemaValidator $validator,
     ) {}
 
     /**

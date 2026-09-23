@@ -79,7 +79,7 @@ final class ContentAbilitiesTest extends FunctionalTestCase
     {
         self::assertTrue($result->ok, (string)$result->error);
         $data = self::asArray($result->data);
-        $results = array_map(static fn(mixed $row): array => self::asArray($row), array_values(self::asArray($data['results'])));
+        $results = array_map(self::asArray(...), array_values(self::asArray($data['results'])));
         self::assertSame(count($results), $data['total']);
 
         return $results;

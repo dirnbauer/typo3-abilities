@@ -111,7 +111,7 @@ final class DemoAbilitiesTest extends TestCase
         // assertions never reach it, so an uninitialised instance is enough.
         $search = new SearchContentAbility(
             self::createStub(ConnectionPool::class),
-            (new \ReflectionClass(SiteFinder::class))->newInstanceWithoutConstructor(),
+            new \ReflectionClass(SiteFinder::class)->newInstanceWithoutConstructor(),
         );
         yield 'search: defaults and limits' => [
             $search,
@@ -173,9 +173,9 @@ final class DemoAbilitiesTest extends TestCase
         unset($GLOBALS['BE_USER']);
         $context = ExecutionContext::cli();
 
-        $draft = (new CreatePageDraftAbility())->checkPermission(['parent' => 1, 'title' => 'x'], $context);
-        $delete = (new DeletePageAbility(self::createStub(ConnectionPool::class)))->checkPermission(['uid' => 1], $context);
-        $publish = (new PublishWorkspaceAbility(self::createStub(ContainerInterface::class)))->checkPermission(['workspace' => 1], $context);
+        $draft = new CreatePageDraftAbility()->checkPermission(['parent' => 1, 'title' => 'x'], $context);
+        $delete = new DeletePageAbility(self::createStub(ConnectionPool::class))->checkPermission(['uid' => 1], $context);
+        $publish = new PublishWorkspaceAbility(self::createStub(ContainerInterface::class))->checkPermission(['workspace' => 1], $context);
 
         foreach (['content/create-page-draft' => $draft, 'content/delete-page' => $delete, 'workspace/publish' => $publish] as $name => $denial) {
             self::assertIsString($denial, $name);

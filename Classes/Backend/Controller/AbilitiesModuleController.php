@@ -28,16 +28,16 @@ use Webconsulting\Abilities\Registry\AbilitiesRegistry;
  * (schema-driven form), Traces (what ran, from which surface, with which
  * outcome) and Tokens (REST bearer tokens of the acting user).
  */
-final class AbilitiesModuleController
+final readonly class AbilitiesModuleController
 {
-    private const LL = 'LLL:EXT:abilities/Resources/Private/Language/locallang_mod.xlf:';
+    private const string LL = 'LLL:EXT:abilities/Resources/Private/Language/locallang_mod.xlf:';
 
     public function __construct(
-        private readonly ModuleTemplateFactory $moduleTemplateFactory,
-        private readonly PageRenderer $pageRenderer,
-        private readonly AbilitiesRegistry $registry,
-        private readonly CategoryRegistry $categories,
-        private readonly AbilityCatalog $catalog,
+        private ModuleTemplateFactory $moduleTemplateFactory,
+        private PageRenderer $pageRenderer,
+        private AbilitiesRegistry $registry,
+        private CategoryRegistry $categories,
+        private AbilityCatalog $catalog,
     ) {}
 
     public function handleRequest(ServerRequestInterface $request): ResponseInterface

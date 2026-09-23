@@ -28,17 +28,17 @@ use Webconsulting\Abilities\Registry\AbilitiesRegistry;
  *
  * Registered only when typo3/cms-reactions is installed (see Configuration/Services.php).
  */
-final class RunAbilityReaction implements ReactionInterface
+final readonly class RunAbilityReaction implements ReactionInterface
 {
-    public const TYPE = 'abilities-run';
-    public const FIELD_ABILITY = 'tx_abilities_ability';
+    public const string TYPE = 'abilities-run';
+    public const string FIELD_ABILITY = 'tx_abilities_ability';
 
     public function __construct(
-        private readonly AbilitiesRegistry $registry,
-        private readonly AbilityExecutor $executor,
-        private readonly BackendUserScopeResolver $scopeResolver,
-        private readonly RestInputMapper $inputMapper,
-        private readonly RestResponseFactory $responses,
+        private AbilitiesRegistry $registry,
+        private AbilityExecutor $executor,
+        private BackendUserScopeResolver $scopeResolver,
+        private RestInputMapper $inputMapper,
+        private RestResponseFactory $responses,
     ) {}
 
     public static function getType(): string

@@ -17,13 +17,13 @@ use Webconsulting\Abilities\Domain\AbilityResult;
  */
 final class RestResponseFactory
 {
-    public const ERROR_UNAUTHORIZED = 'rest_unauthorized';
-    public const ERROR_NOT_FOUND = 'rest_not_found';
-    public const ERROR_ABILITY_NOT_FOUND = 'rest_ability_not_found';
-    public const ERROR_ABILITY_INVALID_METHOD = 'rest_ability_invalid_method';
-    public const ERROR_ABILITY_CANNOT_EXECUTE = 'rest_ability_cannot_execute';
-    public const ERROR_CATEGORY_NOT_FOUND = 'rest_ability_category_not_found';
-    public const ERROR_INVALID_METHOD = 'rest_invalid_method';
+    public const string ERROR_UNAUTHORIZED = 'rest_unauthorized';
+    public const string ERROR_NOT_FOUND = 'rest_not_found';
+    public const string ERROR_ABILITY_NOT_FOUND = 'rest_ability_not_found';
+    public const string ERROR_ABILITY_INVALID_METHOD = 'rest_ability_invalid_method';
+    public const string ERROR_ABILITY_CANNOT_EXECUTE = 'rest_ability_cannot_execute';
+    public const string ERROR_CATEGORY_NOT_FOUND = 'rest_ability_category_not_found';
+    public const string ERROR_INVALID_METHOD = 'rest_invalid_method';
 
     /**
      * @param array<string, string> $headers

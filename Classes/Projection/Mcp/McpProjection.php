@@ -21,11 +21,11 @@ use Webconsulting\Abilities\Registry\AbilitiesRegistry;
  * supplies (usually ExecutionContext::mcp() after the server authenticated
  * and gated the session).
  */
-final class McpProjection
+final readonly class McpProjection
 {
     public function __construct(
-        private readonly AbilitiesRegistry $registry,
-        private readonly AbilityExecutor $executor,
+        private AbilitiesRegistry $registry,
+        private AbilityExecutor $executor,
     ) {}
 
     /**

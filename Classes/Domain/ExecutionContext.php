@@ -22,22 +22,22 @@ namespace Webconsulting\Abilities\Domain;
  */
 final readonly class ExecutionContext
 {
-    public const SURFACE_CLI = 'cli';
-    public const SURFACE_MCP = 'mcp';
-    public const SURFACE_REST = 'rest';
-    public const SURFACE_WEBHOOK = 'webhook';
-    public const SURFACE_BACKEND = 'backend';
-    public const SURFACE_FRONTEND = 'frontend';
-    public const SURFACE_PHP = 'php';
+    public const string SURFACE_CLI = 'cli';
+    public const string SURFACE_MCP = 'mcp';
+    public const string SURFACE_REST = 'rest';
+    public const string SURFACE_WEBHOOK = 'webhook';
+    public const string SURFACE_BACKEND = 'backend';
+    public const string SURFACE_FRONTEND = 'frontend';
+    public const string SURFACE_PHP = 'php';
 
     /**
      * The surfaces an ability's `expose` list may name. Webhooks follow the
      * REST exposure (they are HTTP clients), the backend module shows the
      * whole registry, Fluid is limited to read-only abilities.
      */
-    public const PROJECTION_SURFACES = [self::SURFACE_MCP, self::SURFACE_CLI, self::SURFACE_REST];
+    public const array PROJECTION_SURFACES = [self::SURFACE_MCP, self::SURFACE_CLI, self::SURFACE_REST];
 
-    public const SCOPE_WILDCARD = '*';
+    public const string SCOPE_WILDCARD = '*';
 
     /**
      * @param list<string>|null $grantedScopes

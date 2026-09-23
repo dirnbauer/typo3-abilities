@@ -14,11 +14,11 @@ namespace Webconsulting\Abilities\Catalog;
  */
 final readonly class CatalogEntry
 {
-    public const SOURCE_ABILITIES = 'abilities';
-    public const SOURCE_MCP = 'mcp';
-    public const SOURCE_SKILLS = 'skills';
-    public const SOURCE_REST = 'rest';
-    public const SOURCE_CLI = 'cli';
+    public const string SOURCE_ABILITIES = 'abilities';
+    public const string SOURCE_MCP = 'mcp';
+    public const string SOURCE_SKILLS = 'skills';
+    public const string SOURCE_REST = 'rest';
+    public const string SOURCE_CLI = 'cli';
 
     /**
      * @param string $id "namespace/name", unique across the catalogue (abilities keep their name; other sources are prefixed, e.g. "mcp/GetPage", "cli/cache:flush")

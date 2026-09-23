@@ -15,7 +15,7 @@ use Webconsulting\Abilities\Event\BeforeAbilityExecutionEvent;
  */
 final class DraftTitleListener
 {
-    public const PREFIX = '[Draft] ';
+    public const string PREFIX = '[Draft] ';
 
     /** @var list<array{ability: string, ok: bool, surface: string, input: array<string, mixed>}> */
     public static array $seen = [];

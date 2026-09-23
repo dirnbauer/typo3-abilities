@@ -84,7 +84,7 @@ final class SiteInfoAbility extends AbstractAbility
         }
 
         return [
-            'typo3Version' => (new Typo3Version())->getVersion(),
+            'typo3Version' => new Typo3Version()->getVersion(),
             'sites' => $sites,
         ];
     }

@@ -15,18 +15,18 @@ use Webconsulting\Abilities\Registry\AbilitiesRegistry;
  * (mcp__typo3__ability_<ns>_<name>) and validates the declaration against
  * the registry and the site policy before a skill is installed or run.
  */
-final class SkillAbilityContract
+final readonly class SkillAbilityContract
 {
-    public const MCP_TOOL_PREFIX = 'mcp__typo3__';
+    public const string MCP_TOOL_PREFIX = 'mcp__typo3__';
 
-    public const FINDING_MISSING = 'missing';
-    public const FINDING_NOT_EXPOSED = 'not_exposed';
-    public const FINDING_POLICY_DENIED = 'policy_denied';
-    public const FINDING_REVIEW_REQUIRED = 'review_required';
+    public const string FINDING_MISSING = 'missing';
+    public const string FINDING_NOT_EXPOSED = 'not_exposed';
+    public const string FINDING_POLICY_DENIED = 'policy_denied';
+    public const string FINDING_REVIEW_REQUIRED = 'review_required';
 
     public function __construct(
-        private readonly AbilitiesRegistry $registry,
-        private readonly PolicyProvider $policyProvider,
+        private AbilitiesRegistry $registry,
+        private PolicyProvider $policyProvider,
     ) {}
 
     /**

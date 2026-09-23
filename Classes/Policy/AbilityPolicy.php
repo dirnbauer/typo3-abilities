@@ -147,12 +147,6 @@ final readonly class AbilityPolicy
      */
     private function anyMatchesPrefix(array $values, string $pattern): bool
     {
-        foreach ($values as $value) {
-            if ($value === $pattern || str_starts_with($value, $pattern . ':')) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($values, static fn(string $value): bool => $value === $pattern || str_starts_with($value, $pattern . ':'));
     }
 }

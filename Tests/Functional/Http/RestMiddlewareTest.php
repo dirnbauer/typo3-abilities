@@ -22,8 +22,8 @@ final class RestMiddlewareTest extends FunctionalTestCase
 {
     use TypeNarrowing;
 
-    private const EDITOR_TOKEN = 'abl_editor-all';
-    private const ADMIN_LIMITED_TOKEN = 'abl_admin-limited';
+    private const string EDITOR_TOKEN = 'abl_editor-all';
+    private const string ADMIN_LIMITED_TOKEN = 'abl_admin-limited';
 
     protected array $testExtensionsToLoad = ['webconsulting/typo3-abilities'];
 

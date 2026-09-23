@@ -19,12 +19,12 @@ use Webconsulting\Abilities\Domain\ExecutionContext;
  * registry's "resource:operation" scopes: backend module runs, REST tokens
  * (token scopes ∩ user scopes) and CLI --as-user all pass through here.
  */
-final class BackendUserScopeResolver
+final readonly class BackendUserScopeResolver
 {
-    public const GROUP_SCOPES_FIELD = 'tx_abilities_scopes';
+    public const string GROUP_SCOPES_FIELD = 'tx_abilities_scopes';
 
     public function __construct(
-        private readonly ConnectionPool $connectionPool,
+        private ConnectionPool $connectionPool,
     ) {}
 
     /**

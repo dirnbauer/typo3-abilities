@@ -28,7 +28,7 @@ final class DeprecatedClassAliasesTest extends TestCase
         self::assertTrue(class_exists('Webconsulting\Abilities\Catalog\CapabilityCatalog'));
         self::assertSame(
             AbilityCatalog::class,
-            (new \ReflectionClass('Webconsulting\Abilities\Catalog\CapabilityCatalog'))->getName(),
+            new \ReflectionClass('Webconsulting\Abilities\Catalog\CapabilityCatalog')->getName(),
         );
     }
 
@@ -38,7 +38,7 @@ final class DeprecatedClassAliasesTest extends TestCase
         self::assertTrue(class_exists('Webconsulting\Abilities\Catalog\CapabilityEntry'));
         self::assertSame(
             CatalogEntry::class,
-            (new \ReflectionClass('Webconsulting\Abilities\Catalog\CapabilityEntry'))->getName(),
+            new \ReflectionClass('Webconsulting\Abilities\Catalog\CapabilityEntry')->getName(),
         );
     }
 
@@ -48,7 +48,7 @@ final class DeprecatedClassAliasesTest extends TestCase
         self::assertTrue(interface_exists('Webconsulting\Abilities\Catalog\CapabilitySourceInterface'));
         self::assertSame(
             CatalogSourceInterface::class,
-            (new \ReflectionClass('Webconsulting\Abilities\Catalog\CapabilitySourceInterface'))->getName(),
+            new \ReflectionClass('Webconsulting\Abilities\Catalog\CapabilitySourceInterface')->getName(),
         );
     }
 }

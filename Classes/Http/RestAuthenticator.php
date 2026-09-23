@@ -28,15 +28,15 @@ use Webconsulting\Abilities\Security\TokenService;
  *    backend module or client.js); non-GET requests must additionally send
  *    X-Requested-With as a CSRF guard. Scopes = the user's be_groups scopes.
  */
-final class RestAuthenticator
+final readonly class RestAuthenticator
 {
-    public const WORKSPACE_HEADER = 'X-TYPO3-Workspace';
+    public const string WORKSPACE_HEADER = 'X-TYPO3-Workspace';
 
     public function __construct(
-        private readonly TokenService $tokenService,
-        private readonly BackendUserScopeResolver $scopeResolver,
-        private readonly LanguageServiceFactory $languageServiceFactory,
-        private readonly Context $context,
+        private TokenService $tokenService,
+        private BackendUserScopeResolver $scopeResolver,
+        private LanguageServiceFactory $languageServiceFactory,
+        private Context $context,
     ) {}
 
     public function authenticate(ServerRequestInterface $request): ?ExecutionContext

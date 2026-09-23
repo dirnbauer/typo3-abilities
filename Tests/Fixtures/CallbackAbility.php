@@ -23,7 +23,7 @@ use Webconsulting\Abilities\Registry\AbilityInterface;
     sideEffects: ['database:write'],
     destructive: true,
 )]
-final class CallbackAbility implements AbilityInterface
+final readonly class CallbackAbility implements AbilityInterface
 {
     /**
      * @param array<string, mixed> $inputSchema
@@ -32,10 +32,10 @@ final class CallbackAbility implements AbilityInterface
      * @param \Closure(array<string, mixed>, ExecutionContext): (bool|string)|null $onCheckPermission
      */
     public function __construct(
-        private readonly \Closure $onExecute,
-        private readonly ?\Closure $onCheckPermission = null,
-        private readonly array $inputSchema = [],
-        private readonly array $outputSchema = [],
+        private \Closure $onExecute,
+        private ?\Closure $onCheckPermission = null,
+        private array $inputSchema = [],
+        private array $outputSchema = [],
     ) {}
 
     public function getInputSchema(): array

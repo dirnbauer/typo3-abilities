@@ -18,7 +18,7 @@ final class RestResponseFactoryTest extends TestCase
     #[Test]
     public function successEnvelopeAndSecurityHeaders(): void
     {
-        $response = (new RestResponseFactory())->success(['a' => 1], 200, ['X-Total' => '3']);
+        $response = new RestResponseFactory()->success(['a' => 1], 200, ['X-Total' => '3']);
 
         self::assertSame(200, $response->getStatusCode());
         self::assertSame('nosniff', $response->getHeaderLine('X-Content-Type-Options'));
@@ -31,7 +31,7 @@ final class RestResponseFactoryTest extends TestCase
     #[Test]
     public function errorEnvelope(): void
     {
-        $response = (new RestResponseFactory())->error('rest_ability_not_found', 'gone', 404, ['Allow' => 'GET']);
+        $response = new RestResponseFactory()->error('rest_ability_not_found', 'gone', 404, ['Allow' => 'GET']);
 
         self::assertSame(404, $response->getStatusCode());
         self::assertSame('GET', $response->getHeaderLine('Allow'));
@@ -64,7 +64,7 @@ final class RestResponseFactoryTest extends TestCase
     #[Test]
     public function emptyResponseForPreflight(): void
     {
-        $response = (new RestResponseFactory())->empty();
+        $response = new RestResponseFactory()->empty();
 
         self::assertSame(204, $response->getStatusCode());
         self::assertSame('', (string)$response->getBody());

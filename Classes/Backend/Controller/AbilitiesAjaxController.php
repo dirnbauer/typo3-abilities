@@ -32,25 +32,25 @@ use Webconsulting\Abilities\Trace\TraceRepository;
  * the scopes resolved from the user's be_groups (admins: "*"); policy and
  * each ability's checkPermission() govern as on every other surface.
  */
-final class AbilitiesAjaxController
+final readonly class AbilitiesAjaxController
 {
     public function __construct(
-        private readonly AbilitiesRegistry $registry,
-        private readonly AbilityExecutor $executor,
-        private readonly CategoryRegistry $categories,
-        private readonly AbilityCatalog $catalog,
-        private readonly BackendUserScopeResolver $scopeResolver,
-        private readonly TokenService $tokenService,
-        private readonly PolicyProvider $policyProvider,
-        private readonly TraceRepository $traces,
-        private readonly TraceRecorder $traceRecorder,
+        private AbilitiesRegistry $registry,
+        private AbilityExecutor $executor,
+        private CategoryRegistry $categories,
+        private AbilityCatalog $catalog,
+        private BackendUserScopeResolver $scopeResolver,
+        private TokenService $tokenService,
+        private PolicyProvider $policyProvider,
+        private TraceRepository $traces,
+        private TraceRecorder $traceRecorder,
     ) {}
 
     public function list(ServerRequestInterface $request): ResponseInterface
     {
         $query = $request->getQueryParams();
         $definitions = array_values(array_map(
-            fn(AbilityDefinition $definition): array => $this->withPolicy($definition),
+            $this->withPolicy(...),
             $this->registry->getDefinitions(self::filter($query, 'category'), self::filter($query, 'surface')),
         ));
 

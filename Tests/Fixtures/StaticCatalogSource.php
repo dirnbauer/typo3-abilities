@@ -8,14 +8,14 @@ use Webconsulting\Abilities\Catalog\CatalogEntry;
 use Webconsulting\Abilities\Catalog\CatalogSourceInterface;
 
 /** A catalogue source with a fixed list of entries. */
-final class StaticCatalogSource implements CatalogSourceInterface
+final readonly class StaticCatalogSource implements CatalogSourceInterface
 {
     /**
      * @param list<CatalogEntry> $entries
      */
     public function __construct(
-        private readonly string $source,
-        private readonly array $entries,
+        private string $source,
+        private array $entries,
     ) {}
 
     public function getSource(): string

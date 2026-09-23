@@ -16,13 +16,13 @@ use TYPO3\CMS\Core\Database\Query\QueryBuilder;
  * Traces are an append-only observation log written by the TraceRecorder;
  * nothing here writes.
  */
-final class TraceRepository
+final readonly class TraceRepository
 {
-    public const DEFAULT_LIMIT = 50;
-    public const MAX_LIMIT = 200;
+    public const int DEFAULT_LIMIT = 50;
+    public const int MAX_LIMIT = 200;
 
     public function __construct(
-        private readonly ConnectionPool $connectionPool,
+        private ConnectionPool $connectionPool,
     ) {}
 
     /**

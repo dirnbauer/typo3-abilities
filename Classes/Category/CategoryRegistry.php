@@ -21,7 +21,7 @@ final class CategoryRegistry
     /**
      * @var array<string, array{string, string}> slug => [label, description]
      */
-    public const BUILT_IN = [
+    public const array BUILT_IN = [
         'system' => ['System', 'Installation, environment and runtime information.'],
         'content' => ['Content', 'Pages, content elements and records: create, update, move, delete.'],
         'site' => ['Site', 'Site configuration, languages, routing and domains.'],
@@ -92,7 +92,7 @@ final class CategoryRegistry
             yield from $provider->getAbilityCategories();
         }
 
-        foreach ((new \ReflectionClass($provider))->getAttributes(AsAbilityCategory::class) as $attribute) {
+        foreach (new \ReflectionClass($provider)->getAttributes(AsAbilityCategory::class) as $attribute) {
             $declared = $attribute->newInstance();
             yield new AbilityCategory($declared->slug, $declared->label, $declared->description);
         }

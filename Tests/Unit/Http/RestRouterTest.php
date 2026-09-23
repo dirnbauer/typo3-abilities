@@ -37,7 +37,7 @@ final class RestRouterTest extends TestCase
     #[DataProvider('paths')]
     public function matchesRoutesBelowTheBasePath(string $path, ?RestEndpoint $route, array $params): void
     {
-        $matched = (new RestRouter())->match($path, '/abilities/v1');
+        $matched = new RestRouter()->match($path, '/abilities/v1');
 
         if ($route === null) {
             self::assertNull($matched);

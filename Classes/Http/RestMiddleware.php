@@ -21,15 +21,15 @@ use Psr\Log\LoggerInterface;
  * Unexpected exceptions become 500 rest_ability_cannot_execute; the
  * details go to the log, never to the client.
  */
-final class RestMiddleware implements MiddlewareInterface
+final readonly class RestMiddleware implements MiddlewareInterface
 {
     public function __construct(
-        private readonly RestConfiguration $configuration,
-        private readonly RestRouter $router,
-        private readonly RestAuthenticator $authenticator,
-        private readonly RestRequestHandler $handler,
-        private readonly RestResponseFactory $responses,
-        private readonly ?LoggerInterface $logger = null,
+        private RestConfiguration $configuration,
+        private RestRouter $router,
+        private RestAuthenticator $authenticator,
+        private RestRequestHandler $handler,
+        private RestResponseFactory $responses,
+        private ?LoggerInterface $logger = null,
     ) {}
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface

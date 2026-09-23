@@ -26,10 +26,10 @@ use Webconsulting\Abilities\Permission\BackendUserContext;
 #[AsEventListener(identifier: 'abilities/trace-recorder')]
 final class TraceRecorder
 {
-    public const TABLE = 'tx_abilities_trace';
+    public const string TABLE = 'tx_abilities_trace';
 
-    private const MAX_TEXT_LENGTH = 65000;
-    private const PRUNE_PROBABILITY_PERCENT = 2;
+    private const int MAX_TEXT_LENGTH = 65000;
+    private const int PRUNE_PROBABILITY_PERCENT = 2;
 
     private ?int $lastTraceUid = null;
 

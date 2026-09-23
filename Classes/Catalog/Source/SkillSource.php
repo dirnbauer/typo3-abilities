@@ -16,22 +16,22 @@ use Webconsulting\Abilities\Catalog\CatalogSourceInterface;
  * skill is allowed to use. Both extensions are optional — a table that does
  * not exist yields nothing.
  */
-final class SkillSource implements CatalogSourceInterface
+final readonly class SkillSource implements CatalogSourceInterface
 {
-    public const SURFACE_SKILLS = 'skills';
+    public const string SURFACE_SKILLS = 'skills';
 
     /**
      * table => [identifier column, title column, front-matter column, enable conditions]
      *
      * @var array<string, array{string, string, string, array<string, int>}>
      */
-    private const TABLES = [
+    private const array TABLES = [
         'tx_nrllm_skill' => ['name', 'name', 'raw_frontmatter', ['deleted' => 0, 'hidden' => 0, 'enabled' => 1]],
         'tx_skillflow_skill' => ['identifier', 'title', 'metadata', ['deleted' => 0, 'hidden' => 0]],
     ];
 
     public function __construct(
-        private readonly ConnectionPool $connectionPool,
+        private ConnectionPool $connectionPool,
     ) {}
 
     public function getSource(): string

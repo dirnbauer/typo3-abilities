@@ -14,11 +14,11 @@ namespace Webconsulting\Abilities\Category;
  *   final class NewsAbilityCategories {}
  */
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]
-final class AsAbilityCategory
+final readonly class AsAbilityCategory
 {
     public function __construct(
-        public readonly string $slug,
-        public readonly string $label,
-        public readonly string $description = '',
+        public string $slug,
+        public string $label,
+        public string $description = '',
     ) {}
 }

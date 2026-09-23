@@ -38,7 +38,7 @@ final class CatalogSourcesTest extends TestCase
     public function abilitiesSourceDerivesOneInvocationPerExposedSurface(): void
     {
         $registry = new AbilitiesRegistry([new EchoAbility(), new HiddenAbility(), new CallbackAbility(static fn(): mixed => null)]);
-        $entries = [...(new AbilitiesSource($registry, new RestConfiguration(basePath: '/api/abilities')))->getEntries()];
+        $entries = [...new AbilitiesSource($registry, new RestConfiguration(basePath: '/api/abilities'))->getEntries()];
 
         self::assertSame(['test/callback', 'test/echo', 'test/hidden'], array_map(static fn(CatalogEntry $e): string => $e->id, $entries));
 
@@ -123,8 +123,8 @@ final class CatalogSourcesTest extends TestCase
 
         $registry = new AbilitiesRegistry([new EchoAbility()]);
         $projection = new McpProjection($registry, new AbilityExecutor(new SchemaValidator(), new PolicyProvider('/nonexistent/policy.yaml')));
-        self::assertSame([], [...(new McpToolSource($projection))->getEntries()], 'hn/typo3-mcp-server is not installed here');
-        self::assertSame(CatalogEntry::SOURCE_MCP, (new McpToolSource($projection))->getSource());
+        self::assertSame([], [...new McpToolSource($projection)->getEntries()], 'hn/typo3-mcp-server is not installed here');
+        self::assertSame(CatalogEntry::SOURCE_MCP, new McpToolSource($projection)->getSource());
     }
 
     #[Test]

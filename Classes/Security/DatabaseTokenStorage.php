@@ -7,12 +7,12 @@ namespace Webconsulting\Abilities\Security;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 
-final class DatabaseTokenStorage implements TokenStorageInterface
+final readonly class DatabaseTokenStorage implements TokenStorageInterface
 {
-    public const TABLE = 'tx_abilities_token';
+    public const string TABLE = 'tx_abilities_token';
 
     public function __construct(
-        private readonly ConnectionPool $connectionPool,
+        private ConnectionPool $connectionPool,
     ) {}
 
     public function findByHash(string $tokenHash): ?array

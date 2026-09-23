@@ -10,6 +10,7 @@ use PHPUnit\Framework\TestCase;
 use Webconsulting\Abilities\Domain\AbilityDefinition;
 use Webconsulting\Abilities\Domain\ExecutionContext;
 use Webconsulting\Abilities\Domain\RiskTier;
+use Webconsulting\Abilities\Registry\AbilityInterface;
 use Webconsulting\Abilities\Registry\AbstractAbility;
 use Webconsulting\Abilities\Tests\Fixtures\CallbackAbility;
 use Webconsulting\Abilities\Tests\Fixtures\EchoAbility;
@@ -105,7 +106,7 @@ final class AbilityDefinitionTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{class-string<\Webconsulting\Abilities\Registry\AbilityInterface>, string}>
+     * @return iterable<string, array{class-string<AbilityInterface>, string}>
      */
     public static function restMethods(): iterable
     {
@@ -115,7 +116,7 @@ final class AbilityDefinitionTest extends TestCase
     }
 
     /**
-     * @param class-string<\Webconsulting\Abilities\Registry\AbilityInterface> $className
+     * @param class-string<AbilityInterface> $className
      */
     #[Test]
     #[DataProvider('restMethods')]

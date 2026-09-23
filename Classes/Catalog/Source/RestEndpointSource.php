@@ -25,14 +25,14 @@ use Webconsulting\Abilities\Registry\AbilitiesRegistry;
  *    attributes.
  * EXT:reactions and sg-apicore are optional; absent ones yield nothing.
  */
-final class RestEndpointSource implements CatalogSourceInterface
+final readonly class RestEndpointSource implements CatalogSourceInterface
 {
     public function __construct(
-        private readonly RestConfiguration $rest,
-        private readonly AbilitiesRegistry $registry,
-        private readonly ConnectionPool $connectionPool,
-        private readonly ?EndpointDiscoveryService $apiCoreEndpoints = null,
-        private readonly ?ApiCoreConfiguration $apiCoreConfiguration = null,
+        private RestConfiguration $rest,
+        private AbilitiesRegistry $registry,
+        private ConnectionPool $connectionPool,
+        private ?EndpointDiscoveryService $apiCoreEndpoints = null,
+        private ?ApiCoreConfiguration $apiCoreConfiguration = null,
     ) {}
 
     public function getSource(): string

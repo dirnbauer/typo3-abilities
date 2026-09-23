@@ -34,7 +34,7 @@ use Webconsulting\Abilities\Registry\AbstractAbility;
 )]
 final class CreatePageDraftAbility extends AbstractAbility
 {
-    private const NEW_ID = 'NEW_abilities_page_draft';
+    private const string NEW_ID = 'NEW_abilities_page_draft';
 
     public function getInputSchema(): array
     {

@@ -10,7 +10,7 @@ namespace Webconsulting\Abilities\Domain;
  */
 final readonly class AbilityCategory
 {
-    private const SLUG_PATTERN = '/^[a-z0-9][a-z0-9\-]*$/';
+    private const string SLUG_PATTERN = '/^[a-z0-9][a-z0-9\-]*$/';
 
     public function __construct(
         public string $slug,

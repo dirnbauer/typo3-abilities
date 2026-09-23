@@ -12,7 +12,7 @@ use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
  */
 final readonly class RestConfiguration
 {
-    public const DEFAULT_BASE_PATH = '/abilities/v1';
+    public const string DEFAULT_BASE_PATH = '/abilities/v1';
 
     public function __construct(
         public bool $enabled = true,

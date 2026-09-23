@@ -15,11 +15,11 @@ use Webconsulting\Abilities\Registry\AbilitiesRegistry;
  * The registry's own abilities as catalogue entries, with one invocation per
  * surface the ability is exposed to plus the PHP call.
  */
-final class AbilitiesSource implements CatalogSourceInterface
+final readonly class AbilitiesSource implements CatalogSourceInterface
 {
     public function __construct(
-        private readonly AbilitiesRegistry $registry,
-        private readonly RestConfiguration $rest,
+        private AbilitiesRegistry $registry,
+        private RestConfiguration $rest,
     ) {}
 
     public function getSource(): string
