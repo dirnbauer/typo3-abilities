@@ -4,6 +4,14 @@ All notable changes to `webconsulting/typo3-abilities` are documented here.
 This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/).
 
+## 1.3.2 — 2026-10-24
+
+### Changed
+
+- Refresh compatible Composer development tools and dependency audit coverage.
+- Add one local test entry point with explicit PHP-version validation and the existing quality checks.
+- Pin current CI action releases and patched MariaDB images; require PHP 8.4 and 8.5 checks.
+
 ## 1.3.0 — 2026-09-23
 
 A maintenance release: dependencies, PHP 8.4 idioms and a backend module that
