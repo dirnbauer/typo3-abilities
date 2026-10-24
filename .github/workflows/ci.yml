@@ -165,5 +165,5 @@ jobs:
       - name: Render with the official TYPO3 render-guides
         run: |
           docker run --rm --pull always -v "$(pwd)":/project \
-            ghcr.io/typo3-documentation/render-guides:latest \
+            ghcr.io/typo3-documentation/render-guides:0.47.3@sha256:6fbedbf1b4d546cc69e01b1fa1b4f6c0071c0c4a619f0171dde57596f0977834 \
             --config=Documentation --fail-on-log

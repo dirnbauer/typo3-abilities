@@ -9,6 +9,7 @@ and [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - Refresh compatible Composer development tools and dependency audit coverage.
+- Use the published Composer permalink namespace and a pinned current documentation renderer.
 - Add one local test entry point with explicit PHP-version validation and the existing quality checks.
 - Pin current CI action releases and patched MariaDB images; require PHP 8.4 and 8.5 checks.
 
